@@ -1,0 +1,20 @@
+{
+  "name": "codex-moon-harness-local",
+  "interface": {
+    "displayName": "Codex Moon Harness Local"
+  },
+  "plugins": [
+    {
+      "name": "codex-moon-harness",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -69,6 +69,26 @@
 - 새 파일은 planning 입력 계약, planning 산출물 기준, 전용 planner 역할, gate, 실행 안정성 중 하나에 기여해야 한다.
 - 상위 설계 생성 흐름은 이 저장소의 우선순위가 아니다.
 
+## Codex Plugin
+
+이 저장소는 repo root 자체가 Codex plugin root가 되도록 구성되어 있다.
+
+- manifest: [.codex-plugin/plugin.json](/Users/moon/Workspace/codex-moon-harness/.codex-plugin/plugin.json)
+- marketplace: [.agents/plugins/marketplace.json](/Users/moon/Workspace/codex-moon-harness/.agents/plugins/marketplace.json)
+- bundled skills: [skills/](/Users/moon/Workspace/codex-moon-harness/skills)
+
+로컬에서 테스트하려면 Codex plugin directory에서 repo marketplace를 선택하거나 CLI로 marketplace root를 추가한다.
+
+```bash
+codex plugin marketplace add ./ 
+```
+
+설치 후 사용할 수 있는 주요 skill:
+
+- `moondex-runtime`
+- `moondex-cmux`
+- `moondex-task-planner`
+
 ## 다음 우선순위
 
 - [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/WORK_TRACKER.md)의 W-01부터 W-16까지 완료됐다.
