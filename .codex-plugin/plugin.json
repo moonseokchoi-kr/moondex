@@ -1,0 +1,8 @@
+{
+  "name": "codex-moon-harness",
+  "version": "0.1.0",
+  "description": "Codex-oriented SDD harness inspired by moon-harness.",
+  "interface": {
+    "displayName": "Codex Moon Harness"
+  }
+}

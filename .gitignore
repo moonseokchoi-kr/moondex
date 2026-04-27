@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+.codex/state/
+.moondex/
+.tmp-codex-home/
+.tmp-codex-state/
+.tmp-task-planner-output.md
+target/
+worktrees/
