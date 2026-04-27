@@ -1,0 +1,743 @@
+# Plan Set
+
+이 문서는 [task-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md)의 각 task를 raw-input-first 기준의 executor-ready `plan`으로 상세화한 샘플이다.
+
+## P-T01 For T-01 Composition Root And Database Bootstrap
+
+- Plan Metadata:
+  - `plan_id`: P-T01
+  - `task_id`: T-01
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - `main()`에서 AppDatabase 생성, initialize 호출, `ProviderScope` override 주입을 하나의 startup contract로 고정한다.
+  - 기본 카테고리 16개가 first-run에만 시드되도록 보장한다.
+- Non-Goals:
+  - 전역 theme wiring
+  - feature screen 레이아웃 작업
+  - reset data flow
+- Ownership:
+  - allow: `lib/main.dart`, `lib/application/providers/database_provider.dart`, `lib/data/database/`, `test/data/database/`
+  - deny: `lib/features/`, `lib/core/theme/`
+  - shared_contract_change: true
+- Inputs And Outputs:
+  - input: existing `AppDatabase`, `DatabaseInitializer`, category default seed source
+  - output: composition root startup sequence, injected database provider contract, idempotent seeding behavior
+  - error: initialization failure must be logged and must not crash startup
+- Implementation Notes:
+  - arch D1에 따라 DB init은 `ProviderScope` 생성 이전에 완료되어야 한다.
+  - provider는 `overrideWithValue` injection만 허용하고 direct construction fallback을 두지 않는다.
+  - non-fatal startup rule 때문에 initializer error path를 명시적으로 다뤄야 한다.
+- Execution Steps:
+  - Step 1: `lib/data/database/database_initializer.dart`와 category default init 경로를 읽고 first-run 판정 지점을 고정한다.
+    - 이유: seed idempotency 기준이 먼저 명확해야 main wiring을 안전하게 붙일 수 있다.
+    - 완료 기준: initialize contract와 duplicate 방지 기준이 문서화된다.
+  - Step 2: `lib/application/providers/database_provider.dart`를 추가하거나 보강해 main override 전용 provider contract를 만든다.
+    - 이유: composition root와 runtime provider 생성 경계를 분리해야 한다.
+    - 완료 기준: appDatabaseProvider가 override 없이는 사용 불가한 형태가 된다.
+  - Step 3: `lib/main.dart`에서 AppDatabase 생성 -> initialize -> ProviderScope override -> runApp 순서로 startup flow를 연결한다.
+    - 이유: F1의 핵심은 startup order 자체다.
+    - 완료 기준: startup path가 단일 sequence로 보인다.
+  - Step 4: initializer tests를 추가해 first-run, re-run, graceful error path를 검증한다.
+    - 이유: 이 task의 회귀 위험은 중복 시드와 fatal startup이다.
+    - 완료 기준: seed behavior tests가 통과한다.
+- Checkpoints And Fallbacks:
+  - checkpoint: initialize가 first-run/re-run을 구분할 수 있는지 확인
+  - blocked: 기존 initializer가 DB lifecycle 외 side-effect를 과도하게 끌고 있으면 분리 필요
+  - fallback: main wiring 전에 initializer adapter를 만들어 startup contract만 먼저 고정
+- Acceptance Criteria:
+  - first run seeds default categories exactly once
+  - subsequent runs do not duplicate categories
+  - app still boots on init error with logging
+- Test Requirements:
+  - unit: initializer seeds once and skips duplicates
+  - integration: app startup exposes seeded categories to downstream providers
+  - regression risk: composition root ordering
+- Verification Commands:
+  - minimum: `flutter test test/data/database/database_initializer_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: earliest foundation task
+  - rollout risk: startup regression blocks all downstream work
+  - follow-up: T-04 route gate and T-08/T-10 reset semantics depend on this database contract
+
+## P-T02 For T-02 Global Theme Token Infrastructure
+
+- Plan Metadata:
+  - `plan_id`: P-T02
+  - `task_id`: T-02
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - Stitch token을 `lib/core/theme/`에 내리고 모든 화면이 같은 theme authority를 상속하게 만든다.
+  - `google_fonts` Inter와 Material 3 component theme를 전역으로 연결한다.
+- Non-Goals:
+  - category visual mapping
+  - feature별 detailed layout 구현
+- Ownership:
+  - allow: `lib/core/theme/`, `lib/app/app.dart`, `pubspec.yaml`, theme-related tests
+  - deny: `lib/features/**/presentation/screens/` 대규모 레이아웃 변경
+  - shared_contract_change: true
+- Inputs And Outputs:
+  - input: spec F2 token table, arch D2, ui typography/color rules
+  - output: `buildMoneyTrackTheme()`, tokenized ColorScheme/TextTheme/ThemeExtension, Inter dependency wiring
+  - error: token mismatch or missing dependency should fail analyze/test
+- Implementation Notes:
+  - post-F2 rule은 hardcoded colors/fonts 금지다.
+  - ThemeExtension로 warning/uncategorized/divider를 보강해야 한다.
+  - 이 task는 touched file 범위에서 token consumption path까지 확인해야 한다.
+- Execution Steps:
+  - Step 1: spec F2와 arch theme section에서 color/typography/component tokens를 표로 추출한다.
+    - 이유: source token이 흔들리면 후속 UI task가 모두 다른 스타일을 쓸 수 있다.
+    - 완료 기준: primary/success/error/warning/surface/background/text/divider token map이 고정된다.
+  - Step 2: `lib/core/theme/`에 color scheme, text theme, theme extension, component themes, entrypoint를 만든다.
+    - 이유: single theme authority를 코드 구조에서 강제해야 한다.
+    - 완료 기준: theme module 1곳에서 모든 핵심 토큰을 조회할 수 있다.
+  - Step 3: `pubspec.yaml`와 `lib/app/app.dart`를 갱신해 Inter + `buildMoneyTrackTheme()`를 MaterialApp에 연결한다.
+    - 이유: theme module은 연결되지 않으면 의미가 없다.
+    - 완료 기준: app entrypoint가 shared theme를 사용한다.
+  - Step 4: 최소 smoke test와 touched UI 파일에서 hardcoded token 제거 여부를 확인한다.
+    - 이유: 실제 소비 경로가 없으면 token authority가 공허해진다.
+    - 완료 기준: theme build regression test가 존재한다.
+- Checkpoints And Fallbacks:
+  - checkpoint: `google_fonts` resolve와 theme build가 analyze 통과
+  - blocked: 기존 widget tree가 local Theme override를 과도하게 사용하면 cleanup 필요
+  - fallback: full migration 전이라도 touched files에서 hardcoded token 사용 금지
+- Acceptance Criteria:
+  - MaterialApp uses shared theme entrypoint
+  - Inter typography is globally wired
+  - touched files do not add new hardcoded colors/fonts
+- Test Requirements:
+  - unit: token mapping and theme build smoke
+  - regression: no missing theme extension lookups
+  - regression risk: UI-wide visual drift
+- Verification Commands:
+  - minimum: `flutter test test/core/theme/theme_data_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: before any screen redesign tasks
+  - rollout risk: broad visual regressions
+  - follow-up: T-03, T-05~T-10 all consume this module
+
+## P-T03 For T-03 Shared Category Visual Contract
+
+- Plan Metadata:
+  - `plan_id`: P-T03
+  - `task_id`: T-03
+  - `status`: ready
+  - `priority`: medium
+  - `owner_role`: implementer
+- Goal:
+  - category ID를 icon/background color로 해석하는 단일 mapping contract와 fallback 규칙을 고정한다.
+- Non-Goals:
+  - category CRUD UI
+  - feature-level rendering logic
+- Ownership:
+  - allow: `lib/core/category/`, `test/core/category/`
+  - deny: `lib/features/**/presentation/`
+  - shared_contract_change: true
+- Inputs And Outputs:
+  - input: spec category seed assumptions, arch D4, UI category icon expectations
+  - output: default 16-category mapping, custom fallback path, reusable import contract
+  - error: unknown category must still render via fallback
+- Implementation Notes:
+  - category ID source of truth가 ambiguous하면 display name mapping으로 우회하지 않는다.
+  - F3/F4/F5/F7 동일 mapping 사용이 핵심이다.
+- Execution Steps:
+  - Step 1: raw input에서 default category IDs와 대응 visual token을 정리한다.
+    - 이유: mapping source가 먼저 고정돼야 downstream consumer drift를 막을 수 있다.
+    - 완료 기준: 16개 default category list와 fallback policy가 정리된다.
+  - Step 2: `lib/core/category/category_icon_mapping.dart`를 작성해 default mapping과 custom fallback을 구현한다.
+    - 이유: shared contract를 중앙 모듈로 강제해야 한다.
+    - 완료 기준: 단일 API로 icon/backgroundColor를 얻을 수 있다.
+  - Step 3: 최소 하나의 consumer path에서 import/use pattern을 확인하고 mapping tests를 추가한다.
+    - 이유: dead module로 끝나지 않게 해야 한다.
+    - 완료 기준: mapping coverage/fallback test가 있다.
+- Checkpoints And Fallbacks:
+  - checkpoint: 16개 default IDs 모두 unique mapping 보유
+  - blocked: default category canonical IDs가 raw input만으로 불명확하면 seed source와 대조 필요
+  - fallback: custom category는 neutral fallback만 허용
+- Acceptance Criteria:
+  - all default categories resolve to icon/color
+  - custom categories render with fallback
+  - consumers can import one shared mapping path
+- Test Requirements:
+  - unit: mapping coverage and fallback
+  - regression risk: inconsistent category visuals across screens
+- Verification Commands:
+  - minimum: `flutter test test/core/category/category_icon_mapping_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: after T-02, before UI feature tasks
+  - rollout risk: visual inconsistency if consumer bypasses mapping
+  - follow-up: T-05, T-06, T-07, T-09A/T-09B/T-09C consume this contract
+
+## P-T04 For T-04 App Shell, Navigation, And Route Gate Contracts
+
+- Plan Metadata:
+  - `plan_id`: P-T04
+  - `task_id`: T-04
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - onboarding redirect, 4-tab bottom nav shell, Vault redirect, reset 후 onboarding 복귀 경로를 공통 route contract로 고정한다.
+- Non-Goals:
+  - Home/Transactions/Settings detailed screen composition
+  - salary day persistence logic 자체
+- Ownership:
+  - allow: `lib/core/routing/`, app shell/navigation entry files, shell-level tests
+  - deny: feature-internal widget trees
+  - shared_contract_change: true
+- Inputs And Outputs:
+  - input: arch D5, routing section, onboarding completion gate semantics, settings/categories destinations
+  - output: stable shell contract, route redirect rules, reusable navigation semantics for downstream screens
+  - error: route loops or state loss on tab switch must be caught
+- Implementation Notes:
+  - 이 task는 screen task보다 먼저 shell semantics를 고정하는 역할이다.
+  - Vault는 실제 기능이 아니라 placeholder redirect contract다.
+  - reset -> onboarding return path는 T-08/T-10과 공유되므로 이 task에서 contract를 먼저 고정해야 한다.
+- Execution Steps:
+  - Step 1: arch routing, bottom nav, onboarding gate requirements를 추출해 route state diagram을 만든다.
+    - 이유: shared semantics를 코드로 바로 쓰기 전에 흐름을 고정해야 한다.
+    - 완료 기준: onboarding incomplete/completed, tab switch, reset return path가 같은 diagram에 정리된다.
+  - Step 2: shell routing 구조와 bottom navigation state preservation 방식을 코드에 반영한다.
+    - 이유: downstream screens는 shell contract 위에서만 안전하게 구현할 수 있다.
+    - 완료 기준: 4-tab shell과 Vault redirect path가 존재한다.
+  - Step 3: onboarding completion redirect와 reset 후 onboarding 복귀 규칙을 wiring한다.
+    - 이유: first-run과 reset semantics는 여러 feature가 공유한다.
+    - 완료 기준: route gate rule이 provider state와 연결된다.
+  - Step 4: shell-level tests로 tab state preservation, redirect correctness, reset return path를 검증한다.
+    - 이유: 이 task의 리스크는 cross-feature navigation breakage다.
+    - 완료 기준: 주요 route contract tests가 존재한다.
+- Checkpoints And Fallbacks:
+  - checkpoint: onboarding completion state가 shell redirect와 1:1 대응
+  - blocked: 기존 app router가 shell 구조를 수용하지 못하면 staged migration 필요
+  - fallback: screen 구현 전 shell-only route contract tests부터 고정
+- Acceptance Criteria:
+  - onboarding gate behavior is deterministic
+  - bottom nav shell preserves tab state
+  - Vault redirect and settings/categories entry paths are explicit
+  - reset path can return user to onboarding
+- Test Requirements:
+  - integration/widget: routing and tab preservation tests
+  - regression risk: cross-feature navigation loops
+- Verification Commands:
+  - minimum: `flutter test test/core/routing`
+  - full: `flutter analyze && flutter test`
+- Current Coverage Gap:
+  - 현재 repo에는 `test/core/routing` 타깃이 없다.
+  - T-04 구현 전 또는 구현 중 shell/routing widget test를 새로 추가해야 한다.
+- Integration Notes:
+  - merge order: before screen implementation tasks
+  - rollout risk: shell regressions affect multiple features at once
+  - follow-up: T-05~T-10 should reuse this contract instead of redefining navigation locally
+
+## P-T05 For T-05 Home Screen Redesign
+
+- Plan Metadata:
+  - `plan_id`: P-T05
+  - `task_id`: T-05
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - Home canonical layout를 구현하고 cycle/budget/recent transaction/unclassified banner/CTA를 coherent screen으로 연결한다.
+- Non-Goals:
+  - Quick Expense step internals
+  - Transactions full screen
+- Ownership:
+  - allow: `lib/features/home/`
+  - deny: `lib/features/transaction_history/`, `lib/features/quick_expense/`, shell-level routing files
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: theme tokens, category mapping, home data requirements, shell navigation contract
+  - output: redesigned Home screen and stable provider data shape
+  - error: empty/unclassified states must not crash
+- Implementation Notes:
+  - spec F3 hierarchy와 API home provider data contract를 같이 만족해야 한다.
+  - navigation 자체 정의는 T-04를 소비만 해야 한다.
+- Execution Steps:
+  - Step 1: home provider data shape를 current cycle, budget, unclassified count, recent transactions 중심으로 고정한다.
+    - 이유: UI skeleton보다 provider contract가 먼저 안정돼야 rendering branch가 명확해진다.
+    - 완료 기준: Home screen이 기대하는 state model이 고정된다.
+  - Step 2: screen skeleton을 AppBar -> Hero -> Metrics Grid -> Banner -> Recent Section -> CTA 순으로 세운다.
+    - 이유: canonical hierarchy를 먼저 반영해야 세부 위젯 분리가 쉬워진다.
+    - 완료 기준: major sections가 모두 렌더된다.
+  - Step 3: 섹션을 widgets로 분리하고 category mapping/theme token을 연결한다.
+    - 이유: 재사용성과 token consistency를 확보해야 한다.
+    - 완료 기준: hardcoded styling 없이 주요 sections가 완성된다.
+  - Step 4: transactions, quick expense, settings entry를 T-04 shell contract에 맞게 연결하고 empty/unclassified conditional rendering을 검증한다.
+    - 이유: 홈은 여러 feature의 진입 허브다.
+    - 완료 기준: CTA와 banner entry가 shell contract를 따른다.
+- Checkpoints And Fallbacks:
+  - checkpoint: recent transactions와 unclassified banner가 provider data shape와 맞는지 확인
+  - blocked: home provider가 cycle/budget/transactions를 안정적으로 조합하지 못하면 adapter layer 필요
+  - fallback: UI skeleton 먼저, data shaping은 provider 내부에 한정
+- Acceptance Criteria:
+  - canonical home hierarchy is visible
+  - unclassified banner is conditional
+  - CTA/navigation entry points resolve correctly
+- Test Requirements:
+  - widget: home render and major section visibility
+  - integration: CTA navigation and unclassified banner path
+  - regression risk: provider shape drift
+- Verification Commands:
+  - minimum: `flutter test test/features/home/home_widgets_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: after T-04, before T-07
+  - rollout risk: home acts as feature hub
+  - follow-up: T-07 depends on home CTA semantics
+
+## P-T06 For T-06 Transactions Screen And Paging Contract
+
+- Plan Metadata:
+  - `plan_id`: P-T06
+  - `task_id`: T-06
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - 날짜 그룹핑과 DB-level paging을 갖는 Transactions 화면을 구현한다.
+- Non-Goals:
+  - Quick Expense modal
+  - category CRUD dialogs
+- Ownership:
+  - allow: `lib/features/transaction_history/`, transaction-history tests
+  - deny: `lib/features/home/`, `lib/features/quick_expense/`
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: transaction repository paging interface, category mapping, theme tokens, shell route contract
+  - output: paged grouped history screen with stable scroll/load behavior
+  - error: no in-memory `.sublist()` fallback
+- Implementation Notes:
+  - arch D6가 핵심이다. LIMIT/OFFSET contract를 깨면 안 된다.
+  - grouped rendering과 paging state가 함께 움직여야 한다.
+- Execution Steps:
+  - Step 1: transaction list provider/notifier에서 paging filter state와 getPage contract를 정리한다.
+    - 이유: DB-level paging contract가 먼저 고정돼야 UI 구현이 의미 있다.
+    - 완료 기준: provider가 offset/limit 또는 equivalent page state를 사용한다.
+  - Step 2: screen skeleton에 header/filter slot/date group list를 구성한다.
+    - 이유: group header와 list item 구조를 먼저 고정해야 data adapter를 맞출 수 있다.
+    - 완료 기준: grouped list UI가 보인다.
+  - Step 3: list item에 category mapping, amount color semantics, empty state를 연결한다.
+    - 이유: spec F4의 시각적 의미를 반영해야 한다.
+    - 완료 기준: income/expense/uncategorized 표현이 분명하다.
+  - Step 4: scroll load와 filter/search entry path를 검증하고 in-memory paging 우회가 없는지 확인한다.
+    - 이유: 이 task의 핵심 회귀 포인트다.
+    - 완료 기준: paging integration tests가 통과한다.
+- Checkpoints And Fallbacks:
+  - checkpoint: repository paging path가 실제 DB query인지 확인
+  - blocked: existing repo가 page contract를 충분히 노출하지 않으면 adapter 추가 필요
+  - fallback: UI before optimization은 허용하지 않음, paging contract를 먼저 고정
+- Acceptance Criteria:
+  - DB-level paging works
+  - date grouping renders correctly
+  - empty state and filter entry path are preserved
+- Test Requirements:
+  - integration: paging, scroll load, filter path
+  - regression risk: silent in-memory paging regression
+- Verification Commands:
+  - minimum: `flutter test test/data/repositories/transaction_repository_impl_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: parallel-safe with T-08/T-09A/T-10 after T-03/T-04
+  - rollout risk: performance regressions on large histories
+  - follow-up: T-11 should explicitly exercise paging path
+
+## P-T07 For T-07 Quick Expense Modal And Home Invalidation
+
+- Plan Metadata:
+  - `plan_id`: P-T07
+  - `task_id`: T-07
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - 3-step quick expense modal을 구현하고 저장 후 home invalidation contract를 완성한다.
+- Non-Goals:
+  - onboarding flow
+  - settings reset semantics
+- Ownership:
+  - allow: `lib/features/quick_expense/`, quick-expense tests
+  - deny: `lib/features/onboarding/`, `lib/features/cycle_management/`
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: home CTA entry, category mapping, create quick expense use case, home invalidation targets
+  - output: 3-step modal flow with reliable save -> refresh behavior
+  - error: save failure must present retry/abort path
+- Implementation Notes:
+  - arch F5 state machine과 provider invalidation strategy를 같이 만족해야 한다.
+  - T-05 Home data contract와 직접 연결되므로 merge order가 중요하다.
+- Execution Steps:
+  - Step 1: quick expense state model을 amount/category/confirmation 3-step 기준으로 고정한다.
+    - 이유: step state가 먼저 안정돼야 UI split이 가능하다.
+    - 완료 기준: modal state machine이 정의된다.
+  - Step 2: amount input, category selection, confirmation step UI를 분리 구현한다.
+    - 이유: 각 단계의 책임이 달라서 독립 테스트가 필요하다.
+    - 완료 기준: step indicator 포함 3단계 흐름이 이어진다.
+  - Step 3: save action과 error handling, recent category path를 연결한다.
+    - 이유: 단순 UI가 아니라 저장 성공/실패 semantics가 중요하다.
+    - 완료 기준: create expense use case 호출과 error path가 구현된다.
+  - Step 4: save 후 home providers invalidation과 modal close sequencing을 검증한다.
+    - 이유: 이 task의 핵심 shared contract는 home refresh다.
+    - 완료 기준: home refresh integration path가 테스트된다.
+- Checkpoints And Fallbacks:
+  - checkpoint: save 후 invalidation 대상 provider 목록이 명확한지 확인
+  - blocked: home provider contract가 아직 안정되지 않았으면 T-05 선행 필요
+  - fallback: modal UI 완료 후에도 save/invalidation path merge는 T-05 완료 이후
+- Acceptance Criteria:
+  - 3-step progression and indicator work
+  - category selection and confirmation path complete
+  - successful save refreshes Home
+- Test Requirements:
+  - integration/E2E: complete modal flow and home refresh
+  - regression risk: stale Home after save
+- Verification Commands:
+  - minimum: `flutter test test/domain/usecases/create_quick_expense_usecase_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: after T-05
+  - rollout risk: invalidation race conditions
+  - follow-up: T-11 must include home -> quick expense -> home refresh scenario
+
+## P-T08 For T-08 Onboarding Flow And Salary Day Setup
+
+- Plan Metadata:
+  - `plan_id`: P-T08
+  - `task_id`: T-08
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - permission -> salary day -> completion onboarding과 cycle creation semantics를 구현한다.
+- Non-Goals:
+  - settings salary day change dialog
+  - category management
+- Ownership:
+  - allow: `lib/features/onboarding/`, onboarding-related application logic, onboarding tests
+  - deny: `lib/features/cycle_management/`
+  - shared_contract_change: true
+- Inputs And Outputs:
+  - input: permission state, salary day use case, onboarding completion persistence, route gate contract
+  - output: stable onboarding flow and completion state consumed by routing
+  - error: invalid salary day or denied permission must not crash flow
+- Implementation Notes:
+  - cycle creation semantics와 route gate가 함께 맞물린다.
+  - 이 task는 screen UI와 application flow를 동시에 가진다.
+- Execution Steps:
+  - Step 1: onboarding state model과 completion persistence contract를 고정한다.
+    - 이유: route gate는 onboarding completion state에 의존한다.
+    - 완료 기준: step index, completion flag, salary day state가 정리된다.
+  - Step 2: permission step, salary day step, completion step UI와 step indicator를 구현한다.
+    - 이유: 3-step flow는 UI와 state가 같이 움직여야 한다.
+    - 완료 기준: 모든 onboarding steps가 canonical 구조로 렌더된다.
+  - Step 3: salary day setup use case와 cycle creation/update semantics를 연결한다.
+    - 이유: 이 task의 시스템 효과는 cycle 생성이다.
+    - 완료 기준: valid salary day submission이 persistence를 바꾼다.
+  - Step 4: completion persistence와 T-04 route gate 동작을 함께 검증한다.
+    - 이유: first-run redirect breakage가 주요 리스크다.
+    - 완료 기준: onboarding completion -> Home entry path가 통과한다.
+- Checkpoints And Fallbacks:
+  - checkpoint: salary day validation range와 cycle creation semantics가 맞는지 확인
+  - blocked: route gate contract가 불안정하면 T-04 수정 필요
+  - fallback: onboarding UI와 completion persistence를 먼저 고정하고 cycle wiring을 단계적으로 연결
+- Acceptance Criteria:
+  - permission -> salary day -> completion flow works
+  - salary day persists and creates/updates cycle
+  - route gate reflects onboarding completion
+- Test Requirements:
+  - integration/E2E: first-run onboarding flow
+  - regression risk: broken first-launch path
+- Verification Commands:
+  - minimum: `flutter test test/domain/usecases/set_salary_day_usecase_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: after T-04
+  - rollout risk: app entry redirect regressions
+  - follow-up: T-10 reset path returns to this flow
+
+## P-T09A For T-09A Category Management Screen Read Model And Section Composition
+
+- Plan Metadata:
+  - `plan_id`: P-T09A
+  - `task_id`: T-09A
+  - `status`: ready
+  - `priority`: medium
+  - `owner_role`: implementer
+- Goal:
+  - `CategoriesScreen`를 `categoriesProvider` 기반 read-only composition으로 정리하고 default/custom section rendering을 안정화한다.
+- Non-Goals:
+  - add/edit/delete dialog mutation
+  - settings reset flow
+- Ownership:
+  - allow: `lib/features/category_management/presentation/screens/categories_screen.dart`, `lib/features/category_management/presentation/widgets/`, `lib/application/providers/category_providers.dart`, `test/features/category_management/`
+  - deny: `lib/features/category_management/presentation/dialogs/`, `lib/features/home/`, `lib/features/transaction_history/`
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: `categoriesProvider`, `CategoriesResult.defaults/customs`, shared category visual contract
+  - output: stable read/list composition for loading/error/empty/list state
+  - error: provider contract drift or stale integration assumptions must surface explicitly
+- Implementation Notes:
+  - read path와 mutation wiring을 분리하는 것이 핵심이다.
+  - `categoriesProvider`의 공개 반환 타입은 바꾸지 않는다.
+- Execution Steps:
+  - Step 1: screen read-model/state branching을 `categoriesProvider` 기준으로 고정한다.
+    - 이유: shared provider contract를 먼저 고정해야 section 책임을 분리할 수 있다.
+    - 완료 기준: `CategoriesScreen`이 read path만 소비한다.
+  - Step 2: default/custom section widgets를 presentational read widgets로 단순화한다.
+    - 이유: mutation/dialog 의존이 남아 있으면 다시 범위가 섞인다.
+    - 완료 기준: 두 섹션이 plain category list만으로 렌더된다.
+  - Step 3: screen-level loading/error/empty/list composition을 확정한다.
+    - 이유: read-state 안정성 자체가 이 task의 주 목적이다.
+    - 완료 기준: state matrix가 하나의 screen contract로 설명된다.
+  - Step 4: widget tests와 entry smoke를 추가한다.
+    - 이유: split 이후 최소 검증은 read-state matrix다.
+    - 완료 기준: loading/error/defaults-only/customs-empty/both-empty가 고정된다.
+- Checkpoints And Fallbacks:
+  - checkpoint: `categoriesProvider` 공개 계약 변경 없이 read-model 정리가 가능한지 확인
+  - blocked: home/transaction consumer까지 함께 수정해야만 안정화되는 경우
+  - fallback: screen-local pure mapper로 되돌리고 CRUD scenario는 `T-09C`로 넘김
+- Acceptance Criteria:
+  - default/custom sections render stably
+  - read path is explained only via `categoriesProvider`
+  - loading/error/empty states do not break layout
+- Test Requirements:
+  - widget: state branching matrix
+  - focused integration smoke: category screen entry and section visibility
+- Verification Commands:
+  - minimum: `flutter test test/domain/usecases/get_categories_usecase_test.dart`
+  - full: `flutter analyze && flutter test test/domain/usecases/get_categories_usecase_test.dart test/data/repositories/category_repository_impl_test.dart`
+- Integration Notes:
+  - merge order: before `P-T09B` and `P-T09C`
+  - rollout risk: stale CRUD scenario assumptions can obscure read-state regressions
+  - follow-up: `P-T09B` reintroduces add/edit entry on top of this stable screen
+
+## P-T09B For T-09B Category Add/Edit Dialog Flow
+
+- Plan Metadata:
+  - `plan_id`: P-T09B
+  - `task_id`: T-09B
+  - `status`: ready
+  - `priority`: medium
+  - `owner_role`: implementer
+- Goal:
+  - custom category add/edit dialog를 async-safe mutation flow로 정리하고, 성공 시에만 dialog close와 provider refresh가 일어나게 만든다.
+- Non-Goals:
+  - delete flow
+  - home recent transactions UI
+- Ownership:
+  - allow: `lib/features/category_management/presentation/dialogs/add_edit_category_dialog.dart`, `icon_color_picker.dart`, `custom_categories_section.dart`, `categories_screen.dart`, `lib/application/providers/category_providers.dart`, `test/features/category_management/`
+  - deny: `delete_confirmation_dialog.dart`, `lib/features/home/`, `lib/features/quick_expense/`, `lib/features/transaction_history/`
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: `addCategoryProvider`, `editCategoryProvider`, default-category edit protection, existing dialog and picker UI
+  - output: add/edit dialog that awaits mutation success and refreshes category list
+  - error: invalid/duplicate names or provider failures must keep the dialog open
+- Implementation Notes:
+  - provider-owned invalidation semantics를 UI로 끌어오지 않는다.
+  - default categories는 계속 read-only다.
+- Execution Steps:
+  - Step 1: add/edit entry orchestration을 screen 또는 screen-coordinated path로 정리한다.
+    - 이유: dialog lifecycle과 mutation lifecycle이 한 곳에서 만나야 async 제어가 가능하다.
+    - 완료 기준: add/edit entry owner가 하나로 수렴한다.
+  - Step 2: dialog confirm contract를 await 가능한 save flow로 바꾼다.
+    - 이유: 성공 전에 닫히는 dialog는 stale state를 만든다.
+    - 완료 기준: success에서만 pop, failure에서는 form state 유지.
+  - Step 3: screen-level callback이 provider futures를 await하고 성공 후에만 feedback을 보여준다.
+    - 이유: refresh contract는 provider layer에 남기되 UX timing은 screen에서 보장해야 한다.
+    - 완료 기준: add/edit success always refreshes `categoriesProvider`.
+  - Step 4: focused dialog/widget test와 scenario selector 정렬을 수행한다.
+    - 이유: 현재 integration selector가 stale 해서 false negative가 난다.
+    - 완료 기준: add/edit dialog flow와 refresh가 자동 검증된다.
+- Checkpoints And Fallbacks:
+  - checkpoint: default categories가 edit path를 가지지 않는지 확인
+  - blocked: `T-09A` screen contract와 현재 screen 구조가 크게 어긋나는 경우
+  - fallback: dialog 생성 위치는 유지하되 async `onConfirm` 계약과 exception propagation만 먼저 강제
+- Acceptance Criteria:
+  - add/edit dialog closes only after successful mutation
+  - default categories remain read-only
+  - successful add/edit refreshes the visible category list
+- Test Requirements:
+  - widget: dialog success/failure and prefilled edit state
+  - integration: add/edit refresh and default read-only guardrail
+- Verification Commands:
+  - minimum: `flutter test test/domain/usecases/add_category_usecase_test.dart`
+  - full: `flutter analyze && flutter test test/domain/usecases/add_category_usecase_test.dart test/domain/usecases/edit_category_usecase_test.dart`
+- Integration Notes:
+  - merge order: after `P-T09A`, before `P-T09C`
+  - rollout risk: stale scenario selectors can hide valid UI behavior
+  - follow-up: `P-T09C` should reuse the stabilized add/edit entry and test keys
+
+## P-T09C For T-09C Category Delete Flow, Invalidation, And CRUD Regression
+
+- Plan Metadata:
+  - `plan_id`: P-T09C
+  - `task_id`: T-09C
+  - `status`: ready
+  - `priority`: medium
+  - `owner_role`: implementer
+- Goal:
+  - custom-only delete flow를 async-safe하게 고정하고, confirm/cancel semantics와 CRUD refresh regression을 integration suite로 묶는다.
+- Non-Goals:
+  - settings reset flow
+  - category visual contract 재설계
+- Ownership:
+  - allow: `delete_confirmation_dialog.dart`, `custom_categories_section.dart`, `categories_screen.dart`, `lib/application/providers/category_providers.dart`, `integration_test/category_management_test.dart`, `integration_test/scenarios/scenario_4_home_categories_crud.dart`
+  - deny: `default_categories_section.dart`, `lib/features/cycle_management/`, `docs/sdd/`
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: `deleteCategoryProvider`, `categoriesProvider`, add/edit refresh contract from `P-T09B`
+  - output: confirm/cancel-safe delete flow and CRUD integration regression lock
+  - error: delete mutation failure or stale selector assumptions must fail loudly
+- Implementation Notes:
+  - delete dialog는 fire-and-forget이 아니라 awaitable destructive callback을 사용해야 한다.
+  - refresh authority는 provider layer에 유지한다.
+- Execution Steps:
+  - Step 1: delete confirmation dialog contract를 async-aware confirm/cancel flow로 정리한다.
+    - 이유: destructive flow의 핵심은 confirm lifecycle 안정성이다.
+    - 완료 기준: confirm/cancel path가 각각 한 번만 수행된다.
+  - Step 2: screen/provider delete handler를 mutation 완료 이후 feedback와 refresh가 보장되도록 고정한다.
+    - 이유: stale list나 premature pop이 가장 큰 regression risk다.
+    - 완료 기준: success refreshes list, failure keeps category visible.
+  - Step 3: scenario 4와 category management integration tests를 current UI 기준 CRUD regression으로 업데이트한다.
+    - 이유: 이 task의 산출물은 delete UX와 regression lock 둘 다다.
+    - 완료 기준: add/edit/delete sequential CRUD flow가 integration에서 재현된다.
+- Checkpoints And Fallbacks:
+  - checkpoint: cancel path가 mutation을 전혀 호출하지 않는지 확인
+  - blocked: `T-09A/B` 미반영으로 screen or dialog baseline이 계속 흔들리는 경우
+  - fallback: `Navigator.pop` 책임을 screen 쪽으로 옮기고 dialog에 local submitting guard 추가
+- Acceptance Criteria:
+  - custom categories only can be deleted
+  - confirm removes the row after refresh; cancel leaves it intact
+  - CRUD flow remains stable across add/edit/delete
+- Test Requirements:
+  - integration: delete cancel/no-op, confirm/remove, sequential CRUD refresh
+  - regression risk: dialog timing and invalidation drift
+- Verification Commands:
+  - minimum: `flutter test test/domain/usecases/delete_category_usecase_test.dart`
+  - full: `flutter analyze && flutter test test/domain/usecases/delete_category_usecase_test.dart test/data/repositories/category_repository_impl_test.dart`
+- Integration Notes:
+  - merge order: after `P-T09A` and `P-T09B`
+  - rollout risk: outdated delete expectations in tests can create false regressions
+  - follow-up: `P-T11` should consume the final CRUD regression note and integration evidence
+
+## P-T10 For T-10 Settings Screen, Salary Day Change, And Reset Return Path
+
+- Plan Metadata:
+  - `plan_id`: P-T10
+  - `task_id`: T-10
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - settings 화면에서 salary day change, notification permission 상태, reset 후 onboarding 복귀 semantics를 구현한다.
+- Non-Goals:
+  - onboarding step UI
+  - quick expense flow
+- Ownership:
+  - allow: `lib/features/cycle_management/`, settings-related application logic, settings tests
+  - deny: `lib/features/onboarding/` 내부 화면 구현
+  - shared_contract_change: true
+- Inputs And Outputs:
+  - input: current cycle state, permission state, reset data use case, route gate contract
+  - output: settings screen with edit/reset flows and safe reset return path
+  - error: destructive reset requires explicit confirmation and deterministic redirect
+- Implementation Notes:
+  - T-08 onboarding semantics와 직접 이어지므로 shared contract risk가 있다.
+  - reset은 categories/transactions/cycle state를 건드리는 destructive flow다.
+- Execution Steps:
+  - Step 1: settings state model을 salary day, permission state, app info, reset affordance 기준으로 고정한다.
+    - 이유: 화면 섹션 구조가 먼저 안정돼야 mutation dialogs를 맞출 수 있다.
+    - 완료 기준: settings provider shape가 정의된다.
+  - Step 2: settings screen sections와 salary day change dialog를 구현한다.
+    - 이유: editing flow와 display flow를 함께 검증해야 한다.
+    - 완료 기준: salary day 변경 UI가 동작한다.
+  - Step 3: reset data use case와 confirmation flow를 연결한다.
+    - 이유: destructive action semantics를 명시적으로 처리해야 한다.
+    - 완료 기준: reset path가 confirmation 이후에만 실행된다.
+  - Step 4: reset 후 onboarding route gate 복귀와 permission state display를 검증한다.
+    - 이유: 이 task의 핵심 shared contract는 reset return path다.
+    - 완료 기준: settings -> reset -> onboarding path test가 통과한다.
+- Checkpoints And Fallbacks:
+  - checkpoint: reset 범위와 post-reset onboarding state가 문서와 일치하는지 확인
+  - blocked: reset use case가 destructive scope를 충분히 노출하지 않으면 보강 필요
+  - fallback: reset flow는 feature launch와 분리해 guarded release 가능
+- Acceptance Criteria:
+  - salary day change works
+  - permission state is shown consistently
+  - reset returns user to onboarding path deterministically
+- Test Requirements:
+  - integration/E2E: settings flows and reset path
+  - regression risk: reset breaks onboarding gate or seed defaults
+- Verification Commands:
+  - minimum: `flutter test test/features/cycle_management/presentation/screens/settings_screen_test.dart`
+  - full: `flutter analyze && flutter test`
+- Integration Notes:
+  - merge order: after T-04, coordinated with T-08
+  - rollout risk: destructive data flow touches multiple domains
+  - follow-up: T-11 should explicitly exercise reset -> onboarding -> home sequence
+
+## P-T11 For T-11 Cross-Flow Validation, Review Escalation, And Regression
+
+- Plan Metadata:
+  - `plan_id`: P-T11
+  - `task_id`: T-11
+  - `status`: ready
+  - `priority`: high
+  - `owner_role`: implementer
+- Goal:
+  - F1-F10 전체를 통합 검증하고 review escalation 판단 자료를 만든다.
+- Non-Goals:
+  - 신규 feature 추가
+  - architecture direction 변경
+- Ownership:
+  - allow: `test/`, finder updates, final polish notes across touched paths
+  - deny: broad product scope expansion
+  - shared_contract_change: false
+- Inputs And Outputs:
+  - input: completed feature flows, route/shell contracts, provider invalidation behavior
+  - output: regression status, integration confidence, `compliance_review_required` candidate notes
+  - error: failing path must produce actionable defect notes, not vague failure summary
+- Implementation Notes:
+  - 이 task는 단순 E2E 실행이 아니라 cross-flow contract 확인이 핵심이다.
+  - code review/compliance review/tester escalation 근거를 여기서 남기면 좋다.
+- Execution Steps:
+  - Step 1: 통합 시나리오 목록을 bootstrap/onboarding/home/transactions/quick expense/categories/settings/reset 흐름 기준으로 고정한다.
+    - 이유: feature-complete 상태에서도 cross-flow contract가 가장 잘 깨진다.
+    - 완료 기준: regression matrix가 작성된다.
+  - Step 2: integration test/finder updates와 필요한 polish를 구현한다.
+    - 이유: 실제 자동 검증 경로가 있어야 regression confidence가 생긴다.
+    - 완료 기준: 핵심 flows를 덮는 integration scenarios가 존재한다.
+  - Step 3: review escalation note를 작성해 어떤 task가 code-only, 어떤 task가 compliance review 필요였는지 정리한다.
+    - 이유: 현재 하네스의 review chain 검증에도 필요하다.
+    - 완료 기준: `compliance_review_required` candidate summary가 남는다.
+  - Step 4: 전체 analyze/test/integration suite를 실행하고 actionable report를 남긴다.
+    - 이유: 마지막 산출물은 confidence report여야 한다.
+    - 완료 기준: failing paths가 있으면 defect note, 없으면 regression status가 정리된다.
+- Checkpoints And Fallbacks:
+  - checkpoint: bootstrap -> onboarding -> home, home -> quick expense -> home refresh, settings reset path가 모두 포함되는지 확인
+  - blocked: upstream tasks 미완료로 full suite가 불가능하면 partial matrix와 blocked note를 명시
+  - fallback: deterministic cross-flow paths부터 우선 자동화
+- Acceptance Criteria:
+  - bootstrap -> onboarding -> home path verified
+  - home -> quick expense -> home refresh verified
+  - transactions paging, category CRUD, settings reset path verified
+  - review escalation note distinguishes code-only vs compliance-needed tasks
+- Test Requirements:
+  - integration/E2E: primary user journeys
+  - regression: analyze + test + integration bundle
+  - regression risk: cross-feature contracts that no single feature owns
+- Verification Commands:
+  - minimum: `flutter test integration_test`
+  - full: `flutter analyze && flutter test && flutter test integration_test`
+- Current Coverage Gap:
+  - 현재 repo에는 `integration_test/` 디렉터리가 없다.
+  - T-11 착수 전 bootstrap/onboarding/home/category/settings cross-flow를 묶는 integration target을 추가해야 한다.
+- Integration Notes:
+  - merge order: final wave only
+  - rollout risk: hidden cross-flow breakage discovered late
+  - follow-up: this output is the best comparison point against old money_track task generation quality
