@@ -1,5 +1,5 @@
 {
-  "name": "codex-moon-harness",
+  "name": "moondex",
   "version": "0.1.0",
   "description": "Moondex multi-agent planner-executor runtime and operations workflows for Codex.",
   "author": {
@@ -16,7 +16,7 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Codex Moon Harness",
+    "displayName": "Moondex",
     "shortDescription": "Run Moondex planner-executor workflows.",
     "longDescription": "Bundle Moondex runtime, cmux operations, task planning, and hook inspection workflows for Codex.",
     "developerName": "Moondex maintainers",
@@ -26,9 +26,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use Codex Moon Harness to operate a Moondex task through cmux role surfaces.",
-      "Use Codex Moon Harness to turn one validated task into an executor-ready plan.",
-      "Use Codex Moon Harness to inspect Moondex runtime events and hook state."
+      "Use Moondex to operate a Moondex task through cmux role surfaces.",
+      "Use Moondex to turn one validated task into an executor-ready plan.",
+      "Use Moondex to inspect Moondex runtime events and hook state."
     ]
   }
 }

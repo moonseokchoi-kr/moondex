@@ -1,11 +1,11 @@
 {
-  "name": "codex-moon-harness-local",
+  "name": "moondex-local",
   "interface": {
-    "displayName": "Codex Moon Harness Local"
+    "displayName": "Moondex Local"
   },
   "plugins": [
     {
-      "name": "codex-moon-harness",
+      "name": "moondex",
       "source": {
         "source": "local",
         "path": "./"

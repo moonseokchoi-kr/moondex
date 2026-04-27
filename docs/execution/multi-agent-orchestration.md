@@ -1,6 +1,6 @@
 # Multi-Agent Orchestration
 
-이 문서는 `codex-moon-harness`의 멀티에이전트 운영 시나리오를 정리하는 초안이다.
+이 문서는 `moondex`의 멀티에이전트 운영 시나리오를 정리하는 초안이다.
 
 목표는 규칙을 섣불리 고정하는 것이 아니라, 실제 동작 흐름을 끝까지 그려보고 어디에 planner subagent가 필요하고 어디에 execution agent가 필요한지 판단하는 것이다.
 
@@ -10,8 +10,8 @@
 - `task-planner`는 planning layer의 하위 agent다
 - `wave-dispatcher`는 plan set 이후에 동작하는 전역 planning agent다
 - implementer/`code-reviewer`/`compliance-reviewer`/tester는 execution layer다
-- `cmux`는 하네스 runtime의 기본 운영 레이어다
-- `spawn_agent` 같은 내부 서브에이전트 호출은 하네스 본래 runtime 모델로 채택하지 않는다
+- `cmux`는 Moondex runtime의 기본 운영 레이어다
+- `spawn_agent` 같은 내부 서브에이전트 호출은 Moondex 본래 runtime 모델로 채택하지 않는다
 
 ## Questions To Resolve
 
@@ -450,11 +450,11 @@ Source of truth는 `.moondex/state` 아래의 task, role identity/status, dispat
 
 ### Validation Mode Guardrails
 
-하네스 runtime 자체가 product 구현 성공보다 운영 모델 충실도를 우선한다.
+Moondex runtime 자체가 product 구현 성공보다 운영 모델 충실도를 우선한다.
 
 따라서 아래를 기본 규칙으로 둔다.
 
-- 하네스 검증 모드에서는 먼저 `cmux` 작업면을 만든다.
+- Moondex 검증 모드에서는 먼저 `cmux` 작업면을 만든다.
   - 최소 구성:
     - orchestrator pane
     - implementer pane
@@ -463,13 +463,13 @@ Source of truth는 `.moondex/state` 아래의 task, role identity/status, dispat
 - implementer와 reviewer의 왕복 루프가 실제로 발생해야 “execution layer 검증”으로 인정한다.
 - 메인 오케스트레이터는 role dispatch, 상태 전이, role transfer contract 확인에 집중한다.
 - product code 수정은 검증의 부산물이지 1차 목적이 아니다.
-- `spawn_agent`는 하네스 본래 runtime 경로로 사용하지 않는다.
+- `spawn_agent`는 Moondex 본래 runtime 경로로 사용하지 않는다.
 - 역할 실행은 role별 터미널 작업면 dispatch를 기본으로 한다.
 
 금지 규칙:
 
-- 테스트를 빨리 통과시키는 것을 이유로 하네스 검증 목표를 바꾸지 않는다.
-- implementer 없이 메인 에이전트가 직접 product fix를 진행하고 이를 하네스 실행으로 간주하지 않는다.
+- 테스트를 빨리 통과시키는 것을 이유로 Moondex 검증 목표를 바꾸지 않는다.
+- implementer 없이 메인 에이전트가 직접 product fix를 진행하고 이를 Moondex 실행으로 간주하지 않는다.
 - reviewer 왕복 없이 “한 번 수정 + 한 번 테스트”만으로 멀티에이전트 검증이 끝났다고 보지 않는다.
 
 ## Next Discussion Order

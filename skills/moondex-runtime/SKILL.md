@@ -1,6 +1,6 @@
 ---
 name: moondex-runtime
-description: Use when operating the Moondex runtime CLI, inspecting `.moondex/state`, advancing task phases, querying event logs, archiving state, or checking Codex hook discovery for this harness.
+description: Use when operating the Moondex runtime CLI, inspecting `.moondex/state`, advancing task phases, querying event logs, archiving state, or checking Codex hook discovery for this runtime.
 ---
 
 # Moondex Runtime

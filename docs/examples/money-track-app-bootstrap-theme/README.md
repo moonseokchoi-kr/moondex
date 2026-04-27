@@ -1,6 +1,6 @@
 # Money Track Example
 
-이 예시는 `/Users/moon/Workspace/money_track/docs/sdd`의 `app-bootstrap-and-theme` 문서를 기준으로 우리 하네스의 `task -> plan -> wave` 모델을 적용한 샘플이다.
+이 예시는 `/Users/moon/Workspace/money_track/docs/sdd`의 `app-bootstrap-and-theme` 문서를 기준으로 우리 Moondex의 `task -> plan -> wave` 모델을 적용한 샘플이다.
 
 ## Source Documents
 
@@ -25,10 +25,10 @@
 
 ## Outputs
 
-- task set: [task-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/task-set.md)
-- plan set: [plan-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/plan-set.md)
-- wave plan: [wave-plan.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/wave-plan.md)
-- orchestration simulation: [orchestration-simulation.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/orchestration-simulation.md)
+- task set: [task-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/task-set.md)
+- plan set: [plan-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/plan-set.md)
+- wave plan: [wave-plan.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/wave-plan.md)
+- orchestration simulation: [orchestration-simulation.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/orchestration-simulation.md)
 
 ## Why This Example
 

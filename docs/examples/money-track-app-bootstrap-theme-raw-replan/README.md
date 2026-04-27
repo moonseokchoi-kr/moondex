@@ -17,16 +17,16 @@
 기존 산출물:
 
 - existing tasks: `/Users/moon/Workspace/money_track/docs/sdd/task/app-bootstrap-and-theme/*.md`
-- prior harness example: [money-track-app-bootstrap-theme](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/README.md)
+- prior runtime example: [money-track-app-bootstrap-theme](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/README.md)
 
 ## Outputs In This Folder
 
-- task set: [task-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md)
-- plan set: [plan-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/plan-set.md)
-- wave plan: [wave-plan.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/wave-plan.md)
-- planner dispatch review: [task-planner-dispatch-review.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-planner-dispatch-review.md)
-- category management split note: [t09-split-replan.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/t09-split-replan.md)
-- execution test review: [execution-test-review.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/execution-test-review.md)
+- task set: [task-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md)
+- plan set: [plan-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/plan-set.md)
+- wave plan: [wave-plan.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/wave-plan.md)
+- planner dispatch review: [task-planner-dispatch-review.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-planner-dispatch-review.md)
+- category management split note: [t09-split-replan.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/t09-split-replan.md)
+- execution test review: [execution-test-review.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/execution-test-review.md)
 
 ## Intent
 

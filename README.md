@@ -8,38 +8,38 @@
 - Codex가 생성해야 할 task/plan/wave 기준 정의
 - planning 이후 실행을 안정화하는 규칙 정의
 
-방향 기준 문서는 [docs/executor-direction.md](/Users/moon/Workspace/codex-moon-harness/docs/executor-direction.md)다.
+방향 기준 문서는 [docs/executor-direction.md](/Users/moon/Workspace/moondex/docs/executor-direction.md)다.
 
 ## 핵심 문서
 
-- 방향 기준: [docs/executor-direction.md](/Users/moon/Workspace/codex-moon-harness/docs/executor-direction.md)
-- 저장소 감사: [docs/repository-audit-2026-04-21.md](/Users/moon/Workspace/codex-moon-harness/docs/repository-audit-2026-04-21.md)
-- 입력 문서 계약: [docs/contracts/input-document-contract.md](/Users/moon/Workspace/codex-moon-harness/docs/contracts/input-document-contract.md)
-- task 계약: [docs/contracts/task-schema.md](/Users/moon/Workspace/codex-moon-harness/docs/contracts/task-schema.md)
-- plan 계약: [docs/contracts/plan-schema.md](/Users/moon/Workspace/codex-moon-harness/docs/contracts/plan-schema.md)
-- wave 계약: [docs/contracts/wave-schema.md](/Users/moon/Workspace/codex-moon-harness/docs/contracts/wave-schema.md)
-- task 템플릿: [docs/templates/task-template.md](/Users/moon/Workspace/codex-moon-harness/docs/templates/task-template.md)
-- plan 템플릿: [docs/templates/plan-template.md](/Users/moon/Workspace/codex-moon-harness/docs/templates/plan-template.md)
-- wave 템플릿: [docs/templates/wave-template.md](/Users/moon/Workspace/codex-moon-harness/docs/templates/wave-template.md)
-- task-planner 스킬: [.agents/skills/task-planner/SKILL.md](/Users/moon/Workspace/codex-moon-harness/.agents/skills/task-planner/SKILL.md)
+- 방향 기준: [docs/executor-direction.md](/Users/moon/Workspace/moondex/docs/executor-direction.md)
+- 저장소 감사: [docs/repository-audit-2026-04-21.md](/Users/moon/Workspace/moondex/docs/repository-audit-2026-04-21.md)
+- 입력 문서 계약: [docs/contracts/input-document-contract.md](/Users/moon/Workspace/moondex/docs/contracts/input-document-contract.md)
+- task 계약: [docs/contracts/task-schema.md](/Users/moon/Workspace/moondex/docs/contracts/task-schema.md)
+- plan 계약: [docs/contracts/plan-schema.md](/Users/moon/Workspace/moondex/docs/contracts/plan-schema.md)
+- wave 계약: [docs/contracts/wave-schema.md](/Users/moon/Workspace/moondex/docs/contracts/wave-schema.md)
+- task 템플릿: [docs/templates/task-template.md](/Users/moon/Workspace/moondex/docs/templates/task-template.md)
+- plan 템플릿: [docs/templates/plan-template.md](/Users/moon/Workspace/moondex/docs/templates/plan-template.md)
+- wave 템플릿: [docs/templates/wave-template.md](/Users/moon/Workspace/moondex/docs/templates/wave-template.md)
+- task-planner 스킬: [.agents/skills/task-planner/SKILL.md](/Users/moon/Workspace/moondex/.agents/skills/task-planner/SKILL.md)
 - handoff 스킬: [write-handoff](/Users/moon/.codex/skills/write-handoff/SKILL.md)
-- cmux 스킬: [.agents/skills/cmux/SKILL.md](/Users/moon/Workspace/codex-moon-harness/.agents/skills/cmux/SKILL.md)
-- task-planner 에이전트: [.codex/agents/task-planner.toml](/Users/moon/Workspace/codex-moon-harness/.codex/agents/task-planner.toml)
-- role transfer hook: [.codex/hooks/validate-role-transfer.sh](/Users/moon/Workspace/codex-moon-harness/.codex/hooks/validate-role-transfer.sh)
-- readiness hook: [.codex/hooks/validate-readiness.sh](/Users/moon/Workspace/codex-moon-harness/.codex/hooks/validate-readiness.sh)
-- 실제 예시: [docs/examples/money-track-app-bootstrap-theme/README.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/README.md)
-- planning 절차: [docs/planning/planning-workflow.md](/Users/moon/Workspace/codex-moon-harness/docs/planning/planning-workflow.md)
-- task-planner agent 계약: [docs/planning/task-planner-subagent.md](/Users/moon/Workspace/codex-moon-harness/docs/planning/task-planner-subagent.md)
-- 멀티에이전트 운영 초안: [docs/execution/multi-agent-orchestration.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/multi-agent-orchestration.md)
-- role transfer contracts: [docs/execution/role-transfer-contracts.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/role-transfer-contracts.md)
-- work tracker: [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/WORK_TRACKER.md)
-- cmux runtime alignment: [docs/execution/cmux-runtime-alignment.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/cmux-runtime-alignment.md)
-- cmux operations playbook: [docs/execution/cmux-operations-playbook.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/cmux-operations-playbook.md)
-- moondex CLI plan: [docs/execution/moondex-cli-plan.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/moondex-cli-plan.md)
-- Codex hook auto-discovery: [docs/execution/codex-hook-auto-discovery.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/codex-hook-auto-discovery.md)
-- moondex risk probes: [docs/execution/moondex-risk-probes.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/moondex-risk-probes.md)
-- readiness 기준: [docs/execution/task-readiness-gate.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/task-readiness-gate.md)
-- executor 체크리스트: [docs/execution/executor-checklist.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/executor-checklist.md)
+- cmux 스킬: [.agents/skills/cmux/SKILL.md](/Users/moon/Workspace/moondex/.agents/skills/cmux/SKILL.md)
+- task-planner 에이전트: [.codex/agents/task-planner.toml](/Users/moon/Workspace/moondex/.codex/agents/task-planner.toml)
+- role transfer hook: [.codex/hooks/validate-role-transfer.sh](/Users/moon/Workspace/moondex/.codex/hooks/validate-role-transfer.sh)
+- readiness hook: [.codex/hooks/validate-readiness.sh](/Users/moon/Workspace/moondex/.codex/hooks/validate-readiness.sh)
+- 실제 예시: [docs/examples/money-track-app-bootstrap-theme/README.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/README.md)
+- planning 절차: [docs/planning/planning-workflow.md](/Users/moon/Workspace/moondex/docs/planning/planning-workflow.md)
+- task-planner agent 계약: [docs/planning/task-planner-subagent.md](/Users/moon/Workspace/moondex/docs/planning/task-planner-subagent.md)
+- 멀티에이전트 운영 초안: [docs/execution/multi-agent-orchestration.md](/Users/moon/Workspace/moondex/docs/execution/multi-agent-orchestration.md)
+- role transfer contracts: [docs/execution/role-transfer-contracts.md](/Users/moon/Workspace/moondex/docs/execution/role-transfer-contracts.md)
+- work tracker: [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)
+- cmux runtime alignment: [docs/execution/cmux-runtime-alignment.md](/Users/moon/Workspace/moondex/docs/execution/cmux-runtime-alignment.md)
+- cmux operations playbook: [docs/execution/cmux-operations-playbook.md](/Users/moon/Workspace/moondex/docs/execution/cmux-operations-playbook.md)
+- moondex CLI plan: [docs/execution/moondex-cli-plan.md](/Users/moon/Workspace/moondex/docs/execution/moondex-cli-plan.md)
+- Codex hook auto-discovery: [docs/execution/codex-hook-auto-discovery.md](/Users/moon/Workspace/moondex/docs/execution/codex-hook-auto-discovery.md)
+- moondex risk probes: [docs/execution/moondex-risk-probes.md](/Users/moon/Workspace/moondex/docs/execution/moondex-risk-probes.md)
+- readiness 기준: [docs/execution/task-readiness-gate.md](/Users/moon/Workspace/moondex/docs/execution/task-readiness-gate.md)
+- executor 체크리스트: [docs/execution/executor-checklist.md](/Users/moon/Workspace/moondex/docs/execution/executor-checklist.md)
 
 ## 현재 결론
 
@@ -73,9 +73,9 @@
 
 이 저장소는 repo root 자체가 Codex plugin root가 되도록 구성되어 있다.
 
-- manifest: [.codex-plugin/plugin.json](/Users/moon/Workspace/codex-moon-harness/.codex-plugin/plugin.json)
-- marketplace: [.agents/plugins/marketplace.json](/Users/moon/Workspace/codex-moon-harness/.agents/plugins/marketplace.json)
-- bundled skills: [skills/](/Users/moon/Workspace/codex-moon-harness/skills)
+- manifest: [.codex-plugin/plugin.json](/Users/moon/Workspace/moondex/.codex-plugin/plugin.json)
+- marketplace: [.agents/plugins/marketplace.json](/Users/moon/Workspace/moondex/.agents/plugins/marketplace.json)
+- bundled skills: [skills/](/Users/moon/Workspace/moondex/skills)
 
 로컬에서 테스트하려면 Codex plugin directory에서 repo marketplace를 선택하거나 CLI로 marketplace root를 추가한다.
 
@@ -91,5 +91,5 @@ codex plugin marketplace add ./
 
 ## 다음 우선순위
 
-- [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/WORK_TRACKER.md)의 W-01부터 W-16까지 완료됐다.
+- [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)의 W-01부터 W-16까지 완료됐다.
 - 다음 후보는 target product repo와 연결한 장기 E2E 검증, native Codex lifecycle hook manifest 검증, 또는 archive/evidence retention 정책 심화다.

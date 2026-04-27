@@ -32,7 +32,7 @@
 | task-planner agent 계약 | `docs/planning/task-planner-subagent.md` | `task -> plan` 전용 planner agent 역할과 입력/출력 계약 |
 | 멀티에이전트 운영 초안 | `docs/execution/multi-agent-orchestration.md` | 상태 머신, dispatch, role transfer contract, `cmux` 운영을 정리하는 작업 문서 |
 | role transfer contracts | `docs/execution/role-transfer-contracts.md` | 역할 간 canonical input/output contract 초안 |
-| `cmux` runtime alignment | `docs/execution/cmux-runtime-alignment.md` | `oh-my-codex` `$team`/tmux runtime을 `cmux` 기반 하네스로 번역하는 기준 |
+| `cmux` runtime alignment | `docs/execution/cmux-runtime-alignment.md` | `oh-my-codex` `$team`/tmux runtime을 `cmux` 기반 Moondex로 번역하는 기준 |
 | `cmux` operations playbook | `docs/execution/cmux-operations-playbook.md` | role surface 준비부터 archive까지 반복 가능한 실제 운영 순서 |
 | `moondex` CLI plan | `docs/execution/moondex-cli-plan.md` | Rust runtime CLI의 MVP command, state root, envelope 기준 |
 | Codex hook auto-discovery | `docs/execution/codex-hook-auto-discovery.md` | `.codex/hooks` repo-local discovery와 lifecycle bridge 운영 기준 |
@@ -47,7 +47,7 @@
 ## 완료된 작업
 
 ### 1. 저장소 방향 전환
-- `moon-harness`식 SDD 스캐폴드 중심 구조를 걷어내고 planner-executor 중심 문서 저장소로 재정리했다.
+- `legacy SDD prototype`식 SDD 스캐폴드 중심 구조를 걷어내고 planner-executor 중심 문서 저장소로 재정리했다.
 - 핵심 방향은 `docs/executor-direction.md`에 고정했다.
 - 사용자 결정:
   - Codex는 상위 설계 생성기가 아니라 planning + execution 레이어를 맡는다.
@@ -81,11 +81,11 @@
 
 ### 6. runtime 모델 재정의
 - 중요한 방향 수정이 있었다.
-- 원래는 `spawn_agent`와 `cmux`를 혼용하는 식으로 진행됐지만, 이건 하네스 설계를 흐린다는 결론에 도달했다.
+- 원래는 `spawn_agent`와 `cmux`를 혼용하는 식으로 진행됐지만, 이건 Moondex 설계를 흐린다는 결론에 도달했다.
 - 현재 합의:
-  - 하네스 본래 runtime은 `spawn_agent` 중심이 아니다.
+  - Moondex 본래 runtime은 `spawn_agent` 중심이 아니다.
   - role execution은 `cmux` 같은 멀티플렉서 위의 **role별 터미널 작업면 dispatch**가 기본이다.
-  - `spawn_agent`는 참고 실험이나 보조 수단일 수는 있어도, 하네스의 표준 실행 경로를 대체하면 안 된다.
+  - `spawn_agent`는 참고 실험이나 보조 수단일 수는 있어도, Moondex의 표준 실행 경로를 대체하면 안 된다.
 - 이 합의는 아래 문서에 반영됐다.
   - `docs/executor-direction.md`
   - `docs/planning/planning-workflow.md`
@@ -96,9 +96,9 @@
 - 실제 결과:
   - stale codegen 문제를 먼저 복구해야 했고, 이 과정에서 `build_runner` 재생성으로 테스트가 다시 동작하게 됐다.
   - 이후 `T-04`의 onboarding redirect / reset -> onboarding contract 일부를 검증했다.
-  - 하지만 처음에는 `spawn_agent` 중심으로 implementer/reviewer를 돌려, 원래 의도한 터미널 기반 하네스 검증과 어긋났다.
+  - 하지만 처음에는 `spawn_agent` 중심으로 implementer/reviewer를 돌려, 원래 의도한 터미널 기반 Moondex 검증과 어긋났다.
 - 남긴 교훈:
-  - product fix를 하네스 검증보다 우선하면 방향이 쉽게 무너진다.
+  - product fix를 Moondex 검증보다 우선하면 방향이 쉽게 무너진다.
   - `cmux` pane을 단순 관찰용으로 쓰는 것은 충분하지 않다.
   - reviewer 왕복 루프까지 포함한 role-based terminal execution이 필요하다.
 
@@ -160,7 +160,7 @@
 - 이 기준은 `docs/execution/cmux-runtime-alignment.md`에 정리했다.
 
 ### 11. Rust `moondex` CLI MVP 시작
-- `harness`라는 이름은 목적과 어긋난다고 보고 `moondex`로 이름을 확정했다.
+- 프로젝트 이름은 목적을 명확히 드러내는 `moondex`로 확정했다.
 - Rust workspace와 `crates/moondex`를 생성했다.
 - 현재 구현된 최소 command:
   - `moondex init`
@@ -249,7 +249,7 @@
 2. phase event log를 task runtime에 추가할지 결정
 3. `cmux` 운영 플레이북 작성
 4. `money_track` 예시를 현재 구조에 맞춰 더 엄밀하게 갱신하기
-5. `../moon-harness`에 있는 `/harness` 스킬은 이름과 목적이 맞지 않는다. 필요하면 `moondex` 스킬로 재설계하기
+5. legacy SDD prototype에 있는 `/runtime` 스킬은 이름과 목적이 맞지 않는다. 필요하면 `moondex` 스킬로 재설계하기
 
 ## 실패하거나 주의가 필요한 점
 
@@ -263,24 +263,24 @@
 - **원인**: task set 전체를 병렬로 처리하는 관점과 같은 task 내부 순서를 혼동했다.
 - **대응**: 같은 task에서는 항상 `task -> plan -> wave approval -> implement` 순서를 지킨다. task set 전체로는 planning과 execution이 병렬일 수 있다.
 
-### 하네스 검증과 product 구현을 섞지 말 것
-- **문제**: `money_track`를 실제로 고치고 테스트를 통과시키는 쪽으로 판단 기준이 이동하면서, 원래 검증하려던 하네스 운영 모델 검증이 흐려졌다.
+### Moondex 검증과 product 구현을 섞지 말 것
+- **문제**: `money_track`를 실제로 고치고 테스트를 통과시키는 쪽으로 판단 기준이 이동하면서, 원래 검증하려던 Moondex 운영 모델 검증이 흐려졌다.
 - **원인**: 빠른 확인이 쉬운 `spawn_agent` 중심 흐름과 직접 구현/테스트가, `cmux` 터미널 기반 멀티에이전트 루프보다 실행이 편했기 때문이다.
 - **대응**:
-  - 하네스 검증의 1차 목표는 product fix가 아니라 운영 모델 검증이다.
-  - 하네스 검증 모드에서는 먼저 `cmux` 기준의 orchestrator / implementer / reviewer / test 작업면을 만든다.
+  - Moondex 검증의 1차 목표는 product fix가 아니라 운영 모델 검증이다.
+  - Moondex 검증 모드에서는 먼저 `cmux` 기준의 orchestrator / implementer / reviewer / test 작업면을 만든다.
   - implementer와 reviewer의 왕복 루프가 실제로 돌기 전에는 “검증 완료”로 보지 않는다.
   - `spawn_agent`는 보조 수단일 뿐 기본 검증 경로가 아니다.
-  - product code 수정은 하네스 루프 검증의 부산물로만 다룬다.
+  - product code 수정은 Moondex 루프 검증의 부산물로만 다룬다.
 
 ### 편의상 `spawn_agent`로 단순화하지 말 것
 - **문제**: implementer와 reviewer를 논리적으로만 분리하고, 실제 터미널 운영 레이어는 관찰용으로만 사용한 적이 있다.
 - **원인**: `spawn_agent`가 빠르고 제어하기 쉬워서, 원래 의도한 터미널 기반 멀티에이전트 검증을 대체해 버렸다.
 - **대응**:
-  - 하네스 runtime 자체의 기본 모드는 `cmux` 터미널 루프다.
+  - Moondex runtime 자체의 기본 모드는 `cmux` 터미널 루프다.
   - 최소한 `orchestrator`, `implementer`, `reviewer`, 필요 시 `test` pane을 분리한다.
   - 각 role의 상태 전달과 재작업은 가능하면 해당 작업면 기준으로 관찰되고 기록돼야 한다.
-  - `spawn_agent`는 하네스 표준 runtime 경로로 쓰지 않는다.
+  - `spawn_agent`는 Moondex 표준 runtime 경로로 쓰지 않는다.
 
 ### `oh-my-codex`의 핵심을 tmux 자체로 오해하지 말 것
 - **문제**: `oh-my-codex`를 참고하면서 tmux split/send/capture만 가져오면 runtime 핵심을 놓친다.
@@ -318,7 +318,7 @@
 
 ### 저장소는 현재 git repo가 아님
 - **문제**: `git status`, `git log`가 실패했다.
-- **원인**: `/Users/moon/Workspace/codex-moon-harness`에 `.git`이 없다.
+- **원인**: `/Users/moon/Workspace/moondex`에 `.git`이 없다.
 - **대응**: handoff와 추적은 현재 문서 기준으로 한다. git 기반 상태 추적을 전제로 생각하지 말 것.
 
 ## 환경 정보
@@ -327,7 +327,7 @@
 OS: macOS (세부 버전 미확인)
 Runtime: Python 3.12.3, Node.js v18.16.0, Rust 1.94.0
 주요 도구: Codex custom agents, Codex skills, cmux skill, moondex Rust CLI
-프로젝트 경로: /Users/moon/Workspace/codex-moon-harness
+프로젝트 경로: /Users/moon/Workspace/moondex
 Git: 현재 디렉터리는 git repository 아님
 ```
 

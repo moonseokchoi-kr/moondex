@@ -7,7 +7,7 @@
 - `plan`은 메인 에이전트가 일반 프롬프트로 직접 쓰지 않는다.
 - 각 `task`는 전용 planner agent에 전달된다.
 - planner agent는 `.agents/skills/task-planner/SKILL.md`의 `task-planner` 스킬을 사용해 `plan mode` 수준의 문서를 작성한다.
-- 실제 Codex 커스텀 에이전트 엔트리는 [.codex/agents/task-planner.toml](/Users/moon/Workspace/codex-moon-harness/.codex/agents/task-planner.toml)이다.
+- 실제 Codex 커스텀 에이전트 엔트리는 [.codex/agents/task-planner.toml](/Users/moon/Workspace/moondex/.codex/agents/task-planner.toml)이다.
 - 이 agent는 planning layer에 속하며 implementer와 같은 단계에서 동작하지 않는다.
 
 ## Why This Exists
@@ -37,7 +37,7 @@
   - 하나의 task만 책임진다
   - 관련 문서 조각만 읽는다
   - `task-planner` 스킬을 실행한다
-  - [plan-schema.md](/Users/moon/Workspace/codex-moon-harness/docs/contracts/plan-schema.md) 형태의 plan 하나를 반환한다
+  - [plan-schema.md](/Users/moon/Workspace/moondex/docs/contracts/plan-schema.md) 형태의 plan 하나를 반환한다
 
 - implementer:
   - `validated ready`가 된 task만 받는다
@@ -52,7 +52,7 @@ planner agent 입력은 최소한 아래를 포함한다.
 - 관련 design set 조각
 - 관련 implementation design set 조각
 - 현재 코드베이스에서 해당 task와 직접 관련된 경로 정보
-- 출력 계약: [plan-schema.md](/Users/moon/Workspace/codex-moon-harness/docs/contracts/plan-schema.md)
+- 출력 계약: [plan-schema.md](/Users/moon/Workspace/moondex/docs/contracts/plan-schema.md)
 
 중요:
 

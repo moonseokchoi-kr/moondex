@@ -4,7 +4,7 @@
 feature_name: app-bootstrap-and-theme-raw-replan
 test_type: real-task-planner-dispatch
 date: 2026-04-25
-source_task_set: /Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md
+source_task_set: /Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md
 product_repo: /Users/moon/Workspace/money_track
 ```
 
@@ -90,7 +90,7 @@ product_repo: /Users/moon/Workspace/money_track
 ### T-11
 
 - planner가 `integration_test/helpers/app_driver.dart` override가 real flow를 가린다고 판단했다.
-- 이는 기존 시뮬레이션 단계에서 놓쳤던 핵심으로, integration harness 자체가 source of false confidence라는 점을 보여줬다.
+- 이는 기존 시뮬레이션 단계에서 놓쳤던 핵심으로, integration runtime 자체가 source of false confidence라는 점을 보여줬다.
 
 ## Failed Task
 
@@ -105,7 +105,7 @@ product_repo: /Users/moon/Workspace/money_track
 
 ### T-09 Split Recovery
 
-- split 문서: [t09-split-replan.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/t09-split-replan.md)
+- split 문서: [t09-split-replan.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/t09-split-replan.md)
 - split 결과:
   - `T-09A Category Management Screen Read Model And Section Composition` -> `DONE`
   - `T-09B Category Add/Edit Dialog Flow` -> `DONE`
@@ -127,7 +127,7 @@ product_repo: /Users/moon/Workspace/money_track
   - onboarding persistence key drift
   - legacy transactions route ownership
   - quick expense state bug
-  - integration harness override가 만드는 false confidence
+  - integration runtime override가 만드는 false confidence
 - 반대로 `T-09`는 단일 task로는 planner-friendly 하지 않았고, `T-09A/B/C`로 분해했을 때는 정상 회수됐다.
 
 ## Next Steps

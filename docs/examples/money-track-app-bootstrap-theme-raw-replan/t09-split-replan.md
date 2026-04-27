@@ -4,7 +4,7 @@
 parent_task: T-09
 reason: repeated task-planner hangs
 date: 2026-04-26
-source_task_set: /Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md
+source_task_set: /Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md
 ```
 
 ## Why Split

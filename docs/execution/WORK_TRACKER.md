@@ -359,7 +359,7 @@ Implementation:
   - external worktree: target product repo supports git worktrees
   - future managed worktree: out of scope until repo/runtime supports it
 - Add role identity metadata fields to document desired future shape, but do not add Rust fields unless required.
-- Clarify that `codex-moon-harness` cannot require git worktrees while it is not a git repo.
+- Clarify that `moondex` cannot require git worktrees while it is not a git repo.
 
 Done when:
 

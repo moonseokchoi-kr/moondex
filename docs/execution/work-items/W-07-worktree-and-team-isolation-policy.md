@@ -32,7 +32,7 @@ Document three modes:
 
 Rules:
 
-- `codex-moon-harness` cannot require git worktrees while it is not a git repository.
+- `moondex` cannot require git worktrees while it is not a git repository.
 - cmux role surfaces are still required for visible role separation.
 - worktree isolation belongs to target product repo execution, not documentation repo state.
 - role identity may document future metadata such as `workspace_root`, `worktree_branch`, and `isolation_mode`, but do not add Rust fields in W-07.

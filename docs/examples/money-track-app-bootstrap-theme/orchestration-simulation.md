@@ -1,6 +1,6 @@
 # Orchestration Simulation
 
-이 문서는 `money-track-app-bootstrap-theme` 예시를 기준으로 현재 하네스의 상태 머신과 역할 체인이 실제로 어떻게 동작하는지 end-to-end로 시뮬레이션한 샘플이다.
+이 문서는 `money-track-app-bootstrap-theme` 예시를 기준으로 현재 Moondex의 상태 머신과 역할 체인이 실제로 어떻게 동작하는지 end-to-end로 시뮬레이션한 샘플이다.
 
 목표는 세 가지다.
 
@@ -12,9 +12,9 @@
 
 이 시뮬레이션은 아래 예시 산출물을 입력으로 본다.
 
-- [task-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/task-set.md)
-- [plan-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/plan-set.md)
-- [wave-plan.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/wave-plan.md)
+- [task-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/task-set.md)
+- [plan-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/plan-set.md)
+- [wave-plan.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/wave-plan.md)
 
 기본 가정:
 
@@ -87,7 +87,7 @@
 
 메인 오케스트레이터는 `wave-ready` plan set을 `wave-dispatcher`에 전달한다.
 
-`wave-dispatcher`는 [wave-plan.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme/wave-plan.md)의 6개 wave를 확정한다.
+`wave-dispatcher`는 [wave-plan.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme/wave-plan.md)의 6개 wave를 확정한다.
 
 결과:
 

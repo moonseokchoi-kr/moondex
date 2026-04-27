@@ -1,6 +1,6 @@
 # Role Transfer Contracts
 
-이 문서는 `codex-moon-harness`의 멀티에이전트 실행에서 역할 간 전달되는 canonical input/output contract를 정의한다.
+이 문서는 `moondex`의 멀티에이전트 실행에서 역할 간 전달되는 canonical input/output contract를 정의한다.
 
 현재 단계의 contract는 문서, 복사 가능한 `moondex api` payload 예시, 그리고 `moondex api validate-role-transfer` 검증으로 고정한다. 별도 JSON Schema 파일은 아직 추가하지 않는다.
 

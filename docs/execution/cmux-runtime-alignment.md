@@ -1,6 +1,6 @@
 # cmux Runtime Alignment
 
-이 문서는 `oh-my-codex`의 `$team` runtime을 참고해 `codex-moon-harness`의 `cmux` 기반 실행 모델로 번역할 규칙을 정리한다.
+이 문서는 `oh-my-codex`의 `$team` runtime을 참고해 `moondex`의 `cmux` 기반 실행 모델로 번역할 규칙을 정리한다.
 
 ## Source Reference
 
@@ -76,7 +76,7 @@ OMX의 state root는 `<leader-cwd>/.omx/state`이며 team state는 아래 형태
   shutdown/
 ```
 
-`codex-moon-harness`의 `moondex` runtime state root는 `.moondex/state`로 둔다. 아래 개념은 그대로 유지해야 한다.
+`moondex`의 `moondex` runtime state root는 `.moondex/state`로 둔다. 아래 개념은 그대로 유지해야 한다.
 
 - `config`: runtime topology와 worker metadata
 - `manifest`: policy, governance, permissions snapshot
@@ -111,7 +111,7 @@ claim은 아래를 포함한다.
 - `leased_until`
 - optimistic `version`
 
-이 구조는 `codex-moon-harness`의 상세 상태 머신과 그대로 같지는 않다. 따라서 번역 시에는 `task/plan/wave` 상태는 하네스 상태 머신을 유지하고, execution dispatch 구간에는 OMX식 claim token과 lease를 붙이는 것이 맞다.
+이 구조는 `moondex`의 상세 상태 머신과 그대로 같지는 않다. 따라서 번역 시에는 `task/plan/wave` 상태는 Moondex 상태 머신을 유지하고, execution dispatch 구간에는 OMX식 claim token과 lease를 붙이는 것이 맞다.
 
 ## Dispatch Request Lifecycle
 
@@ -133,7 +133,7 @@ OMX dispatch request status:
 
 ## cmux Compatibility Command Mapping
 
-cmux는 별도 tmux binary를 내장하지 않지만, tmux-compatible command layer를 제공한다. 이 하네스에서는 raw `tmux` 호출을 만들지 말고 이 호환 command surface를 사용한다.
+cmux는 별도 tmux binary를 내장하지 않지만, tmux-compatible command layer를 제공한다. 이 Moondex에서는 raw `tmux` 호출을 만들지 말고 이 호환 command surface를 사용한다.
 
 | OMX tmux call | cmux-compatible call | Notes |
 | --- | --- | --- |
@@ -163,7 +163,7 @@ OMX의 `crates/omx-mux`는 mux operation을 아래 여섯 개로 추상화한다
 - `attach`
 - `detach`
 
-`codex-moon-harness`도 처음부터 전체 `tmux-session.ts`를 복제하기보다, 이 operation set에 맞는 `CmuxAdapter`를 정의하는 편이 낫다.
+`moondex`도 처음부터 전체 `tmux-session.ts`를 복제하기보다, 이 operation set에 맞는 `CmuxAdapter`를 정의하는 편이 낫다.
 
 권장 `CmuxAdapter` operation:
 
@@ -194,11 +194,11 @@ cmux에서는 `workspace`, `pane`, `surface` 계층이 있으므로 semantic own
 
 Moondex v1 documents three modes:
 
-- `no_worktree`: current `codex-moon-harness` mode. One workspace owns `.moondex/state`; role separation comes from cmux surfaces.
+- `no_worktree`: current `moondex` mode. One workspace owns `.moondex/state`; role separation comes from cmux surfaces.
 - `external_worktree`: target product repository provides git worktrees. The orchestrator can dispatch roles into product worktree roots, while `.moondex/state` remains the runtime truth.
 - `future_managed_worktree`: future Moondex-managed worktree creation and cleanup. This is out of scope for the current runtime.
 
-`codex-moon-harness` cannot require git worktrees while it is not a git repository. Worktree metadata such as `workspace_root`, `worktree_branch`, and `isolation_mode` may be documented in role identity handoffs, but Rust role identity fields are not extended in this wave.
+`moondex` cannot require git worktrees while it is not a git repository. Worktree metadata such as `workspace_root`, `worktree_branch`, and `isolation_mode` may be documented in role identity handoffs, but Rust role identity fields are not extended in this wave.
 
 ## Runtime Retention And Archive
 
@@ -218,7 +218,7 @@ moondex api archive-state --input '{"apply":false,"older_than_seconds":2592000}'
 
 `oh-my-codex`는 tmux를 사용하지만 이 저장소의 runtime target은 `cmux`다.
 
-| OMX / tmux concept | codex-moon-harness / cmux translation |
+| OMX / tmux concept | moondex / cmux translation |
 | --- | --- |
 | leader pane | orchestrator surface |
 | worker pane | role surface |
@@ -328,7 +328,7 @@ Minimum evidence:
 This repository is currently not a git repo. That changes one major OMX assumption.
 
 - OMX can rely on git worktrees for worker isolation.
-- `codex-moon-harness` cannot currently require git worktrees in this repository.
+- `moondex` cannot currently require git worktrees in this repository.
 - Worktree isolation should be treated as optional or external until this repo becomes a git repo.
 - For product examples such as `money_track`, worktree support depends on that target repository, not this documentation repo.
 

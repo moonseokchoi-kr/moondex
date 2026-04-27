@@ -90,7 +90,7 @@
 
 ## Decision Note
 
-`moon-harness`에서 남길 것은 전체 SDD 스캐폴드가 아니라 아래 개념이다.
+`legacy SDD prototype`에서 남길 것은 전체 SDD 스캐폴드가 아니라 아래 개념이다.
 
 - task packet 품질
 - dependency와 ownership 명시

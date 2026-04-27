@@ -1,6 +1,6 @@
 # Executor Direction
 
-이 문서는 `codex-moon-harness`의 현재 방향을 고정하는 살아있는 기준 문서다.
+이 문서는 `moondex`의 현재 방향을 고정하는 살아있는 기준 문서다.
 
 목적은 두 가지다.
 
@@ -9,7 +9,7 @@
 
 ## Current Thesis
 
-이 프로젝트는 `SDD 전체를 수행하는 Codex 하네스`가 아니라, 외부에서 정리된 `spec`, `design set`, `implementation design set`를 입력으로 받아 Codex가 `task decomposition`, `task plan 작성`, `wave 구성`, `implementation`을 수행하는 `design-informed multi-agent planner-executor harness`를 지향한다.
+이 프로젝트는 `SDD 전체를 수행하는 Codex Moondex`가 아니라, 외부에서 정리된 `spec`, `design set`, `implementation design set`를 입력으로 받아 Codex가 `task decomposition`, `task plan 작성`, `wave 구성`, `implementation`을 수행하는 `design-informed multi-agent planner-executor runtime`를 지향한다.
 
 즉, 중심은 상위 설계 생성이 아니라 `로컬 코드베이스에 맞는 실행 계획 수립과 구현 품질`이다.
 
@@ -71,7 +71,7 @@ Codex가 만든 `plan`은 최소한 `plan mode` 수준이어야 한다.
 - 검증 명령어
 - 통합 시 주의점
 
-이 정보가 부족하면 Codex는 구현 중 다시 설계를 하게 되고, 이 하네스의 목표와 충돌한다.
+이 정보가 부족하면 Codex는 구현 중 다시 설계를 하게 되고, 이 Moondex의 목표와 충돌한다.
 
 ## 4. Team Execution Position
 
@@ -97,14 +97,14 @@ Codex가 만든 `plan`은 최소한 `plan mode` 수준이어야 한다.
 - implementer는 기본 구현 규칙으로 TDD를 수행한다.
 - planner agent, implementer agent, mandatory `code-reviewer`, conditional `compliance-reviewer`는 role별 **별도 터미널 작업면**에서 실행되는 것을 기본으로 본다.
 - `.codex/agents/*.toml`은 역할 정의에 가깝고, 실제 orchestration은 메인 에이전트가 `cmux` 같은 멀티플렉서 위에서 작업면을 운영하며 담당한다.
-- 이 하네스는 `spawn_agent` 같은 내부 서브에이전트 호출 모델을 기본 runtime으로 채택하지 않는다.
-- `cmux` 같은 터미널 멀티플렉서는 단순 모니터링 보조가 아니라, 하네스의 역할 분리와 handoff를 관찰 가능한 형태로 유지하는 기본 운영 레이어다.
+- 이 Moondex는 `spawn_agent` 같은 내부 서브에이전트 호출 모델을 기본 runtime으로 채택하지 않는다.
+- `cmux` 같은 터미널 멀티플렉서는 단순 모니터링 보조가 아니라, Moondex의 역할 분리와 handoff를 관찰 가능한 형태로 유지하는 기본 운영 레이어다.
 - `compliance-reviewer`는 user-visible behavior, shared contract/CLI/API/schema/persisted state/external interface, safety/privacy/security/policy-sensitive behavior, migration/repair/archive behavior, broad refactor, or explicit `compliance_review_required: true` 조건에서 붙인다.
 - tester는 integration/E2E, cross-flow regression, environment-specific behavior, independent test evidence, onboarding/persistence/routing/auth/external IO/user-critical flow 변경이 있을 때만 별도 role로 붙인다.
 
-## 5. moon-harness에서 가져올 것
+## 5. legacy SDD prototype에서 가져올 것
 
-`../moon-harness`의 다음 아이디어는 적극적으로 재사용한다.
+legacy SDD prototype의 다음 아이디어는 적극적으로 재사용한다.
 
 - 문서가 상태가 되는 구조
 - `sdd-taskmaster` 중심의 task decomposition 사고방식
@@ -134,7 +134,7 @@ Codex가 만든 `plan`은 최소한 `plan mode` 수준이어야 한다.
 
 ## 6.5 Runtime Rule
 
-하네스 runtime은 아래를 기본으로 한다.
+Moondex runtime은 아래를 기본으로 한다.
 
 - 메인 오케스트레이터는 문서 상태 기준으로 dispatch한다.
 - implementer / `code-reviewer` / `compliance-reviewer` / tester는 role별 터미널 작업면을 가진다.
@@ -144,8 +144,8 @@ Codex가 만든 `plan`은 최소한 `plan mode` 수준이어야 한다.
 
 금지 규칙:
 
-- 하네스 자체를 `spawn_agent` 중심 구조로 축소하지 않는다.
-- 메인 에이전트가 직접 product fix를 수행하고 이를 하네스 실행으로 간주하지 않는다.
+- Moondex 자체를 `spawn_agent` 중심 구조로 축소하지 않는다.
+- 메인 에이전트가 직접 product fix를 수행하고 이를 Moondex 실행으로 간주하지 않는다.
 - reviewer 왕복 없이 “수정 후 테스트 통과”만으로 멀티에이전트 실행이 검증됐다고 보지 않는다.
 
 ## 7. Working Rules

@@ -68,7 +68,7 @@ Codex는 이 입력 묶음을 받아 task, plan, wave를 생성한다.
 - 기존 task 초안
 - provider/use case/repository 설계 메모
 
-이 하네스는 이를 합쳐 `implementation design set`으로 취급한다.
+이 Moondex는 이를 합쳐 `implementation design set`으로 취급한다.
 
 최소 포함 요소:
 

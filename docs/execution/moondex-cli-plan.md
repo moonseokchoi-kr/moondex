@@ -363,7 +363,7 @@ The response lists hook `name`, `path`, executable bit, target operation, smoke 
 - `.codex/hooks/validate-role-transfer.sh`
 - `.codex/hooks/validate-readiness.sh`
 
-This command does not assume private Codex lifecycle behavior. Until native hook auto-discovery is verified, operators should run these validators explicitly before or after `orchestrator-step` as described in [codex-hook-auto-discovery.md](/Users/moon/Workspace/codex-moon-harness/docs/execution/codex-hook-auto-discovery.md).
+This command does not assume private Codex lifecycle behavior. Until native hook auto-discovery is verified, operators should run these validators explicitly before or after `orchestrator-step` as described in [codex-hook-auto-discovery.md](/Users/moon/Workspace/moondex/docs/execution/codex-hook-auto-discovery.md).
 
 ## Next Action
 
@@ -425,7 +425,7 @@ Moondex v1 supports three documented isolation modes:
 - `external_worktree`: target product repository provides git worktrees
 - `future_managed_worktree`: planned future Moondex-managed worktree mode
 
-`codex-moon-harness` does not require git worktrees while it is not itself a git repository. Worktree isolation belongs to the target product repository execution layer. cmux role surfaces remain required for visible role separation.
+`moondex` does not require git worktrees while it is not itself a git repository. Worktree isolation belongs to the target product repository execution layer. cmux role surfaces remain required for visible role separation.
 
 ## Runtime Retention
 

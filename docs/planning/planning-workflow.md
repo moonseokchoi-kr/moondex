@@ -76,7 +76,7 @@
 12. 멀티 터미널 운영 레이어 위에서 execution을 진행한다
 - planner/implementer/`code-reviewer`/`compliance-reviewer` 역할의 실행 화면을 분리한다
 - `cmux` 같은 멀티플렉서로 각 세션에 명령을 전송하고 결과를 읽는다
-- 이 레이어는 source of truth를 대체하지는 않지만, 하네스 runtime에서는 기본 운영 경로다
+- 이 레이어는 source of truth를 대체하지는 않지만, Moondex runtime에서는 기본 운영 경로다
 
 ## Planning Outputs
 

@@ -1,6 +1,6 @@
 # Plan Set
 
-이 문서는 [task-set.md](/Users/moon/Workspace/codex-moon-harness/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md)의 각 task를 raw-input-first 기준의 executor-ready `plan`으로 상세화한 샘플이다.
+이 문서는 [task-set.md](/Users/moon/Workspace/moondex/docs/examples/money-track-app-bootstrap-theme-raw-replan/task-set.md)의 각 task를 raw-input-first 기준의 executor-ready `plan`으로 상세화한 샘플이다.
 
 ## P-T01 For T-01 Composition Root And Database Bootstrap
 
@@ -713,7 +713,7 @@
     - 이유: 실제 자동 검증 경로가 있어야 regression confidence가 생긴다.
     - 완료 기준: 핵심 flows를 덮는 integration scenarios가 존재한다.
   - Step 3: review escalation note를 작성해 어떤 task가 code-only, 어떤 task가 compliance review 필요였는지 정리한다.
-    - 이유: 현재 하네스의 review chain 검증에도 필요하다.
+    - 이유: 현재 Moondex의 review chain 검증에도 필요하다.
     - 완료 기준: `compliance_review_required` candidate summary가 남는다.
   - Step 4: 전체 analyze/test/integration suite를 실행하고 actionable report를 남긴다.
     - 이유: 마지막 산출물은 confidence report여야 한다.
