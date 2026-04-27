@@ -18,7 +18,7 @@
   "interface": {
     "displayName": "Moondex",
     "shortDescription": "Run Moondex planner-executor workflows.",
-    "longDescription": "Bundle Moondex runtime, cmux operations, task planning, and hook inspection workflows for Codex.",
+    "longDescription": "Bundle Moondex runtime, cmux operations, task planning, diagnostics, and hook inspection workflows for Codex.",
     "developerName": "Moondex maintainers",
     "category": "Productivity",
     "capabilities": [
@@ -28,7 +28,8 @@
     "defaultPrompt": [
       "Use Moondex to operate a Moondex task through cmux role surfaces.",
       "Use Moondex to turn one validated task into an executor-ready plan.",
-      "Use Moondex to inspect Moondex runtime events and hook state."
+      "Use Moondex to inspect Moondex runtime events and hook state.",
+      "Use Moondex to audit plugin quality, runtime readiness, and documentation drift."
     ]
   }
 }

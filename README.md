@@ -88,6 +88,7 @@ codex plugin marketplace add ./
 - `moondex-runtime`
 - `moondex-cmux`
 - `moondex-task-planner`
+- `moondex-diagnostics`
 
 ## 다음 우선순위
 
