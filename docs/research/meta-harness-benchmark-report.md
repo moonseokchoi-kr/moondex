@@ -1,35 +1,35 @@
-# Meta Harness Benchmark Report
+# Meta Harness 벤치마크 보고서
 
-Date: 2026-04-28
+작성일: 2026-04-28
 
-Source repository: `https://github.com/SaehwanPark/meta-harness`
+소스 저장소: `https://github.com/SaehwanPark/meta-harness`
 
-Temporary clone used for analysis: `/tmp/moondex-meta-harness-analysis`
+분석에 사용한 임시 클론: `/tmp/moondex-meta-harness-analysis`
 
-## Executive Summary
+## 요약
 
-`meta-harness` is most useful to Moondex as a benchmark framework for dynamic team composition, durable handoff artifacts, and validation scenarios. It should not be copied as Moondex runtime architecture.
+`meta-harness`는 Moondex에 동적 팀 구성, 지속 가능한 핸드오프 산출물, 검증 시나리오를 평가하는 벤치마크 프레임워크로 가장 유용하다. Moondex의 런타임 아키텍처로 그대로 복사해서는 안 된다.
 
-Moondex already has stronger runtime enforcement than `meta-harness`: task phases, leases, dispatch, mailbox contracts, readiness validation, hook wrappers, event logs, archive policy, and cmux role surfaces. The useful benchmark target is policy quality: when to invoke roles, which pattern a task or wave should use, what handoff artifacts must exist, and how normal and failure flows should be validated.
+Moondex는 이미 `meta-harness`보다 강한 런타임 강제 수단을 갖고 있다. 예를 들어 task phase, lease, dispatch, mailbox contract, readiness validation, hook wrapper, event log, archive policy, cmux role surface가 있다. 따라서 유용한 벤치마크 대상은 런타임 구조가 아니라 정책 품질이다. 즉, 어떤 시점에 어떤 역할을 호출할지, task나 wave가 어떤 패턴을 써야 하는지, 어떤 핸드오프 산출물이 반드시 있어야 하는지, 정상 흐름과 실패 흐름을 어떻게 검증할지를 평가해야 한다.
 
-## What Meta Harness Provides
+## Meta Harness가 제공하는 것
 
-The upstream repository is a portable meta-skill package for designing repo-local agent workflows. It is mostly documentation plus small Python installer and validation scripts.
+상위 저장소는 repo-local agent workflow를 설계하기 위한 이식 가능한 meta-skill 패키지다. 대부분은 문서이며, 작은 Python 설치 스크립트와 검증 스크립트가 포함되어 있다.
 
-Important components:
+주요 구성 요소:
 
-- `AGENTS.md`: intentionally short repo-wide guidance.
-- `.agents/skills/harness/SKILL.md`: the main skill for designing domain workflows, specialist skills, team specs, and deterministic handoff artifacts.
-- `.agents/skills/harness/references/`: progressive-disclosure references for architecture patterns, AGENTS authoring, skill writing/testing, QA, autonomous experimentation, team examples, and orchestrator templates.
-- `docs/harness/README.md`: generated artifact contract for team specs, role briefs, `_workspace/` handoffs, and experiment ledgers.
-- `docs/harness/starter-research/team-spec.md`: minimal research team spec with roles, workflow, failure policy, and validation.
-- `scripts/install_harness.py`: installs the canonical skill tree into project or user scopes.
-- `scripts/test_install_harness.py`: smoke-tests installer behavior.
-- `scripts/validate_codex_port.py`: validates required files, links, skill frontmatter, headings, pattern coverage, and banned legacy tokens.
+- `AGENTS.md`: 의도적으로 짧게 작성된 저장소 전체 지침.
+- `.agents/skills/harness/SKILL.md`: 도메인 workflow, specialist skill, team spec, 결정적 핸드오프 산출물을 설계하는 핵심 skill.
+- `.agents/skills/harness/references/`: architecture pattern, AGENTS 작성, skill 작성/테스트, QA, autonomous experimentation, team example, orchestrator template을 progressive disclosure 방식으로 제공하는 참고 문서.
+- `docs/harness/README.md`: team spec, role brief, `_workspace/` handoff, experiment ledger를 위한 생성 산출물 계약.
+- `docs/harness/starter-research/team-spec.md`: 역할, workflow, 실패 정책, 검증을 포함한 최소 research team spec.
+- `scripts/install_harness.py`: 표준 skill tree를 project scope 또는 user scope에 설치.
+- `scripts/test_install_harness.py`: installer 동작 smoke test.
+- `scripts/validate_codex_port.py`: 필수 파일, 링크, skill frontmatter, heading, pattern coverage, 금지된 legacy token을 검증.
 
-## Workflow Benchmark
+## Workflow 벤치마크
 
-`meta-harness` uses a six-phase workflow:
+`meta-harness`는 6단계 workflow를 사용한다.
 
 1. Domain Analysis
 2. Team Architecture Design
@@ -38,41 +38,41 @@ Important components:
 5. Integration and Orchestration
 6. Validation and Testing
 
-Moondex should benchmark against this as a policy design loop, not as a replacement for `.moondex/state`.
+Moondex는 이를 `.moondex/state`의 대체물이 아니라 정책 설계 루프의 벤치마크로 삼아야 한다.
 
-Recommended Moondex mapping:
+권장 Moondex 매핑:
 
-| Meta Harness Phase | Moondex Equivalent |
+| Meta Harness 단계 | Moondex 대응 항목 |
 | --- | --- |
-| Domain Analysis | task/readiness analysis, task planner input quality |
-| Team Architecture Design | dynamic role chain and wave pattern selection |
-| Role and Artifact Definition | task/plan/wave plus role mailbox contracts |
-| Skill Generation | optional Moondex specialist skills only when reusable |
-| Integration and Orchestration | `next-action`, `orchestrator-step`, `orchestrator-loop`, dispatch and mailbox state |
-| Validation and Testing | validator results, event log, audit-state, benchmark scenario outcomes |
+| Domain Analysis | task/readiness 분석, task planner 입력 품질 |
+| Team Architecture Design | 동적 role chain 및 wave pattern 선택 |
+| Role and Artifact Definition | task/plan/wave와 role mailbox contract |
+| Skill Generation | 재사용성이 있을 때만 선택적으로 만드는 Moondex specialist skill |
+| Integration and Orchestration | `next-action`, `orchestrator-step`, `orchestrator-loop`, dispatch 및 mailbox state |
+| Validation and Testing | validator 결과, event log, audit-state, benchmark scenario 결과 |
 
-## Architecture Pattern Mapping
+## Architecture Pattern 매핑
 
-Moondex can use the six upstream patterns as a role-composition vocabulary:
+Moondex는 상위 저장소의 6개 패턴을 role composition vocabulary로 사용할 수 있다.
 
-| Pattern | Moondex Use |
+| Pattern | Moondex에서의 사용 |
 | --- | --- |
 | Pipeline | `task -> plan -> wave -> implementation -> review -> optional compliance/test` |
-| Fan-out/Fan-in | independent wave tasks, planner pool, parallel review angles, then synthesis |
-| Expert Pool | conditional `compliance-reviewer`, `tester`, or future domain specialists |
-| Producer-Reviewer | `implementer -> code-reviewer` with bounded revision |
-| Supervisor | orchestrator managing backlog, leases, stale roles, retry, archive, and phase transfer |
-| Hierarchical Delegation | use sparingly for domain splits; keep coordination shallow |
+| Fan-out/Fan-in | 독립적인 wave task, planner pool, 병렬 review angle, 이후 synthesis |
+| Expert Pool | 조건부 `compliance-reviewer`, `tester`, 또는 향후 domain specialist |
+| Producer-Reviewer | 제한된 revision 범위를 갖는 `implementer -> code-reviewer` |
+| Supervisor | backlog, lease, stale role, retry, archive, phase transfer를 관리하는 orchestrator |
+| Hierarchical Delegation | 도메인 분할에만 제한적으로 사용하고 coordination은 얕게 유지 |
 
-The strongest immediate fit is `Expert Pool` plus `Producer-Reviewer`. Moondex already has fixed roles; the benchmark should test when those roles should be attached.
+가장 즉시 적용하기 좋은 조합은 `Expert Pool`과 `Producer-Reviewer`다. Moondex에는 이미 고정 role이 있으므로, 벤치마크는 이 role들을 언제 붙일지 검증해야 한다.
 
-## Recommended Benchmark Tracks
+## 권장 벤치마크 트랙
 
 ### 1. Role Selection Benchmark
 
-Goal: verify dynamic team composition.
+목표: 동적 팀 구성이 올바른지 검증한다.
 
-Input:
+입력:
 
 - task metadata
 - ownership scope
@@ -82,93 +82,93 @@ Input:
 - verification requirements
 - prior mailbox outputs
 
-Expected output:
+기대 출력:
 
-- selected role chain
-- skipped-role rationale
+- 선택된 role chain
+- 건너뛴 role에 대한 근거
 - escalation trigger
 
-Scenarios:
+시나리오:
 
-- local low-risk code change: `implementer -> code-reviewer`
-- docs-only contract change: `implementer -> code-reviewer -> compliance-reviewer`
-- persisted state, schema, CLI, API, or archive behavior: require `compliance-reviewer`
-- integration/E2E/external IO/user-critical flow: require `tester`
-- ambiguous changed files: route to compliance instead of guessing
-- reviewer requests changes: return to implementation with bounded rework
+- 낮은 위험의 국소 코드 변경: `implementer -> code-reviewer`
+- 문서만 바뀌는 contract 변경: `implementer -> code-reviewer -> compliance-reviewer`
+- persisted state, schema, CLI, API, archive behavior 변경: `compliance-reviewer` 필수
+- integration/E2E/external IO/user-critical flow 변경: `tester` 필수
+- 변경 파일이 모호함: 추측하지 않고 compliance로 route
+- reviewer가 변경을 요청함: 제한된 rework 범위 안에서 implementation으로 되돌림
 
 ### 2. Pattern Selection Benchmark
 
-Goal: decide whether a task set should use Pipeline, Fan-out/Fan-in, Supervisor, or hybrid composition.
+목표: task 집합이 Pipeline, Fan-out/Fan-in, Supervisor, 또는 hybrid composition 중 무엇을 써야 하는지 결정한다.
 
-Scenarios:
+시나리오:
 
-- strict dependency chain: Pipeline
-- independent wave tasks: Fan-out/Fan-in
-- changing backlog or stale leases: Supervisor
-- implementation plus mandatory review: Producer-Reviewer
-- conditional compliance/test roles: Expert Pool
+- 엄격한 의존성 chain: Pipeline
+- 독립적인 wave task: Fan-out/Fan-in
+- 변하는 backlog 또는 stale lease: Supervisor
+- 구현과 필수 review 조합: Producer-Reviewer
+- 조건부 compliance/test role: Expert Pool
 
 ### 3. Handoff Quality Benchmark
 
-Goal: score whether role handoff artifacts are complete enough for downstream independence.
+목표: role handoff 산출물이 downstream role이 독립적으로 진행할 만큼 완전한지 점수화한다.
 
-Rubric:
+평가 기준:
 
-- named input
-- named output
+- 명명된 input
+- 명명된 output
 - owner role
-- task id and phase
+- task id와 phase
 - scope boundary
 - verification evidence
 - failure path
-- downstream role can proceed without hidden context
+- downstream role이 숨겨진 context 없이 진행 가능
 
-This should build on existing `validate-role-transfer` and `validate-readiness` checks, but extend them into cross-artifact consistency.
+이 항목은 기존 `validate-role-transfer`와 `validate-readiness` 검사를 기반으로 하되, cross-artifact consistency까지 확장해야 한다.
 
 ### 4. Review Boundary Benchmark
 
-Goal: prevent reviewer roles from overlapping or skipping risk.
+목표: reviewer role이 서로 겹치거나 위험을 건너뛰지 않도록 한다.
 
-Expected boundaries:
+기대 boundary:
 
-- `code-reviewer`: implementation correctness, regression risk, tests, maintainability
-- `compliance-reviewer`: spec/design/contract/schema/API/CLI/state/archive/policy-sensitive boundaries
-- `tester`: independent integration/E2E/user-flow evidence when warranted
+- `code-reviewer`: 구현 정확성, regression risk, test, maintainability
+- `compliance-reviewer`: spec/design/contract/schema/API/CLI/state/archive/policy-sensitive boundary
+- `tester`: 필요할 때 독립적인 integration/E2E/user-flow evidence
 
-Scenarios:
+시나리오:
 
-- code reviewer skips compliance on sensitive path: should flag risk
-- compliance reviewer duplicates code review instead of contract review: should fail benchmark
-- tester runs unit-level checks only for an E2E-required change: should fail benchmark
+- code reviewer가 민감한 경로에서 compliance를 건너뜀: risk를 flag해야 함
+- compliance reviewer가 contract review 대신 code review를 중복함: benchmark 실패
+- tester가 E2E가 필요한 변경에서 unit-level check만 실행함: benchmark 실패
 
 ### 5. Failure Flow Benchmark
 
-Goal: enforce deterministic fallback instead of ad hoc blocking.
+목표: 임의의 blocking 대신 결정적인 fallback을 강제한다.
 
-Scenarios:
+시나리오:
 
-- implementer lease expires
-- dispatch remains pending/notified without ACK
-- reviewer requests changes beyond the current plan
-- compliance finds scope drift
-- tester finds integration failure
-- planner task is too broad and needs split
-- hook warning exists but orchestrator attempts to continue
+- implementer lease 만료
+- dispatch가 ACK 없이 pending/notified 상태로 남음
+- reviewer가 현재 plan 범위를 넘는 변경을 요청함
+- compliance가 scope drift를 발견함
+- tester가 integration failure를 발견함
+- planner task가 너무 넓어서 split이 필요함
+- hook warning이 있는데 orchestrator가 계속 진행하려고 함
 
-Assertions:
+검증 조건:
 
-- state transition is explicit
-- event log records the change
-- mailbox output has valid schema
-- next action is deterministic
-- operator stop reason is actionable
+- state transition이 명시적임
+- event log가 변경을 기록함
+- mailbox output이 유효한 schema를 가짐
+- next action이 결정적임
+- operator stop reason이 실행 가능한 형태임
 
-## Artifact Strategy
+## 산출물 전략
 
-Do not adopt `_workspace` as the Moondex source of truth. Use `.moondex/state` for runtime truth.
+`_workspace`를 Moondex의 source of truth로 채택하면 안 된다. 런타임 truth는 `.moondex/state`를 사용해야 한다.
 
-Use `_workspace`-style artifacts only for benchmark runs, and make them derived or auditable against runtime state:
+`_workspace` 스타일 산출물은 benchmark run에만 사용하고, runtime state에서 파생되었거나 runtime state와 대조 감사할 수 있어야 한다.
 
 ```text
 docs/research/benchmarks/{run-id}/
@@ -179,11 +179,11 @@ docs/research/benchmarks/{run-id}/
   final-report.md
 ```
 
-This preserves the useful upstream idea, deterministic intermediate artifacts, without duplicating or replacing `.moondex/state`.
+이 방식은 결정적 중간 산출물이라는 상위 저장소의 유용한 아이디어를 유지하면서도, `.moondex/state`를 중복하거나 대체하지 않는다.
 
-## Proposed Moondex Additions
+## 제안하는 Moondex 추가 항목
 
-### Documentation
+### 문서
 
 - `docs/contracts/team-spec-schema.md`
 - `docs/execution/dynamic-team-composition.md`
@@ -192,40 +192,40 @@ This preserves the useful upstream idea, deterministic intermediate artifacts, w
 ### Skills
 
 - `skills/moondex-team-designer`
-  - chooses role chain and team pattern for a task or wave
-  - produces a team spec or role-selection matrix
-  - keeps `.moondex/state` as runtime truth
+  - task 또는 wave에 대한 role chain과 team pattern 선택
+  - team spec 또는 role-selection matrix 생성
+  - `.moondex/state`를 runtime truth로 유지
 
-### Future CLI
+### 향후 CLI
 
-Only after the docs and skill are exercised:
+문서와 skill을 실제로 사용해본 뒤에만 추가한다.
 
 ```bash
 moondex api propose-team --input '{"task_id":"T-01"}' --json
 moondex api apply-team --input '{"task_id":"T-01","team_spec":{...}}' --json
 ```
 
-The first CLI should be non-mutating. The second should only write durable state after the proposed contract is stable.
+첫 번째 CLI는 non-mutating이어야 한다. 두 번째 CLI는 제안된 contract가 안정된 뒤에만 durable state를 써야 한다.
 
-## Risks
+## 위험
 
-- Copying `meta-harness` directly would regress Moondex toward markdown-only orchestration.
-- `_workspace` can drift from `.moondex/state` if it becomes a parallel truth source.
-- More roles can reduce throughput if role selection is not machine-checkable.
-- Hierarchical delegation can hide ownership and should remain rare.
-- Scenario benchmarks can become prompt tests unless they assert state transitions, mailbox outputs, audit output, and events.
+- `meta-harness`를 그대로 복사하면 Moondex가 markdown-only orchestration 쪽으로 퇴행할 수 있다.
+- `_workspace`가 parallel truth source가 되면 `.moondex/state`와 drift가 생길 수 있다.
+- role selection이 machine-checkable하지 않으면 role 수가 늘어날수록 처리량이 떨어질 수 있다.
+- Hierarchical Delegation은 ownership을 숨길 수 있으므로 드물게 사용해야 한다.
+- scenario benchmark가 state transition, mailbox output, audit output, event를 assert하지 않으면 단순 prompt test가 될 수 있다.
 
-## Best Next Benchmark
+## 가장 좋은 다음 벤치마크
 
-Use the `money-track-app-bootstrap-theme-raw-replan` example as the first benchmark run.
+첫 번째 benchmark run으로 `money-track-app-bootstrap-theme-raw-replan` 예제를 사용한다.
 
-Compare:
+비교 대상:
 
 1. manual planning
 2. planner pool
 3. split-retry planning
 
-Score:
+평가 항목:
 
 - role selection correctness
 - handoff completeness
@@ -233,13 +233,12 @@ Score:
 - review changes
 - hung/retry rate
 - final confidence
-- whether `.moondex/state` could represent the execution cleanly
+- `.moondex/state`가 execution을 깔끔하게 표현할 수 있었는지
 
-This benchmark directly tests dynamic team composition without changing Moondex runtime mechanics.
+이 benchmark는 Moondex runtime mechanics를 바꾸지 않고도 dynamic team composition을 직접 검증한다.
 
-## Recommendation
+## 권고
 
-Add `moondex-team-designer` and `team-spec-schema.md` next. Keep it docs-first and read-only at first. Use it to produce benchmark specs and role-selection matrices before adding Rust automation.
+다음 단계로 `moondex-team-designer`와 `team-spec-schema.md`를 추가한다. 처음에는 docs-first와 read-only 방식을 유지한다. Rust automation을 추가하기 전에 benchmark spec과 role-selection matrix를 생성하는 데 먼저 사용한다.
 
-Do not import upstream files wholesale. Keep upstream as a benchmark reference, and adapt only the durable concepts that strengthen Moondex's existing state-first runtime.
-
+상위 저장소 파일을 wholesale import하지 않는다. 상위 저장소는 benchmark reference로 유지하고, Moondex의 기존 state-first runtime을 강화하는 durable concept만 선별해 적용한다.
