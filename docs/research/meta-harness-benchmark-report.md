@@ -220,7 +220,7 @@ docs/research/benchmarks/{run-id}/
 
 - `docs/contracts/stack-profile-schema.md`
 - `docs/contracts/team-spec-schema.md`
-- `docs/execution/dynamic-team-composition.md`
+- `docs/execution/stack-aware-team-composition.md`
 - `docs/research/benchmarks/README.md`
 
 ### Skills
@@ -228,7 +228,7 @@ docs/research/benchmarks/{run-id}/
 - `skills/moondex-team-designer`
   - 저장소의 기술 스택을 읽고 stack profile 생성
   - task 또는 wave에 대한 role chain, specialist lens, team pattern 선택
-  - team spec 또는 role-selection matrix 생성
+  - 대상 프로젝트의 `.moondex/team/`에 team spec, 팀원 설명, verification plan 생성
   - stack-specific verification plan 생성
   - `.moondex/state`를 runtime truth로 유지
 
@@ -239,7 +239,7 @@ docs/research/benchmarks/{run-id}/
 ```bash
 moondex api inspect-stack --json
 moondex api propose-team --input '{"task_id":"T-01"}' --json
-moondex api apply-team --input '{"task_id":"T-01","team_spec":{...}}' --json
+moondex api apply-team --input '{"team_spec_path":".moondex/team/team-spec.json"}' --json
 ```
 
 `inspect-stack`과 `propose-team`은 non-mutating이어야 한다. `apply-team`은 제안된 contract가 안정된 뒤에만 durable state를 써야 한다.
@@ -281,6 +281,6 @@ moondex api apply-team --input '{"task_id":"T-01","team_spec":{...}}' --json
 
 ## 권고
 
-다음 단계로 `moondex-team-designer`, `stack-profile-schema.md`, `team-spec-schema.md`를 추가한다. 처음에는 docs-first와 read-only 방식을 유지한다. Rust automation을 추가하기 전에 stack profile, benchmark spec, role-selection matrix, stack-specific verification plan을 생성하는 데 먼저 사용한다.
+다음 단계로 `moondex-team-designer`, `stack-profile-schema.md`, `team-spec-schema.md`를 추가한다. 처음에는 skill-first 방식으로 대상 프로젝트의 `.moondex/team/`에 커밋 가능한 팀 설정을 생성한다. Rust automation을 추가하기 전에 stack profile, team spec, role-selection matrix, stack-specific verification plan을 실제 프로젝트에서 먼저 사용한다.
 
 상위 저장소 파일을 wholesale import하지 않는다. 상위 저장소는 benchmark reference로 유지하고, Moondex의 기존 state-first runtime을 강화하는 durable concept만 선별해 적용한다.

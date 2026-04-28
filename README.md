@@ -40,6 +40,9 @@
 - moondex risk probes: [docs/execution/moondex-risk-probes.md](/Users/moon/Workspace/moondex/docs/execution/moondex-risk-probes.md)
 - readiness 기준: [docs/execution/task-readiness-gate.md](/Users/moon/Workspace/moondex/docs/execution/task-readiness-gate.md)
 - executor 체크리스트: [docs/execution/executor-checklist.md](/Users/moon/Workspace/moondex/docs/execution/executor-checklist.md)
+- stack profile 계약: [docs/contracts/stack-profile-schema.md](/Users/moon/Workspace/moondex/docs/contracts/stack-profile-schema.md)
+- team spec 계약: [docs/contracts/team-spec-schema.md](/Users/moon/Workspace/moondex/docs/contracts/team-spec-schema.md)
+- stack-aware team composition: [docs/execution/stack-aware-team-composition.md](/Users/moon/Workspace/moondex/docs/execution/stack-aware-team-composition.md)
 
 ## 현재 결론
 
@@ -62,6 +65,7 @@
 - `validate-role-transfer`, `validate-readiness`, lifecycle hook warnings, `next-action`, `orchestrator-step/loop`, `archive-state`, `list-events`, and `inspect-hooks` now cover W-01 through W-16 in the work tracker.
 - 같은 logical task는 `phase`를 통해 implementer에서 code-reviewer/compliance/tester로 넘어간다. review만을 위한 별도 task를 만드는 것은 더 이상 기본 runtime path가 아니다.
 - `cmux` 화면은 source of truth가 아니다. `.moondex/state`와 `events.jsonl`이 runtime truth다.
+- 플러그인이 설치된 대상 프로젝트의 팀 설정은 `.moondex/team/`에 두고, runtime state인 `.moondex/state/`와 분리한다.
 
 ## 저장소 원칙
 
@@ -89,6 +93,9 @@ codex plugin marketplace add ./
 - `moondex-cmux`
 - `moondex-task-planner`
 - `moondex-diagnostics`
+- `moondex-team-designer`
+
+`moondex-team-designer`는 대상 프로젝트의 기술 스택을 읽고 `.moondex/team/` 아래에 stack profile, team spec, 팀원 설명, 검증 계획을 생성한다.
 
 ## 다음 우선순위
 

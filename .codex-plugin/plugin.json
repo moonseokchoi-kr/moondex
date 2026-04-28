@@ -1,7 +1,7 @@
 {
   "name": "moondex",
   "version": "0.1.0",
-  "description": "Moondex multi-agent planner-executor runtime and operations workflows for Codex.",
+  "description": "Moondex multi-agent planner-executor runtime, stack-aware team design, and operations workflows for Codex.",
   "author": {
     "name": "Moondex maintainers",
     "email": "moonseoktech@gmail.com"
@@ -12,13 +12,14 @@
     "moondex",
     "multi-agent",
     "cmux",
-    "planner-executor"
+    "planner-executor",
+    "team-design"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Moondex",
     "shortDescription": "Run Moondex planner-executor workflows.",
-    "longDescription": "Bundle Moondex runtime, cmux operations, task planning, diagnostics, and hook inspection workflows for Codex.",
+    "longDescription": "Bundle Moondex runtime, cmux operations, task planning, stack-aware team design, diagnostics, and hook inspection workflows for Codex.",
     "developerName": "Moondex maintainers",
     "category": "Productivity",
     "capabilities": [
@@ -28,6 +29,7 @@
     "defaultPrompt": [
       "Use Moondex to operate a Moondex task through cmux role surfaces.",
       "Use Moondex to turn one validated task into an executor-ready plan.",
+      "Use Moondex to design a project-local team from the target repository's technology stack.",
       "Use Moondex to inspect Moondex runtime events and hook state.",
       "Use Moondex to audit plugin quality, runtime readiness, and documentation drift."
     ]
