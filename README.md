@@ -78,13 +78,12 @@
 이 저장소는 repo root 자체가 Codex plugin root가 되도록 구성되어 있다.
 
 - manifest: [.codex-plugin/plugin.json](/Users/moon/Workspace/moondex/.codex-plugin/plugin.json)
-- marketplace: [.agents/plugins/marketplace.json](/Users/moon/Workspace/moondex/.agents/plugins/marketplace.json)
 - bundled skills: [skills/](/Users/moon/Workspace/moondex/skills)
 
-로컬에서 테스트하려면 Codex plugin directory에서 repo marketplace를 선택하거나 CLI로 marketplace root를 추가한다.
+이 repo는 plugin package이며 marketplace repo가 아니다. 설치 테스트는 이 repo 안에 marketplace 파일을 두지 않고, 외부 marketplace에서 이 Git repo 또는 로컬 checkout을 plugin source로 가리키는 방식으로 수행한다. 로컬에서 빠르게 확인할 때는 임시 marketplace root를 만들고 그 root를 Codex에 추가한다.
 
 ```bash
-codex plugin marketplace add ./ 
+codex plugin marketplace add <marketplace-root-or-git-url>
 ```
 
 설치 후 사용할 수 있는 주요 skill:

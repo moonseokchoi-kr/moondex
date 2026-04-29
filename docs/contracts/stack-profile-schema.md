@@ -58,7 +58,6 @@
 - `go.mod`
 - `pom.xml`, `build.gradle`
 - `.codex-plugin/plugin.json`
-- `.agents/plugins/marketplace.json`
 - `skills/*/SKILL.md`
 
 manifest 이름만으로 결론을 내리지 않는다. script, dependency, directory shape, existing docs, test commands를 함께 본다.
@@ -82,4 +81,3 @@ manifest 이름만으로 결론을 내리지 않는다. script, dependency, dire
   "unknown_signals": []
 }
 ```
-

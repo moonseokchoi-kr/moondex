@@ -19,7 +19,6 @@ Diagnose Moondex as an agent-operated runtime and Codex plugin.
 
 - `../../README.md`
 - `../../.codex-plugin/plugin.json`
-- `../../.agents/plugins/marketplace.json`
 - `../../docs/execution/moondex-cli-plan.md`
 - `../../docs/execution/WORK_TRACKER.md`
 - `references/audit-rubric.md`
@@ -30,7 +29,6 @@ Always check these before scoring:
 
 ```bash
 python3 -m json.tool .codex-plugin/plugin.json >/dev/null
-python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 rg -n "codex-moon-[a-z]+|Codex Moon [A-Z][a-z]+|moon-[a-z]+|h[a]rness|H[a]rness|하.스" . -g '!target' -g '!.git' -g '!.moondex'
 rg -n "moondex api list-events|inspect-hooks|phase_advanced|events.jsonl" docs crates README.md skills
 ```
