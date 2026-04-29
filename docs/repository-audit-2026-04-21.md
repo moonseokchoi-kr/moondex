@@ -29,6 +29,9 @@
 - `docs/sdd/context/.gitkeep`
 - `docs/sdd/task/.gitkeep`
 - `docs/sdd/result/.gitkeep`
+- `docs/sdd/design/api/.gitkeep`
+- `docs/sdd/design/arch/.gitkeep`
+- `docs/sdd/design/ui/.gitkeep`
 
 ## File Decisions
 
