@@ -86,6 +86,8 @@
 codex plugin marketplace add <marketplace-root-or-git-url>
 ```
 
+플러그인 설치는 Codex skill discovery만 보장한다. `moondex` CLI 빌드와 대상 repo의 runtime state 초기화는 별도 bootstrap 단계다. `codex plugin list`는 현재 Codex CLI에서 지원되는 확인 명령이 아니므로 사용하지 않는다.
+
 설치 후 사용할 수 있는 주요 skill:
 
 - `moondex-runtime`
@@ -95,6 +97,47 @@ codex plugin marketplace add <marketplace-root-or-git-url>
 - `moondex-team-designer`
 
 `moondex-team-designer`는 대상 프로젝트의 기술 스택을 읽고 `.moondex/team/` 아래에 stack profile, team spec, 팀원 설명, 검증 계획을 생성한다.
+
+## Runtime Bootstrap
+
+최초 runtime 사용 전에는 대상 repo에서 doctor를 먼저 실행한다. Moondex checkout 자체를 대상 repo로 쓸 때는 아래처럼 실행한다.
+
+```bash
+./scripts/doctor.sh
+./scripts/doctor.sh --json
+```
+
+doctor는 plugin manifest, bundled skills, Rust/Cargo, PATH의 `moondex`, repo-local `.moondex/bin/moondex`, `.moondex/state`, `status`, `audit-state`를 확인한다. `.moondex/state`가 없으면 `status`를 실행하지 않는다. `status` 명령은 state를 초기화할 수 있으므로 doctor는 진단 중 runtime state를 몰래 만들지 않는다.
+
+문제가 있으면 setup을 실행한다.
+
+```bash
+./scripts/setup-moondex.sh
+```
+
+기본 setup은 전역 PATH를 건드리지 않는다.
+
+- `cargo build --release -p moondex`
+- release binary를 `.moondex/bin/moondex`로 복사
+- `.moondex/bin/moondex init`
+- `.moondex/bin/moondex status --json`
+- `.moondex/bin/moondex api audit-state --json`
+
+다른 대상 repo를 초기화할 때는 `--target-root`를 사용한다.
+
+```bash
+./scripts/setup-moondex.sh --target-root /path/to/target-repo
+```
+
+또는 대상 repo를 cwd로 둔 상태에서 Moondex checkout의 script 경로를 직접 실행해도 된다.
+
+전역 `moondex` 명령이 필요한 경우에만 선택적으로 설치한다.
+
+```bash
+./scripts/setup-moondex.sh --install-cli
+```
+
+실행 우선순위는 PATH의 `moondex`, `.moondex/bin/moondex` 순서다. `target/debug/moondex`는 개발 중 임시 산출물이며 runtime 기본 경로로 사용하지 않는다.
 
 ## 다음 우선순위
 

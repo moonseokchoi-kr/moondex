@@ -18,53 +18,69 @@ Use this skill for state-first Moondex runtime work.
 
 `.moondex/state` is the source of truth. cmux screens, terminal scrollback, and dispatch wake-up messages are transport or evidence only.
 
+## Bootstrap Check
+
+Before operating the runtime, run the plugin source script against the target repo:
+
+```bash
+./scripts/doctor.sh --json
+```
+
+Use the returned `command_prefix` for runtime commands. If doctor reports `setup_required: true`, run:
+
+```bash
+./scripts/setup-moondex.sh
+```
+
+For a target repo outside the plugin source checkout, pass `--target-root <path>` to both scripts. The default runtime CLI is repo-local `.moondex/bin/moondex`; PATH `moondex` is optional. Do not use `codex plugin list` as an install check because the current Codex CLI does not provide that command.
+
 ## Common Commands
 
 Initialize and inspect:
 
 ```bash
-moondex init
-moondex status --json
-moondex api audit-state --json
+<command_prefix> init
+<command_prefix> status --json
+<command_prefix> api audit-state --json
 ```
 
 Task lifecycle:
 
 ```bash
-moondex api create-task --input '<json>' --json
-moondex api claim-task --input '<json>' --json
-moondex api transition-task --input '<json>' --json
-moondex api release-task --input '<json>' --json
+<command_prefix> api create-task --input '<json>' --json
+<command_prefix> api claim-task --input '<json>' --json
+<command_prefix> api transition-task --input '<json>' --json
+<command_prefix> api release-task --input '<json>' --json
 ```
 
 Mailbox and phase transfer:
 
 ```bash
-moondex api write-mailbox --input '<json>' --json
-moondex api consume-mailbox-for-task --input '<json>' --json
-moondex api list-events --input '{"task_id":"T-01","kind":"phase_advanced"}' --json
+<command_prefix> api write-mailbox --input '<json>' --json
+<command_prefix> api consume-mailbox-for-task --input '<json>' --json
+<command_prefix> api list-events --input '{"task_id":"T-01","kind":"phase_advanced"}' --json
 ```
 
 Dispatch:
 
 ```bash
-moondex dispatch <role-id> <task-id> --json
-moondex api ack-dispatch --input '<json>' --json
-moondex api retry-dispatch --input '<json>' --json
+<command_prefix> dispatch <role-id> <task-id> --json
+<command_prefix> api ack-dispatch --input '<json>' --json
+<command_prefix> api retry-dispatch --input '<json>' --json
 ```
 
 Hooks and archive:
 
 ```bash
-moondex api inspect-hooks --json
-moondex api archive-state --input '{"apply":false,"older_than_seconds":2592000}' --json
+<command_prefix> api inspect-hooks --json
+<command_prefix> api archive-state --input '{"apply":false,"older_than_seconds":2592000}' --json
 ```
 
 ## Workflow
 
-1. Run `moondex status --json` and `moondex api audit-state --json`.
-2. Use `moondex api next-action --json` to choose the next state-first operation.
-3. Apply one bounded operation with `orchestrator-step` or run `orchestrator-loop` with a small `max_steps`.
-4. If the loop stops on `ack_dispatch_wait`, `review_hook_warnings`, `surface_ref_missing`, or `retry_exhausted`, resolve that state condition before continuing.
-5. Query `list-events` after phase changes or archive operations.
-
+1. Run doctor and resolve setup issues before mutating runtime state.
+2. Run `<command_prefix> status --json` and `<command_prefix> api audit-state --json`.
+3. Use `<command_prefix> api next-action --json` to choose the next state-first operation.
+4. Apply one bounded operation with `orchestrator-step` or run `orchestrator-loop` with a small `max_steps`.
+5. If the loop stops on `ack_dispatch_wait`, `review_hook_warnings`, `surface_ref_missing`, or `retry_exhausted`, resolve that state condition before continuing.
+6. Query `list-events` after phase changes or archive operations.
