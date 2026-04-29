@@ -12,9 +12,9 @@
 |------|------|
 | 방향 정리 | **완료** — `executor-first`에서 `design-informed multi-agent planner-executor`로 정리됨 |
 | 입력/산출물 계약 | **완료** — `task`, `plan`, `wave` 스키마와 템플릿 문서 존재 |
-| `task-planner` 스킬 | **완료** — 공식 Codex skills 구조로 `.agents/skills/task-planner/SKILL.md`에 정리됨 |
+| `task-planner` 스킬 | **완료** — 플러그인 skills 구조로 `skills/moondex-task-planner/SKILL.md`에 정리됨 |
 | `task-planner` 에이전트 | **완료** — `.codex/agents/task-planner.toml` 생성됨 |
-| `cmux` 스킬 | **완료** — `.agents/skills/cmux/SKILL.md`로 가져옴 |
+| `cmux` 스킬 | **완료** — 플러그인 skills 구조로 `skills/moondex-cmux/SKILL.md`에 정리됨 |
 | 멀티에이전트 운영 초안 | **진행 중** — 상태 머신, role dispatch, compliance/tester 기준이 문서화됨 |
 | task state machine | **진행 중** — 상세 상태값 초안은 합의됐고 runtime claim lifecycle이 구현됨 |
 | role selection / dispatch | **진행 중** — Rust `moondex` CLI MVP가 task/claim/dispatch state와 lifecycle guard를 강제함 |
@@ -38,9 +38,9 @@
 | Codex hook auto-discovery | `docs/execution/codex-hook-auto-discovery.md` | `.codex/hooks` repo-local discovery와 lifecycle bridge 운영 기준 |
 | plan 계약 | `docs/contracts/plan-schema.md` | executor-ready `plan`의 최소 계약 |
 | plan 템플릿 | `docs/templates/plan-template.md` | `plan` 작성 형식 |
-| task-planner 스킬 | `.agents/skills/task-planner/SKILL.md` | planner agent가 따라야 할 직접 지침 |
+| task-planner 스킬 | `skills/moondex-task-planner/SKILL.md` | planner agent가 따라야 할 직접 지침 |
 | task-planner 에이전트 | `.codex/agents/task-planner.toml` | 공식 Codex custom agent 엔트리 |
-| `cmux` 스킬 | `.agents/skills/cmux/SKILL.md` | 멀티 세션 운영 보조 스킬 |
+| `cmux` 스킬 | `skills/moondex-cmux/SKILL.md` | 멀티 세션 운영 보조 스킬 |
 
 다음 에이전트는 우선 `docs/execution/cmux-runtime-alignment.md`, `docs/execution/multi-agent-orchestration.md`, `docs/executor-direction.md`, `docs/planning/planning-workflow.md`를 읽으면 충분하다. `role-transfer-contracts.md`는 runtime payload로 내릴 때 같이 읽는다.
 
@@ -60,14 +60,14 @@
 - `plan`은 `task`보다 더 구체적인 `plan mode` 수준 문서가 되어야 한다는 결론을 반영했다.
 
 ### 3. `task-planner` 스킬과 에이전트 작성
-- 공식 Codex skills/subagents 문서를 참고해 `.agents/skills/task-planner/SKILL.md`와 `.codex/agents/task-planner.toml`을 만들었다.
+- 공식 Codex skills/subagents 문서를 참고해 `skills/moondex-task-planner/SKILL.md`와 `.codex/agents/task-planner.toml`을 만들었다.
 - `task-planner`는 broad planning이 아니라 `task 하나 -> plan 하나`만 담당한다.
 - 사용자가 명시적으로 요구한 결정:
   - planner 쪽은 더 좋은 모델을 써야 하므로 `gpt-5.4` high로 두었다.
   - 스킬과 에이전트는 분리하고, 에이전트가 스킬을 사용하도록 둔다.
 
 ### 4. `cmux` 스킬 가져오기
-- `~/.claude/skills/cmux`를 운영 레퍼런스로 보고 Codex용 `.agents/skills/cmux/SKILL.md`를 만들었다.
+- `~/.claude/skills/cmux`를 운영 레퍼런스로 보고 Codex용 `skills/moondex-cmux/SKILL.md`를 만들었다.
 - `cmux`는 source of truth가 아니라 실행 화면 분리와 모니터링을 위한 운영 레이어로만 사용한다.
 
 ### 5. 멀티에이전트 운영 초안 작성

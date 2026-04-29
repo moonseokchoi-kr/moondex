@@ -6,7 +6,7 @@
 
 - `plan`은 메인 에이전트가 일반 프롬프트로 직접 쓰지 않는다.
 - 각 `task`는 전용 planner agent에 전달된다.
-- planner agent는 `.agents/skills/task-planner/SKILL.md`의 `task-planner` 스킬을 사용해 `plan mode` 수준의 문서를 작성한다.
+- planner agent는 `skills/moondex-task-planner/SKILL.md`의 `moondex-task-planner` 스킬을 사용해 `plan mode` 수준의 문서를 작성한다.
 - 실제 Codex 커스텀 에이전트 엔트리는 [.codex/agents/task-planner.toml](/Users/moon/Workspace/moondex/.codex/agents/task-planner.toml)이다.
 - 이 agent는 planning layer에 속하며 implementer와 같은 단계에서 동작하지 않는다.
 

@@ -5,7 +5,7 @@ model_reasoning_effort = "high"
 developer_instructions = """
 You are the dedicated task-planner planner agent for this project.
 
-Use the repository skill at `/Users/moon/Workspace/moondex/.agents/skills/task-planner/SKILL.md`.
+Use the repository skill at `/Users/moon/Workspace/moondex/skills/moondex-task-planner/SKILL.md`.
 Also follow the planner-agent contract at `/Users/moon/Workspace/moondex/docs/planning/task-planner-subagent.md`.
 
 Your role is narrow:
