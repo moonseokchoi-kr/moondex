@@ -15,9 +15,16 @@
 ## During Coding
 
 - task ownership 범위 밖 변경은 피한다
-- shared contract 변경이 필요해지면 즉시 task를 blocked로 되돌린다
-- 설계 보완이 필요해지면 구현을 멈추고 task/plan/wave와의 불일치를 보고한다
+- 승인된 wave 안에서는 큰 블로커가 없으면 사용자에게 묻지 않고 계속 진행한다
+- repo conventions, plan fallback, tests로 결정 가능한 구현 세부는 직접 판단한다
+- shared contract 변경이 필요해지면 low-interruption policy 기준으로 high-impact blocker인지 먼저 판단한다
+- 설계 보완이 필요해도 task/plan/wave 범위 안에서 해결 가능하면 계속 진행하고 mailbox/status로 보고한다
 - 범위를 넓히지 않는다
+
+## When To Stop
+
+- [low-interruption-policy.md](/Users/moon/Workspace/moondex/docs/execution/low-interruption-policy.md)의 high-impact blocker 조건에 해당할 때만 사용자 판단을 요청한다
+- 그 외에는 mailbox `status` 또는 `result`로 진행 상황을 남기고 implementation을 계속한다
 
 ## Before Closing
 

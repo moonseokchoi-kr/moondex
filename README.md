@@ -44,6 +44,7 @@
 - moondex risk probes: [docs/execution/moondex-risk-probes.md](/Users/moon/Workspace/moondex/docs/execution/moondex-risk-probes.md)
 - readiness 기준: [docs/execution/task-readiness-gate.md](/Users/moon/Workspace/moondex/docs/execution/task-readiness-gate.md)
 - executor 체크리스트: [docs/execution/executor-checklist.md](/Users/moon/Workspace/moondex/docs/execution/executor-checklist.md)
+- low-interruption 정책: [docs/execution/low-interruption-policy.md](/Users/moon/Workspace/moondex/docs/execution/low-interruption-policy.md)
 - stack profile 계약: [docs/contracts/stack-profile-schema.md](/Users/moon/Workspace/moondex/docs/contracts/stack-profile-schema.md)
 - team spec 계약: [docs/contracts/team-spec-schema.md](/Users/moon/Workspace/moondex/docs/contracts/team-spec-schema.md)
 - stack-aware team composition: [docs/execution/stack-aware-team-composition.md](/Users/moon/Workspace/moondex/docs/execution/stack-aware-team-composition.md)
@@ -161,6 +162,8 @@ SDD/Moondex형 repo에서 `진행해줘`, `계속해줘`, `다음 단계 진행`
 7. 등록된 task만 `moondex-runtime`으로 dispatch, claim, review, test phase에 넘긴다.
 
 `create-task` payload는 task creation 단계에서 만들 수 있지만, 실제 runtime 등록은 wave approval 이후에만 한다. 병렬 처리 여부는 task가 아니라 plan set 기준으로 판단한다.
+
+승인된 wave 안에서는 high-impact blocker가 없는 한 사용자에게 묻지 않고 진행한다. 진행 상황은 mailbox/state/checkpoint로 보고하고, 사용자 개입은 wave approval, high-impact blocker, final integration summary에 집중한다.
 
 ## 다음 우선순위
 

@@ -7,6 +7,10 @@ description: Use when the user asks Moondex to implement a feature, proceed, con
 
 Default entrypoint for feature execution in SDD/Moondex-style repositories.
 
+## Read First
+
+- `../../docs/execution/low-interruption-policy.md`
+
 ## Trigger Rule
 
 Use this skill for short proceed commands when repo markers indicate SDD/Moondex workflow intent:
@@ -45,6 +49,7 @@ Do not skip stages:
 - Do not dispatch a task without an executor-ready plan.
 - Do not decide parallel execution from task titles alone; decide from the complete plan set.
 - Do not let terminal state override `.moondex/state`.
+- After wave approval, continue autonomously unless `low-interruption-policy.md` says to ask the user.
 
 ## Stage Selection
 

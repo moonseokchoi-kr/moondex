@@ -12,6 +12,7 @@ Use this skill for state-first Moondex runtime work after planning is complete.
 - `../../docs/execution/moondex-cli-plan.md`
 - `../../docs/execution/cmux-operations-playbook.md`
 - `../../docs/execution/codex-hook-auto-discovery.md`
+- `../../docs/execution/low-interruption-policy.md`
 - `../../docs/system-ext/HANDOFF.md`
 
 ## Core Rule
@@ -85,3 +86,7 @@ Hooks and archive:
 5. Apply one bounded operation with `orchestrator-step` or run `orchestrator-loop` with a small `max_steps`.
 6. If the loop stops on `ack_dispatch_wait`, `review_hook_warnings`, `surface_ref_missing`, or `retry_exhausted`, resolve that state condition before continuing.
 7. Query `list-events` after phase changes or archive operations.
+
+## Interruption Policy
+
+Inside an approved wave, continue autonomously unless `low-interruption-policy.md` requires operator input. Prefer mailbox `status`, `result`, or scoped repair over pausing to ask about local implementation choices.

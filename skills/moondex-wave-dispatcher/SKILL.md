@@ -13,6 +13,7 @@ Turn a complete task set and plan set into an execution wave decision.
 - `../../docs/templates/wave-template.md`
 - `../../docs/execution/task-readiness-gate.md`
 - `../../docs/execution/multi-agent-orchestration.md`
+- `../../docs/execution/low-interruption-policy.md`
 
 ## Use For
 
@@ -48,6 +49,7 @@ Produce a wave plan following `docs/templates/wave-template.md` with:
 - ownership map
 - verification plan
 - runtime enqueue order
+- high-impact blocker conditions that require operator input
 
 ## Runtime Rule
 

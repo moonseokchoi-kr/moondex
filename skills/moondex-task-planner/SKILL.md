@@ -13,6 +13,7 @@ Turn one defined task into one executor-ready Moondex plan.
 - `../../docs/contracts/plan-schema.md`
 - `../../docs/templates/plan-template.md`
 - `../../docs/execution/role-transfer-contracts.md`
+- `../../docs/execution/low-interruption-policy.md`
 
 ## Do Not Use For
 
@@ -45,4 +46,4 @@ The resulting plan should be ready for `moondex` dispatch:
 - no unresolved external decision hidden in the execution steps
 - verification commands that an implementer or tester can run
 - explicit state/reporting expectations through mailbox output
-
+- clear high-impact blocker conditions so executors do not ask the user for low-level implementation choices
