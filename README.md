@@ -18,9 +18,11 @@
 - task 계약: [docs/contracts/task-schema.md](/Users/moon/Workspace/moondex/docs/contracts/task-schema.md)
 - plan 계약: [docs/contracts/plan-schema.md](/Users/moon/Workspace/moondex/docs/contracts/plan-schema.md)
 - wave 계약: [docs/contracts/wave-schema.md](/Users/moon/Workspace/moondex/docs/contracts/wave-schema.md)
+- task set 템플릿: [docs/templates/task-set-template.md](/Users/moon/Workspace/moondex/docs/templates/task-set-template.md)
 - task 템플릿: [docs/templates/task-template.md](/Users/moon/Workspace/moondex/docs/templates/task-template.md)
 - plan 템플릿: [docs/templates/plan-template.md](/Users/moon/Workspace/moondex/docs/templates/plan-template.md)
 - wave 템플릿: [docs/templates/wave-template.md](/Users/moon/Workspace/moondex/docs/templates/wave-template.md)
+- task-creator 스킬: [skills/moondex-task-creator/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-task-creator/SKILL.md)
 - task-planner 스킬: [skills/moondex-task-planner/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-task-planner/SKILL.md)
 - handoff 스킬: [write-handoff](/Users/moon/.codex/skills/write-handoff/SKILL.md)
 - cmux 스킬: [skills/moondex-cmux/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-cmux/SKILL.md)
@@ -92,6 +94,7 @@ codex plugin marketplace add <marketplace-root-or-git-url>
 
 - `moondex-runtime`
 - `moondex-cmux`
+- `moondex-task-creator`
 - `moondex-task-planner`
 - `moondex-diagnostics`
 - `moondex-team-designer`
@@ -138,6 +141,18 @@ doctor는 plugin manifest, bundled skills, Rust/Cargo, PATH의 `moondex`, repo-l
 ```
 
 실행 우선순위는 PATH의 `moondex`, `.moondex/bin/moondex` 순서다. `target/debug/moondex`는 개발 중 임시 산출물이며 runtime 기본 경로로 사용하지 않는다.
+
+## Implementation Workflow
+
+Bootstrap 이후 실제 구현은 task creation에서 시작한다.
+
+1. `moondex-task-creator`로 `spec`, `design set`, `implementation design set`, codebase scan을 읽고 task set을 만든다.
+2. task set의 runtime payload를 확인하고, 필요한 경우 `<command_prefix> api create-task --input '<json>' --json`로 등록한다.
+3. 각 task를 하나씩 `moondex-task-planner`에 넘겨 executor-ready plan을 만든다.
+4. task, plan, wave payload를 `validate-readiness`로 검증한다.
+5. READY task만 `moondex-runtime`으로 dispatch, claim, review, test phase에 넘긴다.
+
+`moondex-task-creator`는 여러 task를 만들 수 있지만, `moondex-task-planner`는 한 번에 task 하나만 처리한다.
 
 ## 다음 우선순위
 

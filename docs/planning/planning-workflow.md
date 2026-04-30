@@ -4,7 +4,8 @@
 
 중요한 구조적 결정:
 
-- 메인 에이전트는 `task decomposition`, planning stage 전환, agent 배정, `wave` 확정, 실행 상태 관리를 담당한다.
+- 메인 에이전트는 planning stage 전환, agent 배정, `wave` 확정, 실행 상태 관리를 담당한다.
+- `task decomposition`은 `moondex-task-creator` 스킬이 담당한다.
 - 각 task의 `plan` 상세화는 전용 `task-planner` planner agent가 담당한다.
 - `wave`는 `task-planner` 출력 이후에 별도의 `wave-dispatcher` stage에서 확정한다.
 - implementer는 `validated ready` 상태의 task만 받는다.
@@ -30,8 +31,10 @@
 - 병렬화가 가능한지
 
 4. task를 분해한다
-- 각 task가 단일 목표를 가지도록 분해
-- 각 task에 non-goals, dependencies, 범위 경계를 부여
+- `moondex-task-creator`를 사용한다
+- 각 task가 단일 목표를 가지도록 분해한다
+- 각 task에 non-goals, dependencies, 범위 경계를 부여한다
+- runtime 등록용 `create-task` payload를 생성한다
 
 5. planning 후보 task를 `task-planner`에 배정한다
 - 메인 에이전트는 해당 task와 관련 문서 조각만 추린다
@@ -83,6 +86,7 @@
 Codex planning 단계의 공식 산출물:
 
 - task set
+- runtime create-task payloads
 - executor-ready plan set
 - wave plan
 - planning notes 또는 risk summary

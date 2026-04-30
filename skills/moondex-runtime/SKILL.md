@@ -79,8 +79,9 @@ Hooks and archive:
 ## Workflow
 
 1. Run doctor and resolve setup issues before mutating runtime state.
-2. Run `<command_prefix> status --json` and `<command_prefix> api audit-state --json`.
-3. Use `<command_prefix> api next-action --json` to choose the next state-first operation.
-4. Apply one bounded operation with `orchestrator-step` or run `orchestrator-loop` with a small `max_steps`.
-5. If the loop stops on `ack_dispatch_wait`, `review_hook_warnings`, `surface_ref_missing`, or `retry_exhausted`, resolve that state condition before continuing.
-6. Query `list-events` after phase changes or archive operations.
+2. If no runtime task exists yet, use `moondex-task-creator` to create task payloads from the input specs before operating runtime state.
+3. Run `<command_prefix> status --json` and `<command_prefix> api audit-state --json`.
+4. Use `<command_prefix> api next-action --json` to choose the next state-first operation.
+5. Apply one bounded operation with `orchestrator-step` or run `orchestrator-loop` with a small `max_steps`.
+6. If the loop stops on `ack_dispatch_wait`, `review_hook_warnings`, `surface_ref_missing`, or `retry_exhausted`, resolve that state condition before continuing.
+7. Query `list-events` after phase changes or archive operations.
