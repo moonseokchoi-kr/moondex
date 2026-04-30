@@ -24,6 +24,7 @@
 - wave 템플릿: [docs/templates/wave-template.md](/Users/moon/Workspace/moondex/docs/templates/wave-template.md)
 - task-creator 스킬: [skills/moondex-task-creator/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-task-creator/SKILL.md)
 - task-planner 스킬: [skills/moondex-task-planner/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-task-planner/SKILL.md)
+- wave-dispatcher 스킬: [skills/moondex-wave-dispatcher/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-wave-dispatcher/SKILL.md)
 - handoff 스킬: [write-handoff](/Users/moon/.codex/skills/write-handoff/SKILL.md)
 - cmux 스킬: [skills/moondex-cmux/SKILL.md](/Users/moon/Workspace/moondex/skills/moondex-cmux/SKILL.md)
 - task-planner 에이전트: [.codex/agents/task-planner.toml](/Users/moon/Workspace/moondex/.codex/agents/task-planner.toml)
@@ -96,6 +97,7 @@ codex plugin marketplace add <marketplace-root-or-git-url>
 - `moondex-cmux`
 - `moondex-task-creator`
 - `moondex-task-planner`
+- `moondex-wave-dispatcher`
 - `moondex-diagnostics`
 - `moondex-team-designer`
 
@@ -144,15 +146,16 @@ doctor는 plugin manifest, bundled skills, Rust/Cargo, PATH의 `moondex`, repo-l
 
 ## Implementation Workflow
 
-Bootstrap 이후 실제 구현은 task creation에서 시작한다.
+Bootstrap 이후 실제 구현은 전체 task set을 만든 뒤 plan set과 wave decision을 확정하는 흐름으로 시작한다.
 
 1. `moondex-task-creator`로 `spec`, `design set`, `implementation design set`, codebase scan을 읽고 task set을 만든다.
-2. task set의 runtime payload를 확인하고, 필요한 경우 `<command_prefix> api create-task --input '<json>' --json`로 등록한다.
-3. 각 task를 하나씩 `moondex-task-planner`에 넘겨 executor-ready plan을 만든다.
+2. 모든 task를 `moondex-task-planner`에 넘겨 executor-ready plan set을 만든다. 서로 독립적인 task의 planner 요청은 병렬로 실행할 수 있다.
+3. `moondex-wave-dispatcher`가 plan set 전체를 보고 dependency, ownership, shared contract를 기준으로 wave와 병렬 실행 가능 여부를 결정한다.
 4. task, plan, wave payload를 `validate-readiness`로 검증한다.
-5. READY task만 `moondex-runtime`으로 dispatch, claim, review, test phase에 넘긴다.
+5. READY wave task만 `<command_prefix> api create-task --input '<json>' --json`로 runtime에 등록한다.
+6. 등록된 task만 `moondex-runtime`으로 dispatch, claim, review, test phase에 넘긴다.
 
-`moondex-task-creator`는 여러 task를 만들 수 있지만, `moondex-task-planner`는 한 번에 task 하나만 처리한다.
+`create-task` payload는 task creation 단계에서 만들 수 있지만, 실제 runtime 등록은 wave approval 이후에만 한다. 병렬 처리 여부는 task가 아니라 plan set 기준으로 판단한다.
 
 ## 다음 우선순위
 

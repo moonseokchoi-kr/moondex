@@ -7,7 +7,7 @@
 - 메인 에이전트는 planning stage 전환, agent 배정, `wave` 확정, 실행 상태 관리를 담당한다.
 - `task decomposition`은 `moondex-task-creator` 스킬이 담당한다.
 - 각 task의 `plan` 상세화는 전용 `task-planner` planner agent가 담당한다.
-- `wave`는 `task-planner` 출력 이후에 별도의 `wave-dispatcher` stage에서 확정한다.
+- `wave`는 모든 dispatchable task의 `task-planner` 출력 이후에 `moondex-wave-dispatcher` stage에서 확정한다.
 - implementer는 `validated ready` 상태의 task만 받는다.
 - implementer는 기본 구현 규칙으로 TDD를 수행한다.
 - `task-planner`의 역할 정의 엔트리는 `.codex/agents/task-planner.toml`이다.
@@ -34,13 +34,14 @@
 - `moondex-task-creator`를 사용한다
 - 각 task가 단일 목표를 가지도록 분해한다
 - 각 task에 non-goals, dependencies, 범위 경계를 부여한다
-- runtime 등록용 `create-task` payload를 생성한다
+- runtime 등록용 payload는 deferred enqueue data로만 둔다
 
 5. planning 후보 task를 `task-planner`에 배정한다
 - 메인 에이전트는 해당 task와 관련 문서 조각만 추린다
 - 전용 `task-planner` planner agent에 입력을 넘긴다
 - Codex는 프로젝트 스코프 커스텀 에이전트 `task-planner`를 사용한다
 - planner agent는 `task-planner` 스킬을 사용한다
+- 서로 독립적인 task의 planner 요청은 병렬로 실행할 수 있다
 
 6. `task-planner`가 각 task를 plan으로 상세화한다
 - 각 task에 대해 ownership, contracts, tests, verification을 구체화
@@ -54,7 +55,8 @@
 - `plan` 기준으로 병렬 가능 task를 확정하거나 직렬로 강등한다
 
 8. `wave-dispatcher`가 wave를 확정한다
-- dependency graph를 `plan` 기준으로 다시 작성한다
+- `moondex-wave-dispatcher`를 사용한다
+- 모든 plan이 준비된 plan set을 기준으로 dependency graph를 다시 작성한다
 - wave 또는 병렬 그룹을 확정한다
 - verification plan을 구성한다
 
@@ -70,6 +72,7 @@
 - BLOCKED면 상위 문서 보완 요청
 
 11. execution dispatch를 시작한다
+- READY wave task만 runtime에 `create-task`로 등록한다
 - implementer는 `validated ready` 상태의 task만 받는다
 - implementer는 task 범위 안에서 unit-level TDD를 기본으로 수행한다
 - `code-reviewer`는 항상 붙고, `compliance-reviewer`는 필요할 때만 뒤이어 붙는다
@@ -86,13 +89,13 @@
 Codex planning 단계의 공식 산출물:
 
 - task set
-- runtime create-task payloads
+- deferred runtime create-task payloads
 - executor-ready plan set
 - wave plan
 - planning notes 또는 risk summary
 
 ## Stage Rule
 
-- 같은 task 안에서는 `task -> plan -> wave approval -> implement` 순서를 지킨다.
-- 전체 task set 수준에서는 planning과 execution이 병렬일 수 있다.
+- 기본 경로는 `all tasks -> all plans -> wave approval -> runtime enqueue -> dispatch` 순서를 지킨다.
+- 전체 task set 수준에서 task planning은 병렬일 수 있다.
 - 단, execution은 항상 `validated ready` 상태의 task만 대상으로 한다.

@@ -26,7 +26,9 @@ This template is the expected output shape for `moondex-task-creator`.
 
 Use `docs/templates/task-template.md` for each task.
 
-## Runtime Create Payloads
+## Deferred Runtime Payloads
+
+These payloads are not registered during task creation. They become runtime enqueue inputs only after task planning, wave decision, and readiness approval.
 
 ```json
 [

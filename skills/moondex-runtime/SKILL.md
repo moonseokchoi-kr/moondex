@@ -79,7 +79,7 @@ Hooks and archive:
 ## Workflow
 
 1. Run doctor and resolve setup issues before mutating runtime state.
-2. If no runtime task exists yet, use `moondex-task-creator` to create task payloads from the input specs before operating runtime state.
+2. If no runtime task exists yet, use `moondex-task-creator`, `moondex-task-planner`, and `moondex-wave-dispatcher` first. Runtime only receives READY wave tasks after planning is complete.
 3. Run `<command_prefix> status --json` and `<command_prefix> api audit-state --json`.
 4. Use `<command_prefix> api next-action --json` to choose the next state-first operation.
 5. Apply one bounded operation with `orchestrator-step` or run `orchestrator-loop` with a small `max_steps`.
