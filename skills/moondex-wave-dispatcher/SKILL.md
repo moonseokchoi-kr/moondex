@@ -1,6 +1,6 @@
 ---
 name: moondex-wave-dispatcher
-description: Use after a full Moondex task set and executor-ready plan set exist to decide wave order, parallel execution groups, runtime enqueue order, and dispatch readiness.
+description: Use within the Moondex implementation workflow after the full task set and all executor-ready plans exist to decide wave order, parallel execution groups, runtime enqueue order, and dispatch readiness.
 ---
 
 # Moondex Wave Dispatcher

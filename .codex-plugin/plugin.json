@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "Moondex",
     "shortDescription": "Run Moondex planner-executor workflows.",
-    "longDescription": "Bundle Moondex runtime, cmux operations, task creation, task planning, wave dispatch planning, stack-aware team design, diagnostics, and hook inspection workflows for Codex.",
+    "longDescription": "Run the Moondex planner-executor workflow end to end: create all tasks, plan all tasks, decide waves, enqueue READY work, then dispatch runtime agents. Short proceed/continue commands in SDD-style repositories route to this workflow.",
     "developerName": "Moondex maintainers",
     "category": "Productivity",
     "capabilities": [
@@ -27,13 +27,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use Moondex to operate a Moondex task through cmux role surfaces.",
-      "Use Moondex to decompose specs and designs into runtime-ready tasks.",
-      "Use Moondex to turn one validated task into an executor-ready plan.",
-      "Use Moondex to decide wave order and parallel dispatch from a complete plan set.",
-      "Use Moondex to design a project-local team from the target repository's technology stack.",
-      "Use Moondex to inspect Moondex runtime events and hook state.",
-      "Use Moondex to audit plugin quality, runtime readiness, and documentation drift."
+      "Use Moondex to plan and execute a feature from specs.",
+      "Use Moondex to continue the next SDD workflow step.",
+      "Use Moondex to inspect or repair runtime state."
     ]
   }
 }

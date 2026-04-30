@@ -4,6 +4,7 @@
 
 중요한 구조적 결정:
 
+- 기본 진입점은 `moondex-implementation-workflow`다.
 - 메인 에이전트는 planning stage 전환, agent 배정, `wave` 확정, 실행 상태 관리를 담당한다.
 - `task decomposition`은 `moondex-task-creator` 스킬이 담당한다.
 - 각 task의 `plan` 상세화는 전용 `task-planner` planner agent가 담당한다.

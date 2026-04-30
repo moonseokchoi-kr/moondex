@@ -1,11 +1,11 @@
 ---
 name: moondex-runtime
-description: Use when operating the Moondex runtime CLI, inspecting `.moondex/state`, advancing task phases, querying event logs, archiving state, or checking Codex hook discovery for this runtime.
+description: Use only after Moondex planning has produced READY wave tasks or existing runtime state must be inspected, dispatched, repaired, archived, or audited. Do not use as the default entrypoint for feature implementation requests.
 ---
 
 # Moondex Runtime
 
-Use this skill for state-first Moondex runtime work.
+Use this skill for state-first Moondex runtime work after planning is complete.
 
 ## Read First
 

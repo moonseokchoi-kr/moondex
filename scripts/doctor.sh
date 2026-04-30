@@ -81,7 +81,7 @@ fi
 SKILLS_STATUS=missing
 SKILLS_DETAIL="$SOURCE_ROOT/skills"
 MISSING_SKILLS=""
-for skill in moondex-runtime moondex-cmux moondex-task-creator moondex-task-planner moondex-wave-dispatcher moondex-diagnostics moondex-team-designer; do
+for skill in moondex-implementation-workflow moondex-runtime moondex-cmux moondex-task-creator moondex-task-planner moondex-wave-dispatcher moondex-diagnostics moondex-team-designer; do
   if [ ! -f "$SOURCE_ROOT/skills/$skill/SKILL.md" ]; then
     MISSING_SKILLS="$MISSING_SKILLS $skill"
   fi

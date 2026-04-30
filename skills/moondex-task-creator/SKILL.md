@@ -1,6 +1,6 @@
 ---
 name: moondex-task-creator
-description: Use when specs, design documents, implementation notes, or repository context need to be decomposed into a complete Moondex task set before task planning begins.
+description: Use within the Moondex implementation workflow when specs, design documents, implementation notes, or repository context need to be decomposed into a complete task set before all-task planning and wave dispatch decisions.
 ---
 
 # Moondex Task Creator
