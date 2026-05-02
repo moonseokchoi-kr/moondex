@@ -42,6 +42,7 @@ Current gap:
 - `next-action` remains available as advisory and non-mutating, while `orchestrator-step` and `orchestrator-loop` can now apply safe state-first actions.
 - Runtime phase history is now append-only in `.moondex/state/events.jsonl` and queryable through `moondex api list-events`.
 - AHE-lite contracts now exist for execution analysis reports, harness change manifests, and research benchmark runs. Full automatic evolution remains out of scope.
+- GPT-5.5 operating shape guidance now keeps Moondex skills outcome-first while preserving runtime invariants.
 
 Latest completed hardening:
 
@@ -49,8 +50,52 @@ Latest completed hardening:
 - W-15 cmux Operations Playbook: `docs/execution/cmux-operations-playbook.md`.
 - W-16 Codex Hook Auto-Discovery: `moondex api inspect-hooks` plus `docs/execution/codex-hook-auto-discovery.md`.
 - W-17 AHE-lite Baseline: analysis report schema, harness change manifest schema, and benchmark run README.
+- W-18 GPT-5.5 Operating Shape: shared skill guidance plus harness change manifest.
 
 ## Implementation Queue
+
+### W-18. GPT-5.5 Operating Shape
+
+Status: `done`
+
+Completion note:
+
+- 2026-05-03: Added `docs/execution/gpt-5.5-operating-shape.md`, linked it from implementation workflow, runtime, and wave dispatcher skills, and recorded harness change manifest `HC-20260503-001`.
+
+Purpose:
+
+- Adapt OpenAI GPT-5.5 prompt guidance to Moondex without weakening task/plan/wave/readiness/runtime invariants.
+
+Inputs:
+
+- OpenAI Prompt guidance: `https://developers.openai.com/api/docs/guides/prompt-guidance`
+- `docs/execution/low-interruption-policy.md`
+- `docs/contracts/harness-change-manifest-schema.md`
+- Moondex implementation workflow, runtime, and wave dispatcher skills
+
+Implementation:
+
+- Add shared GPT-5.5 operating shape guidance.
+- Make relevant skills read the shared guidance.
+- Add concise outcome-first execution rules to the skill surfaces.
+- Record the change as an AHE-lite harness change manifest.
+
+Done when:
+
+- Skills link to the shared GPT-5.5 guidance.
+- The guidance preserves all Moondex hard invariants.
+- The release version is bumped to `0.2.1`.
+- Verification passes.
+
+Verification:
+
+```bash
+rg -n "gpt-5.5-operating-shape|GPT-5.5 Operating Shape|shortest safe path|outcome-first" README.md docs skills
+python3 -m json.tool .codex-plugin/plugin.json
+cargo fmt --check
+cargo test -p moondex
+scripts/doctor.sh --json
+```
 
 ### W-17. AHE-Lite Baseline
 

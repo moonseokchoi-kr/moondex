@@ -47,6 +47,7 @@
 - readiness 기준: [docs/execution/task-readiness-gate.md](/Users/moon/Workspace/moondex/docs/execution/task-readiness-gate.md)
 - executor 체크리스트: [docs/execution/executor-checklist.md](/Users/moon/Workspace/moondex/docs/execution/executor-checklist.md)
 - low-interruption 정책: [docs/execution/low-interruption-policy.md](/Users/moon/Workspace/moondex/docs/execution/low-interruption-policy.md)
+- GPT-5.5 operating shape: [docs/execution/gpt-5.5-operating-shape.md](/Users/moon/Workspace/moondex/docs/execution/gpt-5.5-operating-shape.md)
 - stack profile 계약: [docs/contracts/stack-profile-schema.md](/Users/moon/Workspace/moondex/docs/contracts/stack-profile-schema.md)
 - team spec 계약: [docs/contracts/team-spec-schema.md](/Users/moon/Workspace/moondex/docs/contracts/team-spec-schema.md)
 - stack-aware team composition: [docs/execution/stack-aware-team-composition.md](/Users/moon/Workspace/moondex/docs/execution/stack-aware-team-composition.md)
@@ -75,6 +76,7 @@
 - `cmux` 화면은 source of truth가 아니다. `.moondex/state`와 `events.jsonl`이 runtime truth다.
 - 플러그인이 설치된 대상 프로젝트의 팀 설정은 `.moondex/team/`에 두고, runtime state인 `.moondex/state/`와 분리한다.
 - AHE-lite는 execution analysis report, harness change manifest, research benchmark run으로 제한한다. 자동 하네스 수정, 자동 rollback, 반복 rollout aggregation은 아직 범위가 아니다.
+- GPT-5.5용 Moondex 스킬은 outcome-first 실행을 선호하되, task/plan/wave/readiness/runtime source-of-truth invariant는 줄이지 않는다.
 
 ## 저장소 원칙
 
@@ -173,4 +175,5 @@ SDD/Moondex형 repo에서 `진행해줘`, `계속해줘`, `다음 단계 진행`
 
 - [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)의 W-01부터 W-16까지 완료됐다.
 - [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)의 W-17 AHE-lite baseline도 완료됐다.
+- [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)의 W-18 GPT-5.5 operating shape도 완료됐다.
 - 다음 후보는 첫 benchmark run 작성, target product repo와 연결한 장기 E2E 검증, native Codex lifecycle hook manifest 검증, 또는 archive/evidence retention 정책 심화다.

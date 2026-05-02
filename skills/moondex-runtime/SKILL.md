@@ -13,6 +13,7 @@ Use this skill for state-first Moondex runtime work after planning is complete.
 - `../../docs/execution/cmux-operations-playbook.md`
 - `../../docs/execution/codex-hook-auto-discovery.md`
 - `../../docs/execution/low-interruption-policy.md`
+- `../../docs/execution/gpt-5.5-operating-shape.md`
 - `../../docs/system-ext/HANDOFF.md`
 
 ## Core Rule
@@ -90,3 +91,7 @@ Hooks and archive:
 ## Interruption Policy
 
 Inside an approved wave, continue autonomously unless `low-interruption-policy.md` requires operator input. Prefer mailbox `status`, `result`, or scoped repair over pausing to ask about local implementation choices.
+
+## GPT-5.5 Operating Shape
+
+Use outcome-first, state-first execution. Keep preambles short, choose the next safe runtime operation from `.moondex/state`, and continue after advisory inspection when `next-action`, `orchestrator-step`, or `orchestrator-loop` exposes a safe follow-up.

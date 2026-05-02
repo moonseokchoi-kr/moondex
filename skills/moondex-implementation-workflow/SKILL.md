@@ -10,6 +10,7 @@ Default entrypoint for feature execution in SDD/Moondex-style repositories.
 ## Read First
 
 - `../../docs/execution/low-interruption-policy.md`
+- `../../docs/execution/gpt-5.5-operating-shape.md`
 
 ## Trigger Rule
 
@@ -50,6 +51,7 @@ Do not skip stages:
 - Do not decide parallel execution from task titles alone; decide from the complete plan set.
 - Do not let terminal state override `.moondex/state`.
 - After wave approval, continue autonomously unless `low-interruption-policy.md` says to ask the user.
+- Prefer the shortest safe path that satisfies Moondex invariants; do not turn stage selection into a final answer when the next artifact can be created or repaired.
 
 ## Stage Selection
 

@@ -14,6 +14,7 @@ Turn a complete task set and plan set into an execution wave decision.
 - `../../docs/execution/task-readiness-gate.md`
 - `../../docs/execution/multi-agent-orchestration.md`
 - `../../docs/execution/low-interruption-policy.md`
+- `../../docs/execution/gpt-5.5-operating-shape.md`
 
 ## Use For
 
@@ -36,6 +37,8 @@ Turn a complete task set and plan set into an execution wave decision.
 5. Mark serial tasks with the concrete reason they cannot run in parallel.
 6. Produce validation inputs for `validate-readiness`.
 7. Return the runtime enqueue order for READY tasks.
+
+Use the shortest safe explanation that proves the wave decision. Do not narrate process beyond dependency, ownership, shared contract, verification, and high-impact blocker evidence.
 
 ## Required Output
 
