@@ -18,6 +18,8 @@
 - task 계약: [docs/contracts/task-schema.md](/Users/moon/Workspace/moondex/docs/contracts/task-schema.md)
 - plan 계약: [docs/contracts/plan-schema.md](/Users/moon/Workspace/moondex/docs/contracts/plan-schema.md)
 - wave 계약: [docs/contracts/wave-schema.md](/Users/moon/Workspace/moondex/docs/contracts/wave-schema.md)
+- execution analysis report 계약: [docs/contracts/execution-analysis-report-schema.md](/Users/moon/Workspace/moondex/docs/contracts/execution-analysis-report-schema.md)
+- harness change manifest 계약: [docs/contracts/harness-change-manifest-schema.md](/Users/moon/Workspace/moondex/docs/contracts/harness-change-manifest-schema.md)
 - task set 템플릿: [docs/templates/task-set-template.md](/Users/moon/Workspace/moondex/docs/templates/task-set-template.md)
 - task 템플릿: [docs/templates/task-template.md](/Users/moon/Workspace/moondex/docs/templates/task-template.md)
 - plan 템플릿: [docs/templates/plan-template.md](/Users/moon/Workspace/moondex/docs/templates/plan-template.md)
@@ -48,6 +50,7 @@
 - stack profile 계약: [docs/contracts/stack-profile-schema.md](/Users/moon/Workspace/moondex/docs/contracts/stack-profile-schema.md)
 - team spec 계약: [docs/contracts/team-spec-schema.md](/Users/moon/Workspace/moondex/docs/contracts/team-spec-schema.md)
 - stack-aware team composition: [docs/execution/stack-aware-team-composition.md](/Users/moon/Workspace/moondex/docs/execution/stack-aware-team-composition.md)
+- research benchmarks: [docs/research/benchmarks/README.md](/Users/moon/Workspace/moondex/docs/research/benchmarks/README.md)
 
 ## 현재 결론
 
@@ -71,6 +74,7 @@
 - 같은 logical task는 `phase`를 통해 implementer에서 code-reviewer/compliance/tester로 넘어간다. review만을 위한 별도 task를 만드는 것은 더 이상 기본 runtime path가 아니다.
 - `cmux` 화면은 source of truth가 아니다. `.moondex/state`와 `events.jsonl`이 runtime truth다.
 - 플러그인이 설치된 대상 프로젝트의 팀 설정은 `.moondex/team/`에 두고, runtime state인 `.moondex/state/`와 분리한다.
+- AHE-lite는 execution analysis report, harness change manifest, research benchmark run으로 제한한다. 자동 하네스 수정, 자동 rollback, 반복 rollout aggregation은 아직 범위가 아니다.
 
 ## 저장소 원칙
 
@@ -168,4 +172,5 @@ SDD/Moondex형 repo에서 `진행해줘`, `계속해줘`, `다음 단계 진행`
 ## 다음 우선순위
 
 - [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)의 W-01부터 W-16까지 완료됐다.
-- 다음 후보는 target product repo와 연결한 장기 E2E 검증, native Codex lifecycle hook manifest 검증, 또는 archive/evidence retention 정책 심화다.
+- [docs/execution/WORK_TRACKER.md](/Users/moon/Workspace/moondex/docs/execution/WORK_TRACKER.md)의 W-17 AHE-lite baseline도 완료됐다.
+- 다음 후보는 첫 benchmark run 작성, target product repo와 연결한 장기 E2E 검증, native Codex lifecycle hook manifest 검증, 또는 archive/evidence retention 정책 심화다.

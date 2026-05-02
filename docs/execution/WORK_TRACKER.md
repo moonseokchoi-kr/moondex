@@ -41,14 +41,57 @@ Current gap:
 - Codex native hook auto-discovery remains limited to a verified repo-local `.codex/hooks` contract until an official lifecycle manifest is confirmed.
 - `next-action` remains available as advisory and non-mutating, while `orchestrator-step` and `orchestrator-loop` can now apply safe state-first actions.
 - Runtime phase history is now append-only in `.moondex/state/events.jsonl` and queryable through `moondex api list-events`.
+- AHE-lite contracts now exist for execution analysis reports, harness change manifests, and research benchmark runs. Full automatic evolution remains out of scope.
 
 Latest completed hardening:
 
 - W-14 Phase Event Log: `events.jsonl`, `phase_advanced`, `list-events`, malformed event audit, archive preservation.
 - W-15 cmux Operations Playbook: `docs/execution/cmux-operations-playbook.md`.
 - W-16 Codex Hook Auto-Discovery: `moondex api inspect-hooks` plus `docs/execution/codex-hook-auto-discovery.md`.
+- W-17 AHE-lite Baseline: analysis report schema, harness change manifest schema, and benchmark run README.
 
 ## Implementation Queue
+
+### W-17. AHE-Lite Baseline
+
+Status: `done`
+
+Completion note:
+
+- 2026-05-02: Added AHE-lite documentation contracts for execution analysis reports, harness change manifests, and research benchmark runs. This records evidence-based harness improvement without introducing automatic edits, automatic rollback, or rollout aggregation.
+
+Purpose:
+
+- Establish a lightweight evidence trail for Moondex harness changes before adding any automatic evolution loop.
+
+Inputs:
+
+- `docs/research/meta-harness-benchmark-report.md`
+- AHE analysis from PyTorchKR/arXiv discussion
+- Existing `.moondex/state`, event, mailbox, evidence, and diagnostic contracts
+
+Implementation:
+
+- Add `docs/contracts/execution-analysis-report-schema.md`.
+- Add `docs/contracts/harness-change-manifest-schema.md`.
+- Add `docs/research/benchmarks/README.md`.
+- Link the new contracts from README and mark the baseline in this tracker.
+
+Done when:
+
+- A Moondex operator can write an analysis report from runtime evidence.
+- A non-trivial skill, policy, validator, runtime, or packaging change can be recorded as a harness change manifest.
+- Benchmark run artifacts have a stable directory layout.
+- The boundary between AHE-lite and full automatic evolution is explicit.
+
+Verification:
+
+```bash
+rg -n "AHE-lite|execution analysis|harness change manifest|research benchmark|automatic evolution" README.md docs
+test -f docs/contracts/execution-analysis-report-schema.md
+test -f docs/contracts/harness-change-manifest-schema.md
+test -f docs/research/benchmarks/README.md
+```
 
 ### W-01. Planning Contracts Payload-Ready
 

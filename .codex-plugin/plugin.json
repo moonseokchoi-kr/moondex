@@ -1,6 +1,6 @@
 {
   "name": "moondex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Moondex multi-agent planner-executor runtime, stack-aware team design, and operations workflows for Codex.",
   "author": {
     "name": "Moondex maintainers",
