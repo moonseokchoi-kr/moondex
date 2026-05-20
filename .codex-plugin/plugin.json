@@ -1,0 +1,40 @@
+{
+  "name": "moondex",
+  "version": "0.3.1",
+  "description": "Codex에서 아이디어, 요구 명세, 설계 산출물 워크플로우를 구조화하는 하네스.",
+  "author": {
+    "name": "moonseokchoi-kr",
+    "url": "https://github.com/moonseokchoi-kr"
+  },
+  "homepage": "https://github.com/moonseokchoi-kr/moondex",
+  "repository": "https://github.com/moonseokchoi-kr/moondex",
+  "license": "MIT",
+  "keywords": [
+    "spec-design",
+    "harness",
+    "agent-orchestration",
+    "pipeline",
+    "design-doc",
+    "workflow",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Moondex",
+    "shortDescription": "Codex용 설계 라이프사이클 하네스",
+    "longDescription": "아이디어 워크샵, 요구 명세, 아키텍처, IA, UI, API 계약 산출물을 Codex에서 구조화해 진행하기 위한 워크플로우와 스킬 모음입니다.",
+    "developerName": "moonseokchoi-kr",
+    "category": "Productivity",
+    "capabilities": [
+      "Write",
+      "Research",
+      "Workflow"
+    ],
+    "defaultPrompt": [
+      "/idea-workshop으로 아이디어를 검증해줘",
+      "/spec-design start로 요구 명세와 설계를 만들어줘",
+      "/harness audit으로 프로젝트 하네스를 점검해줘"
+    ],
+    "brandColor": "#2563EB"
+  }
+}
