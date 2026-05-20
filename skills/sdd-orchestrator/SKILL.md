@@ -1,6 +1,6 @@
 ---
 name: sdd-orchestrator
-description: SDD Phase 4의 멀티 에이전트 오케스트레이션. ORCHESTRATOR_STATE.md를 읽고, Wave별로 Agent 도구를 사용해서 Engineer → Reviewer → Test Automator 루프를 자동 실행한다.
+description: SDD Phase 4의 멀티 에이전트 오케스트레이션과 Phase 5 compound 지식 동기화. ORCHESTRATOR_STATE.md를 읽고, Wave별 Engineer → Reviewer → Test Automator 루프를 실행한 뒤 결과를 compound wiki에 반영한다.
 model: opus
 allowed-tools: Bash Read Write Edit Glob Grep Agent
 user-invocable: false
@@ -14,9 +14,10 @@ user-invocable: false
 5. **context 90% 이상이면 현재 Wave 완료 후 즉시 상태 저장 + 스냅샷 커밋 + `PAUSED_AT_LIMIT` 전환 후 중단한다.** 리밋 감지 시에도 동일하게 상태 저장 후 중단한다 — 무시하고 계속하지 않는다
 </CRITICAL>
 
-# SDD Phase 4 Orchestrator
+# SDD Phase 4/5 Orchestrator
 
 Phase 3(Plan)에서 생성된 ORCHESTRATOR_STATE.md와 task 문서를 입력으로 받아, Wave별 구현→리뷰→테스트 루프를 자동 실행한다.
+Phase 4 완료 후에는 Phase 5로 전환해 SDD 산출물을 compound raw source snapshot으로 저장하고, 그 snapshot을 근거로 compound wiki에 반영한다.
 
 ## 사용법
 
@@ -151,6 +152,92 @@ Agent(subagent_type: "sdd-test-automator", prompt: 검증 요청)
 2. ORCHESTRATOR_STATE.md 상태를 COMPLETED로 변경
 3. 사용자에게 결과 보고
 4. 사용자 승인 후 main 머지 + worktree 정리
+
+---
+
+## Phase 4 Learning Buffer
+
+Phase 4 중 학습 데이터는 세션 메모리에 의존하지 않는다.
+오케스트레이터는 프로젝트 로컬 버퍼를 만들고, 다음 사건이 발생할 때 즉시 append한다.
+
+### 위치
+
+```
+.harness/state/sdd/<feature>/<run-id>/
+├── events.jsonl
+└── learning-buffer.md
+```
+
+### append 대상
+
+- 사용자 정정 또는 방향 변경
+- validation/test/build 실패와 수정 요약
+- 명시 규칙 위반과 correction
+- 리뷰에서 반복된 문제
+- 폐기한 접근과 폐기 이유
+- 다음 SDD 실행에 재사용할 수 있는 교훈 후보
+
+### 기록 원칙
+
+- "실수"라고 단정하지 않고 mismatch event로 기록한다.
+- 확정 증거가 있으면 `confirmed_incident`, 단정하기 어려우면 `suspected_incident`, 잘못은 아니지만 재사용할 관찰이면 `learning_observation`으로 분류한다.
+- Phase 5는 이 버퍼를 읽어 compound raw snapshot에 포함한다.
+
+---
+
+## Step 5: Compound Knowledge Sync & Learning
+
+Phase 4 완료 후 반드시 Phase 5를 실행한다.
+목표는 구현 결과, 중요한 결정, Phase 4 learning buffer의 정정/교훈을 Moon의 compound에 반영하는 것이다.
+SSOT 유지를 위해 wiki를 바로 수정하지 않고, 먼저 `raw/projects/<feature>/`에 source snapshot을 만든다.
+
+### 실행 조건
+
+- `docs/sdd/result/{date}-{feature}.md`가 존재해야 한다.
+- `.harness/state/sdd/<feature>/<run-id>/learning-buffer.md`가 없으면 빈 파일로 만들고 `no runtime feedback captured`를 기록한다.
+- compound 저장소 기본 경로는 `/Users/moon/Workspace/moon-compound`이다.
+- compound 저장소가 없거나 `CLAUDE.md`가 없으면 실패가 아니라 `SKIPPED`로 처리한다.
+
+### 실행 절차
+
+1. ORCHESTRATOR_STATE.md 상태 또는 이력에 `PHASE5_COMPOUND_SYNCING`을 기록한다.
+2. Agent 디스패치:
+   ```
+   Agent(
+     subagent_type: "sdd-compound-syncer",
+     prompt: "
+       feature: <feature>
+       project_root: <project-root>
+       compound_root: /Users/moon/Workspace/moon-compound
+       spec: <docs/sdd/spec/...>
+       arch: <docs/sdd/design/arch/...>
+       ux: <docs/sdd/design/ui/... if any>
+       api: <docs/sdd/design/api/... if any>
+       tasks: <docs/sdd/task/{feature}/...>
+       result: <docs/sdd/result/{date}-{feature}.md>
+       learning_buffer: <.harness/state/sdd/{feature}/{run-id}/learning-buffer.md>
+       events: <.harness/state/sdd/{feature}/{run-id}/events.jsonl>
+       commits: <Phase 4 commit list>
+
+       compound CLAUDE.md를 먼저 읽고 wiki/index.md에서 관련 페이지를 찾은 뒤,
+       raw/projects/<feature>/ 아래에 SDD 산출물과 learning buffer를 포함한 새 source snapshot을 만들고,
+       그 snapshot을 근거로 wiki/를 갱신해.
+       기존 raw 파일은 수정/삭제/이동하지 마.
+       완료 후 docs/sdd/result/{date}-{feature}-compound-sync.md를 작성해.
+     "
+   )
+   ```
+3. sync 결과가 `DONE` 또는 `DONE_WITH_CONCERNS`이면 ORCHESTRATOR_STATE.md 이력에 `PHASE5_COMPOUND_SYNCED`를 기록한다.
+4. sync 결과가 `SKIPPED`이면 skip 이유를 result sync 리포트와 ORCHESTRATOR_STATE.md 이력에 기록한다.
+5. sync 결과가 `BLOCKED`이면 사용자에게 보고하고, SDD 구현 결과는 완료 상태로 유지한다.
+
+### 원칙
+
+- 기존 `raw/` 파일은 절대 수정하지 않는다.
+- Phase 5는 `raw/projects/<feature>/` 아래에 새 source snapshot 파일/디렉토리만 추가할 수 있다.
+- 자동 업데이트는 최대 5개 compound wiki 페이지까지 수행한다.
+- 페이지 삭제/병합/카테고리 대이동은 자동 처리하지 않고 TODO로 남긴다.
+- compound sync 실패가 구현 완료를 되돌리지는 않는다. 다만 sync 리포트에는 실패/보류 이유를 남긴다.
 
 ---
 

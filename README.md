@@ -37,13 +37,13 @@ Codex 재시작 후 모든 스킬, 에이전트, 훅이 자동 활성화된다.
 ## 파이프라인
 
 ```
-아이디어                       구현                   배포
-──────────────────────    ──────────────    ──────────────────────
-idea-workshop              SDD Phase 1       Phase 4-1: Review
-  Phase 1: 발산               ↓                 ↓
-  Phase 2: 리프레이밍          Phase 2 → 3       Phase 4-2: Ship
-  Phase 3A: 팀 리서치                            ↓
-  Phase 3B: 냉철 검증                            Phase 4-3: Verify
+아이디어                       구현                         지식화
+──────────────────────    ──────────────────────    ──────────────────────
+idea-workshop              SDD Phase 1: Spec         Phase 5: Compound sync
+  Phase 1: 발산               Phase 2: Design
+  Phase 2: 리프레이밍          Phase 3: Plan
+  Phase 3A: 팀 리서치          Phase 4: Execute
+  Phase 3B: 냉철 검증
   Phase 3C: PRD 작성
   (Phase 2 ↔ 3B 이터레이션)
 ```
@@ -76,13 +76,15 @@ Phase 3A에서 **기획팀 Agent Team** (market/user/feasibility/biz-model resea
 
 ## 자동 파이프라인 (SDD)
 
-`/sdd start <feature>` 한 번으로 Phase 4 진입까지 자동 진행.
+`/sdd start <feature>` 한 번으로 Phase 4 진입까지 자동 진행하고, Phase 4 완료 후 Phase 5에서 compound wiki 동기화를 수행한다.
 
 - **Stop 훅 컨트롤러** (`stop-pipeline.py`) 가 각 Phase 전환을 자동 관리
-- 16개 라벨 기반 상태 머신
+- 라벨 기반 상태 머신
 - 사용자 게이트(spec/arch/ui/api/design/plan) 에서만 정지
 - Circuit breaker (5분 TTL, 20회) 로 무한 루프 방지
 - Session 격리 + Stale state 자동 정리
+- Phase 4 중 사용자 정정, 검증 실패, 접근 변경은 프로젝트 로컬 `.harness/state/sdd/` learning buffer에 즉시 기록
+- Phase 5 compound sync로 구현 결과와 교훈을 `/Users/moon/Workspace/moon-compound/raw/projects/`에 source snapshot으로 저장한 뒤 `wiki/`에 반영
 
 ---
 

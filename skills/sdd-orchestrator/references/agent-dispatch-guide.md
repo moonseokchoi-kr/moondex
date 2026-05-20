@@ -63,6 +63,39 @@ Agent(
 )
 ```
 
+### Compound Syncer 디스패치 (Phase 5)
+
+Phase 4 result 생성과 main 머지/정리 이후 실행한다.
+compound SSOT 유지를 위해 wiki 갱신 전에 SDD 산출물과 프로젝트 로컬 learning buffer를 포함한 `raw/projects/<feature>/` source snapshot을 먼저 만든다.
+
+```
+Agent(
+  subagent_type: "sdd-compound-syncer",
+  prompt: "
+    feature: <feature>
+    project_root: <project-root>
+    compound_root: /Users/moon/Workspace/moon-compound
+    spec: <docs/sdd/spec/...>
+    arch: <docs/sdd/design/arch/...>
+    ux: <docs/sdd/design/ui/... if any>
+    api: <docs/sdd/design/api/... if any>
+    tasks: <docs/sdd/task/{feature}/...>
+    result: <docs/sdd/result/{date}-{feature}.md>
+    learning_buffer: <.harness/state/sdd/{feature}/{run-id}/learning-buffer.md>
+    events: <.harness/state/sdd/{feature}/{run-id}/events.jsonl>
+    commits: <Phase 4 commit list>
+
+    compound CLAUDE.md를 먼저 읽고 wiki/index.md에서 관련 페이지를 찾은 뒤,
+    raw/projects/<feature>/ 아래에 SDD 산출물과 learning buffer를 포함한 새 source snapshot을 만들고,
+    그 snapshot을 근거로 wiki/를 갱신해.
+    기존 raw 파일은 수정/삭제/이동하지 마.
+    완료 후 docs/sdd/result/{date}-{feature}-compound-sync.md를 작성해.
+
+    결과: DONE | DONE_WITH_CONCERNS | SKIPPED | BLOCKED
+  "
+)
+```
+
 ## subagent_type 매핑
 
 | 기술 스택 | subagent_type |
@@ -78,6 +111,7 @@ Agent(
 | Swift | sdd-swift-engineer |
 | SQL | sdd-sql-engineer |
 | 범용 | sdd-implementer |
+| Phase 5 compound sync | sdd-compound-syncer |
 
 ## 동시 실행 제한
 

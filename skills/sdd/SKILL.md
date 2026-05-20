@@ -5,7 +5,7 @@ description: "Use when a user mentions a feature idea, requirement, or spec docu
 
 # SDD (Spec-Driven Development)
 
-기능 아이디어를 **Spec → Develop → Plan → Execute** 4단계로 구조화하여 구현하는 워크플로우.
+기능 아이디어를 **Spec → Design → Plan → Execute → Knowledge Sync** 5단계로 구조화하여 구현하고 지식을 갱신하는 워크플로우.
 sdd는 **순수 팀장**이다. 직접 문서를 작성하지 않고, 관리/보고/승인/에스컬레이션만 담당한다.
 
 **핵심 원칙:** 문서가 곧 상태. 문서 존재 여부 + checkbox + 라벨로 Phase를 추적한다.
@@ -38,7 +38,9 @@ init_pipeline → Claude가 작업 → Stop 훅 → directive 주입 → 다음 
                                     ↓
             사용자 응답 → pipeline.json 갱신 → 재개
                                     ↓
-            PHASE4_WORKTREE_CREATED → Skill(sdd-orchestrator) 호출 → 파이프라인 종료
+            PHASE4_WORKTREE_CREATED → Skill(sdd-orchestrator) 호출
+                                    ↓
+            Phase 4 완료 → Phase 5 compound sync → 파이프라인 종료
 ```
 
 ### 사용자 승인 감지 (자연어)
@@ -118,13 +120,19 @@ docs/sdd/
 ├── context/{YYYY-MM-DD}-{feature}.md    # 공유 상태 (FULL 모드)
 ├── task/{feature}/{YYYY-MM-DD}-T-{N}-{task}.md  # Phase 3 태스크
 ├── ORCHESTRATOR_STATE.md                 # Phase 4 상태 추적
-└── result/{YYYY-MM-DD}-{feature}.md     # Phase 4 최종 결과
+└── result/
+    ├── {YYYY-MM-DD}-{feature}.md                # Phase 4 최종 결과
+    └── {YYYY-MM-DD}-{feature}-compound-sync.md  # Phase 5 compound 동기화 리포트
 
 .agents/state/
 ├── pipeline.json                        # 파이프라인 상태 (current_label, waiting_for_user 등)
 │                                         # init_pipeline 시 생성, cancel_pipeline 시 삭제
 └── e2e-config.json                      # Phase 2 완료 시 sdd-ux-designer가 생성
                                          # e2e-gate.sh가 커밋 시 참조
+
+.harness/state/sdd/{feature}/{run-id}/
+├── events.jsonl                         # Phase 4 런타임 이벤트 append-only 로그
+└── learning-buffer.md                   # 사용자 정정, 검증 실패, 접근 변경, 교훈 후보
 ```
 
 파일명: `{YYYY-MM-DD}-{feature-name}.md` (kebab-case, 영문).
@@ -145,7 +153,8 @@ docs/sdd/
 | Phase 2 완료 + task 있음 + ORCHESTRATOR_STATE 없음 | P3 진행 중 | taskmaster dag 모드 미수행 |
 | Phase 3 완료 + ORCHESTRATOR_STATE 있음 + 미완료 | P4 진행 중 | — |
 | Phase 4 완료 + result 없음 | P4 대기 | — |
-| result 있음 | 완료 | — |
+| result 있음 + compound sync 리포트 없음 | P5 대기 | — |
+| result 있음 + compound sync 리포트 있음 | 완료 | — |
 
 **핵심 원칙**: "직전 Phase의 **모든** 필수 산출물이 존재하지 않으면 다음 Phase로 진입하지 않는다." 불완전 감지 시 해당 Phase로 롤백해서 누락분만 복원한다.
 
@@ -159,6 +168,7 @@ PHASE1_UX_RESEARCH_DONE → PHASE1_SPEC_DRAFT → PHASE1_BLOCKER_CHECK_PASS → 
 → PHASE4_WORKTREE_CREATED → PHASE4_TASK_{N}_TEST_RED → PHASE4_TASK_{N}_IMPLEMENTING → PHASE4_TASK_{N}_REVIEWING
 → PHASE4_TASK_{N}_GREEN → PHASE4_TASK_{N}_VERIFIED → PHASE4_TASK_{N}_REFACTOR_TESTED → PHASE4_TASK_{N}_DONE
 → PHASE4_ALL_TASKS_DONE → PHASE4_INTEGRATION_TEST_PASS → PHASE4_RESULT_GENERATED → PHASE4_MERGED
+→ PHASE5_COMPOUND_SYNCED
 ```
 
 라벨은 **전진만 가능**. 스펙 변경 정책에서만 롤백 허용.
@@ -218,6 +228,7 @@ PHASE1_UX_RESEARCH_DONE → PHASE1_SPEC_DRAFT → PHASE1_BLOCKER_CHECK_PASS → 
 | `sdd-performance-engineer` | 4 | sonnet | 성능 [P2] 검증 |
 | `sdd-test-automator` | 4 | sonnet | TDD(tdd/verify/refactor) |
 | `adversarial-reviewer` | 4 | opus | 3회 소진 후 접근법 비판 |
+| `sdd-compound-syncer` | 5 | sonnet | Phase 4 결과를 compound wiki에 반영 |
 
 ---
 
@@ -478,6 +489,7 @@ spec + 설계 문서(arch/ui/api)에서 태스크를 도출하고 실행 계획�
 ## Phase 4: Execute
 
 **Phase 4는 sdd 리드가 직접 실행하지 않는다.** `sdd-orchestrator` 스킬이 전담한다.
+Phase 4 중 발생한 사용자 정정, 검증 실패, 명시 규칙 위반, 접근 변경은 세션 메모리에만 두지 않고 프로젝트 로컬 learning buffer에 즉시 append한다.
 
 ### 진입 전 검증 (필수)
 
@@ -494,6 +506,11 @@ Phase 2에서 이미 worktree가 생성되어 있다. 추가 생성 불필요.
 
 1. worktree 경로에서 스냅샷 커밋 (`chore: Phase 4 실행 시작`)
    → PHASE4_WORKTREE_CREATED
+1-1. 프로젝트 로컬 learning buffer 초기화 또는 재개
+   - 위치: `.harness/state/sdd/{feature}/{run-id}/learning-buffer.md`
+   - 이벤트 로그: `.harness/state/sdd/{feature}/{run-id}/events.jsonl`
+   - append 대상: 사용자 정정, validation/test/build 실패, 리뷰에서 확인된 규칙 위반, 폐기한 접근, 이후 재사용 가능한 교훈 후보
+   - 목적: Phase 5 전에 세션이 초기화되어도 학습 데이터가 사라지지 않게 한다
 2. ORCHESTRATOR_STATE.md의 **팀 배정 섹션** 확인:
    - **팀 배정 없음** (단일 체인) → `Skill(sdd-orchestrator)` 직접 호출 (기존 방식)
    - **팀 배정 있음** → Agent Team 생성:
@@ -514,7 +531,7 @@ Phase 2에서 이미 worktree가 생성되어 있다. 추가 생성 불필요.
    - 모든 팀 COMPLETED → 통합 검증 단계 진행
    - 팀 실패(FAILED) → SendMessage로 해당 팀에 재지시 또는 사용자 에스컬레이션
 
-sdd 리드는 오케스트레이터 실행 결과만 수신한다. 리뷰 루프, 테스트 루프, 구현자 선택, 병렬 실행 규칙, 심각도 체계, 통합 검증, result 생성, 머지까지 **전부 오케스트레이터가 담당**한다.
+sdd 리드는 오케스트레이터 실행 결과만 수신한다. 리뷰 루프, 테스트 루프, 구현자 선택, 병렬 실행 규칙, 심각도 체계, 통합 검증, result 생성, 머지, Phase 5 compound sync까지 **전부 오케스트레이터가 담당**한다.
 
 > **상세 절차**: [skills/sdd-orchestrator/SKILL.md](../sdd-orchestrator/SKILL.md)
 > **상태 스키마**: [skills/sdd-orchestrator/references/state-schema.md](../sdd-orchestrator/references/state-schema.md)
@@ -524,8 +541,50 @@ sdd 리드는 오케스트레이터 실행 결과만 수신한다. 리뷰 루프
 
 - Phase 4 진입 시 worktree 생성 + 오케스트레이터 호출
 - 오케스트레이터가 에스컬레이션(`escalated`, `PAUSED_AT_LIMIT`, 빌드 실패)을 보고하면 사용자에게 중계
-- 오케스트레이터가 완료를 보고하면 사용자에게 머지 승인 요청
+- 오케스트레이터가 완료를 보고하면 사용자에게 머지 승인과 compound sync 결과를 보고
 - **직접 Engineer/Reviewer/Test Automator를 디스패치하지 않는다** — 오케스트레이터가 담당
+
+---
+
+## Phase 5: Knowledge Sync & Learning
+
+Phase 5는 Phase 4 구현 완료 이후 프로젝트에서 얻은 지식을 Moon의 compound에 반영하는 단계다.
+SSOT 유지를 위해 먼저 SDD 산출물과 프로젝트 로컬 learning buffer를 `raw/projects/<feature>/`에 source snapshot으로 저장하고, 그 raw snapshot을 근거로 `wiki/`를 갱신한다.
+이 단계는 구현 품질을 바꾸지 않고, durable knowledge를 갱신한다.
+
+### 진입 조건
+
+| # | 체크 | 실패 시 조치 |
+|---|------|------|
+| 1 | `docs/sdd/result/{YYYY-MM-DD}-{feature}.md` 존재 | Phase 4 result 생성으로 되돌아간다 |
+| 2 | ORCHESTRATOR_STATE.md 상태가 COMPLETED 또는 MERGED에 준하는 완료 상태 | Phase 4 완료 처리로 되돌아간다 |
+| 3 | `.harness/state/sdd/{feature}/{run-id}/learning-buffer.md` 확인 | 없으면 빈 buffer로 생성하고 `no runtime feedback captured` 기록 |
+| 4 | `/Users/moon/Workspace/moon-compound/CLAUDE.md` 존재 | compound sync를 SKIPPED로 기록하고 종료 |
+
+### 프로세스
+
+1. `sdd-compound-syncer` 디스패치
+   - 입력: spec, arch, ux, api, task, result 문서 + 변경 파일/커밋 요약 + learning buffer
+   - compound 규칙: `/Users/moon/Workspace/moon-compound/CLAUDE.md`를 먼저 읽고 `wiki/index.md`에서 시작
+2. compound raw source snapshot 생성
+   - `raw/projects/<feature-slug>/sdd-{YYYY-MM-DD}-{run-id}/`에 SDD 산출물과 learning buffer 복사/요약 저장
+   - 기존 raw 파일은 수정, 삭제, 이동하지 않는다
+   - 같은 이름이 있으면 덮어쓰지 않고 새 timestamp/run-id를 사용한다
+3. compound wiki 업데이트
+   - 새 raw source snapshot을 근거로 `wiki/` 페이지와 `wiki/index.md`, `wiki/log.md`를 규칙에 따라 갱신
+   - 실수/정정은 원문 사건이 아니라 원인, 수정, 재발 방지 조건으로 정리한다
+   - 자동 업데이트는 최대 5개 wiki 페이지까지
+4. 프로젝트 sync 리포트 생성
+   - `docs/sdd/result/{YYYY-MM-DD}-{feature}-compound-sync.md`
+   - raw snapshot 경로, 포함한 learning buffer, 업데이트 페이지, 신규 페이지, 보류/TODO, 기존 raw 미수정 확인을 기록
+5. `PHASE5_COMPOUND_SYNCED` 기록 후 완료
+
+### 실패/스킵 정책
+
+- compound 저장소가 없으면 SDD 자체를 실패시키지 않는다. sync 리포트에 `SKIPPED`와 이유를 남긴다.
+- raw snapshot 생성에는 신규 파일/디렉토리 추가만 허용한다. 기존 raw 파일 변경이 필요하면 자동 수정하지 않고 TODO로 남긴다.
+- compound 변경이 5개 페이지를 초과할 것 같으면 핵심 페이지만 갱신하고 나머지는 TODO로 남긴다.
+- 페이지 삭제/병합/대분류 이동은 자동 수행하지 않고 TODO로 남긴다.
 
 ### 심각도 체계 (SOT)
 
@@ -549,6 +608,7 @@ sdd 리드는 오케스트레이터 실행 결과만 수신한다. 리뷰 루프
 | Phase 3 → 4 | task 문서 + ORCHESTRATOR_STATE + DAG/Wave + 사용자 승인 |
 | Phase 4 내부 루프 | `sdd-orchestrator`가 담당 (RED/GREEN/VERIFY 게이트 전부) |
 | Phase 4 완료 | 통합 테스트 → result → 사용자 확인 → 머지 |
+| Phase 5 완료 | compound wiki sync → sync 리포트 |
 | 중단 | 현재 태스크 완료 → result → 머지 |
 
 ## AGENTS.md 규칙 매핑

@@ -9,6 +9,13 @@ git이 추적하므로 손상 시 복구 가능하고, 변경 이력이 commit l
 <project-root>/docs/sdd/ORCHESTRATOR_STATE.md
 ```
 
+Phase 4 런타임 학습 버퍼:
+
+```
+<project-root>/.harness/state/sdd/<feature>/<run-id>/events.jsonl
+<project-root>/.harness/state/sdd/<feature>/<run-id>/learning-buffer.md
+```
+
 ## 스키마
 
 ```markdown
@@ -19,7 +26,7 @@ git이 추적하므로 손상 시 복구 가능하고, 변경 이력이 commit l
 - spec 문서: <path to spec document>
 - 시작 시각: <ISO 8601>
 - 마지막 갱신: <ISO 8601>
-- 상태: PLANNING | EXECUTING | PAUSED_AT_LIMIT | COMPLETED | FAILED
+- 상태: PLANNING | EXECUTING | PAUSED_AT_LIMIT | COMPLETED | KNOWLEDGE_SYNCING | KNOWLEDGE_SYNCED | FAILED
 - resume_at: <ISO 8601, PAUSED_AT_LIMIT일 때만>
 
 ## 팀 배정
@@ -92,7 +99,11 @@ git이 추적하므로 손상 시 복구 가능하고, 변경 이력이 commit l
 ## 이력
 - [HH:MM] T-1 구현 완료 → 리뷰 통과 → 테스트 통과
 - [HH:MM] T-3 구현 완료 → 리뷰 피드백: "타입 불일치" → 재구현 중
+- [HH:MM] learning buffer append: confirmed_incident user_correction
 - [HH:MM] 리밋 감지: 연속 2개 Agent 실패, 상태 저장 완료
+- [HH:MM] Phase 5 compound sync 시작
+- [HH:MM] compound raw snapshot 생성: raw/projects/<feature>/sdd-<date>-<run-id>/
+- [HH:MM] compound wiki 업데이트 완료: wiki/<page>.md, wiki/log.md
 
 ## 리밋 시 마지막 상태 (리밋/중단 시 자동 기록)
 ### T-3 (implementing, iteration 1)
@@ -107,6 +118,9 @@ git이 추적하므로 손상 시 복구 가능하고, 변경 이력이 commit l
 1. **Phase 3(Plan)에서 초기 생성**: taskmaster가 Wave 구성, 태스크 상태 테이블을 채움. 상태는 PLANNING
 2. **Phase 4(Execute) 진입 시**: 오케스트레이터가 상태를 EXECUTING으로 변경
 3. **매 태스크 상태 변경 시 갱신**: implementing → reviewing 등
-4. **리밋/에러 시**: 마지막 상태 섹션에 Agent 응답 요약 기록
-5. **재개 시**: 새 오케스트레이터가 이 파일을 Read로 읽고 중단 지점 파악
-6. **완료 시**: 상태를 COMPLETED로 변경, result 문서 생성 후 아카이브
+4. **학습 이벤트 발생 시**: 사용자 정정, 검증 실패, 규칙 위반, 접근 변경을 `.harness/state/sdd/<feature>/<run-id>/learning-buffer.md`와 `events.jsonl`에 append
+5. **리밋/에러 시**: 마지막 상태 섹션에 Agent 응답 요약 기록
+6. **재개 시**: 새 오케스트레이터가 ORCHESTRATOR_STATE.md와 learning buffer를 읽고 중단 지점과 누적 피드백을 파악
+7. **Phase 4 완료 시**: 상태를 COMPLETED로 변경, result 문서 생성 후 머지/정리
+8. **Phase 5 시작 시**: 상태 또는 이력에 KNOWLEDGE_SYNCING 기록
+9. **Phase 5 완료 시**: 상태 또는 이력에 KNOWLEDGE_SYNCED 기록, compound sync 리포트 경로 기록

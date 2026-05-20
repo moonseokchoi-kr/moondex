@@ -22,8 +22,9 @@ SDD(Spec-Driven Development) 스킬에 TDD Red-Green-Refactor 패턴, 구현→�
 | 이터레이션 카운터 | **완료** — 모든 에이전트에 iteration: N/3 |
 | develop 템플릿 확장 | **완료** — 테스트 전략 + 성능 테스트 전략 + TDD 컬럼 |
 | SKIP TDD 분기 | **완료** — RED/REFACTOR 건너뜀 명시 |
-| 미수정 8번: result 문서 생성 담당 | **미완료** |
+| 미수정 8번: result 문서 생성 담당 | **완료** — sdd-orchestrator Step 4 |
 | 미수정 9번: 실패 시 worktree 정리 | **미완료** |
+| Phase 5 compound sync | **완료** — sdd-compound-syncer + sync 리포트 |
 | 필드 테스트 | **미실행** — 개선된 흐름을 실제 프로젝트에서 실행한 적 없음 |
 
 ## 핵심 문서 위치
@@ -79,11 +80,10 @@ SDD(Spec-Driven Development) 스킬에 TDD Red-Green-Refactor 패턴, 구현→�
 ## 미완료 작업
 
 ### 즉시 필요
-1. **미수정 8번: result 문서 생성 담당** — Phase 3 완료 시 누가 result 문서를 생성하는지 SKILL.md에 명시 (컨트롤러가 하면 충분)
-2. **미수정 9번: BLOCKED 시 worktree 정리** — Phase 3 실패/중단 시 worktree 처리 정책 추가
+1. **미수정 9번: BLOCKED 시 worktree 정리** — Phase 3 실패/중단 시 worktree 처리 정책 추가
 
 ### 후속 작업
-- **필드 테스트**: 실제 프로젝트에서 개선된 SDD 흐름 실행. 특히 이터레이션 카운터, P1 피드백 전달, taskmaster 문서 생성이 핵심 검증 포인트.
+- **필드 테스트**: 실제 프로젝트에서 개선된 SDD 흐름과 Phase 5 compound sync 실행. 특히 이터레이션 카운터, P1 피드백 전달, taskmaster 문서 생성, compound wiki 업데이트가 핵심 검증 포인트.
 - **평가 재실행**: 스킬 완성도 평가에서 6/10이었던 점수가 개선되었는지 재평가
 
 ## 실패하거나 주의가 필요한 점
@@ -114,5 +114,5 @@ HARD-GATE: 5개
 
 1. **이 파일을 읽는다**
 2. **SDD SKILL.md를 읽는다** (`~/.agents/skills/sdd/SKILL.md`)
-3. **미수정 8,9번을 처리한다** (result 문서 담당 + worktree 정리)
-4. **실제 프로젝트에서 SDD를 실행하여 필드 테스트한다**
+3. **미수정 9번을 처리한다** (worktree 정리)
+4. **실제 프로젝트에서 SDD와 Phase 5 compound sync를 실행하여 필드 테스트한다**
