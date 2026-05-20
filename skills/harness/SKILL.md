@@ -36,7 +36,7 @@ description: "프로젝트에 에이전트 친화적 환경(하네스)을 구성
 
 ### Step 2: docs/ 구조 생성
 
-프로젝트에 `docs/` 가 없으면 scaffolding한다. 이미 spec-design 등으로 docs/가 있으면 **누락된 부분만 추가**한다.
+프로젝트에 `docs/` 가 없으면 scaffolding한다. 이미 SDD 등으로 docs/가 있으면 **누락된 부분만 추가**한다.
 
 ```
 docs/
@@ -45,7 +45,7 @@ docs/
 ├── tech-debt.md           # 알려진 기술 부채 목록 + 우선순위
 ├── pitfalls.md            # 프로젝트에서 발견된 함정/실수 기록
 ├── lessons-learned.md     # 일반화된 교훈 (패턴, 모범 사례)
-├── design-docs/           # 설계 문서 (기존 spec-design 구조와 공존)
+├── design-docs/           # 설계 문서 (기존 SDD 구조와 공존)
 │   └── index.md
 ├── exec-plans/            # 실행 계획
 │   ├── active/
@@ -530,7 +530,7 @@ audit에서 발견한 문제 중 자동 수정 가능한 항목은 사용자에�
 
 | 도구 | 관계 |
 |------|------|
-| **spec-design** | docs/ 구조를 공유. spec-design의 spec/develop/task 구조는 유지하고, harness는 architecture.md, quality-score.md, tech-debt.md를 추가 |
+| **SDD** | docs/ 구조를 공유. SDD의 spec/develop/task 구조는 유지하고, harness는 architecture.md, quality-score.md, tech-debt.md를 추가 |
 | **simplify** | harness audit에서 코드 품질 문제 발견 시 simplify 스킬 사용 제안 가능 |
 | **impeccable** | UI 관련 품질은 impeccable이 담당. harness는 구조/아키텍처 수준만 |
 

@@ -13,7 +13,7 @@ feature 브랜치 + worktree를 생성하여 격리된 작업 환경을 만든�
 
 ## 사용 시점
 
-- spec-design Phase 2 진입 시 (spec-design 스킬에서 호출) — Phase 2 전체 이 worktree 안에서 작업
+- SDD Phase 2 진입 시 (sdd 스킬에서 호출) — Phase 2, 3, 4 모두 이 worktree 안에서 작업
 - 독립적인 기능 작업이 현재 디렉토리에 영향을 주지 않아야 할 때
 
 ## 프로세스
@@ -46,7 +46,7 @@ feature 브랜치 + worktree를 생성하여 격리된 작업 환경을 만든�
 
 ## 정리
 
-worktree 정리는 이 스킬의 책임이 아니다. 호출자(spec-design 스킬)가 완료 후 처리한다:
+worktree 정리는 이 스킬의 책임이 아니다. 호출자(sdd 스킬)가 완료 후 처리한다:
 ```bash
 git worktree remove ./worktrees/$ARGUMENTS
 ```

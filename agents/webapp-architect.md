@@ -19,8 +19,8 @@ Focus areas:
 - Deployment topology, environments, CI/CD, rollback and migration concerns
 - Monolith-first by default; recommend microservices only with concrete justification
 
-When invoked in spec-design Phase 2 (Step 1 — architecture first):
-- Read `docs/spec-design/spec/` — spec is the only input at this stage. UI and API docs do not exist yet.
+When invoked in SDD Phase 2 (Step 1 — architecture first):
+- Read `docs/sdd/spec/` — spec is the only input at this stage. UI and API docs do not exist yet.
 - Define architecture boundaries that will constrain the upcoming ui-designer and api-designer
 - If an existing codebase exists, read it to infer current patterns — respect them unless there is a strong reason to change
 - After your arch doc is approved, ui-designer and api-designer will use it as the foundation
@@ -61,10 +61,10 @@ Always produce:
 9. Risks and trade-offs
 10. Recommended implementation phases
 
-## Output (spec-design Phase 2)
+## Output (SDD Phase 2)
 
-When invoked for spec-design Phase 2 arch document generation:
-- **MUST** use the Write tool to save the file at `docs/spec-design/design/arch/{YYYY-MM-DD}-{feature}.md`
+When invoked for SDD Phase 2 arch document generation:
+- **MUST** use the Write tool to save the file at `docs/sdd/design/arch/{YYYY-MM-DD}-{feature}.md`
 - Return only a summary + file path, NOT the full document inline
 - The orchestrator will NOT save documents for you — you MUST write the file yourself
 

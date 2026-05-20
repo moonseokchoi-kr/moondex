@@ -32,7 +32,7 @@ Handoff 문서는 **다음 에이전트의 첫 번째 읽기 자료**다. 이 �
 1. git status + git log --oneline -10    → 커밋 이력, 미커밋 변경사항
 2. 프로젝트 루트 파일 목록 (ls)           → 프로젝트 구조 파악
 3. package.json / Cargo.toml / etc.      → 의존성, 스크립트
-4. docs/spec-design/ 스캔                          → spec-design 문서 존재 여부 + Phase 판정
+4. docs/sdd/ 스캔                          → SDD 문서 존재 여부 + Phase 판정
 5. .agents/plans/ 스캔                    → 활성 플랜 파일
 6. AGENTS.md 확인                         → 프로젝트 규칙
 7. 환경 정보 (node -v, python3 -V 등)    → 런타임 버전
@@ -55,7 +55,7 @@ Handoff 문서는 **다음 에이전트의 첫 번째 읽기 자료**다. 이 �
 ### Step 4: 저장 위치 결정
 
 1. 사용자가 명시한 경로
-2. `docs/spec-design/` 하위 (spec-design 프로젝트인 경우)
+2. `docs/sdd/` 하위 (SDD 프로젝트인 경우)
 3. 프로젝트 루트의 `HANDOFF.md`
 
 ---
@@ -74,8 +74,8 @@ Handoff 문서는 **다음 에이전트의 첫 번째 읽기 자료**다. 이 �
 - 대화 원문 옮기기 — 핵심만 요약
 - 미확인 사항을 사실처럼 적기 — 명시적으로 "미확인"이라 표기
 
-### spec-design 프로젝트 추가 사항
-- 현재 spec-design Phase + 각 Phase 상태
+### SDD 프로젝트 추가 사항
+- 현재 SDD Phase + 각 Phase 상태
 - blocker-checker / compliance-checker / reviewer 결과 요약
 - 사용자 게이트 승인 여부
 - worktree 경로 및 브랜치 이름 (Phase 3)

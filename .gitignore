@@ -13,12 +13,12 @@ Thumbs.db
 node_modules/
 
 # Local state (runtime-only, not part of plugin)
-.harness/state/
-**/.harness/state/
 .agents/state/
 **/.agents/state/
 .agents/settings.local.json
 **/.agents/settings.local.json
+.harness/state/
+**/.harness/state/
 
 # Python
 __pycache__/
@@ -27,4 +27,3 @@ __pycache__/
 # Stray analysis artifacts
 compatibility-report.md
 detect-claude-deps.csv
-

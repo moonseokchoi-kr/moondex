@@ -2,9 +2,9 @@
 """
 enforcement/stop-pipeline.py — Stop 훅 파이프라인 컨트롤러
 
-Spec-Design 워크플로우의 Phase 간 자동 전환을 담당한다.
+SDD 워크플로우의 Phase 간 자동 전환을 담당한다.
 pipeline.json의 current_label을 읽고 다음 액션을 지시하여
-Codex가 수동 개입 없이 Phase 1 → Phase 2 최종 승인까지 자동 진행하도록 한다.
+Claude가 수동 개입 없이 Phase 1 → Phase 4 진입까지 자동 진행하도록 한다.
 
 참고: oh-my-claudecode/scripts/persistent-mode.cjs의 우선순위 기반
      circuit breaker + session 격리 + context limit fail-safe 패턴 차용.
@@ -19,14 +19,16 @@ Codex가 수동 개입 없이 Phase 1 → Phase 2 최종 승인까지 자동 진
 import sys
 import os
 import json
+import time
 import tempfile
 import shutil
+import glob
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 # ─── 상수 ──────────────────────────────────────────────────────
 
-SCHEMA_VERSION = 2  # visual_tool, ui_iteration, bundle_path 필드 추가됨
+SCHEMA_VERSION = 1
 
 # Circuit breaker
 CB_MAX_BLOCKS = 20
@@ -42,19 +44,19 @@ CONTEXT_LIMIT_PCT = 90
 
 DIRECTIVES = {
     "PHASE1_UX_RESEARCH_DONE": (
-        "[SPEC-DESIGN] Phase 1 시작.\n"
-        "Agent(ux-researcher) 를 디스패치하여 spec 문서를 작성하세요.\n"
-        "저장 경로: docs/spec-design/spec/{YYYY-MM-DD}-{feature}.md\n"
+        "[SDD-PIPELINE] Phase 1 시작.\n"
+        "Agent(sdd-ux-researcher) 를 디스패치하여 spec 문서를 작성하세요.\n"
+        "저장 경로: docs/sdd/spec/{YYYY-MM-DD}-{feature}.md\n"
         "완료 후 pipeline.json 의 current_label 을 PHASE1_SPEC_DRAFT 로 갱신하세요."
     ),
     "PHASE1_SPEC_DRAFT": (
-        "[SPEC-DESIGN] spec 작성 완료.\n"
-        "Agent(blocker-checker) 를 디스패치하여 블로커 검사하세요.\n"
+        "[SDD-PIPELINE] spec 작성 완료.\n"
+        "Agent(sdd-blocker-checker) 를 디스패치하여 블로커 검사하세요.\n"
         "PASS 시: spec 말미에 'BLOCKER_PASS' 마크 추가 후 current_label 을 PHASE1_BLOCKER_CHECK_PASS 로 갱신.\n"
         "BLOCKED 시: spec 보완 후 재검사."
     ),
     "PHASE1_BLOCKER_CHECK_PASS": (
-        "[SPEC-DESIGN] 블로커 통과. 사용자 승인 필요.\n"
+        "[SDD-PIPELINE] 블로커 통과. 사용자 승인 필요.\n"
         "다음을 수행하세요:\n"
         "1. spec 문서 요약을 사용자에게 제시\n"
         "2. pipeline.json 에서 waiting_for_user=true, waiting_for_approval_type='spec' 설정\n"
@@ -62,111 +64,89 @@ DIRECTIVES = {
         "4. 승인 시 current_label=PHASE1_USER_APPROVED, waiting_for_user=false"
     ),
     "PHASE1_USER_APPROVED": (
-        "[SPEC-DESIGN] Phase 1 완료. Phase 2 시작.\n"
+        "[SDD-PIPELINE] Phase 1 완료. Phase 2 시작.\n"
         "current_label 을 PHASE2_START 로 갱신하세요."
     ),
     "PHASE2_START": (
-        "[SPEC-DESIGN] Phase 2 시작. Worktree 생성 필요.\n"
+        "[SDD-PIPELINE] Phase 2 시작. Worktree 생성 필요.\n"
         "Skill(git-worktree) 를 호출하여 feat/{feature} 브랜치와 worktree 를 생성하세요.\n"
         "완료 후 pipeline.json 의 worktree_path 기록 + current_label=PHASE2_WORKTREE_CREATED."
     ),
     "PHASE2_WORKTREE_CREATED": (
-        "[SPEC-DESIGN] Worktree 준비 완료. 아키텍처 설계 필요.\n"
+        "[SDD-PIPELINE] Worktree 준비 완료. 아키텍처 설계 필요.\n"
         "프로젝트 스택 감지 후 적절한 architect 디스패치:\n"
         "- Flutter: flutter-architect\n"
         "- React/Vue/Next: webapp-architect\n"
         "- Rust/C++: native-architect\n"
-        "완료 후 architect-reviewer 로 리뷰 → PASS → current_label=PHASE2_ARCH_STRUCTURE_DONE."
+        "완료 후 sdd-architect-reviewer 로 리뷰 → PASS → current_label=PHASE2_ARCH_STRUCTURE_DONE."
     ),
     "PHASE2_ARCH_STRUCTURE_DONE": (
-        "[SPEC-DESIGN] 아키텍처 설계 완료. 사용자 승인 필요.\n"
+        "[SDD-PIPELINE] 아키텍처 설계 완료. 사용자 승인 필요.\n"
         "1. 아키텍처 구조 요약을 사용자에게 제시\n"
         "2. waiting_for_user=true, approval_type='arch' 설정\n"
         "3. 승인 시 current_label=PHASE2_ARCH_USER_APPROVED"
     ),
     "PHASE2_ARCH_USER_APPROVED": (
-        "[SPEC-DESIGN] 아키텍처 승인됨.\n"
+        "[SDD-PIPELINE] 아키텍처 승인됨.\n"
         "모드에 따라 분기:\n"
-        "- WITH_UI 모드: PHASE2_UI_CONTEXT_SET 으로 전진 — Skill(impeccable:teach-impeccable) 호출\n"
-        "  (기존 .impeccable.md 가 있으면 skip 가능)\n"
-        "- WITHOUT_UI 모드: UI 단계 전체 건너뛰고 current_label=PHASE2_API_DESIGN_COMPLETE"
-    ),
-    "PHASE2_UI_CONTEXT_SET": (
-        "[SPEC-DESIGN] 디자인 컨텍스트 수립 완료.\n"
-        "Agent(ia-designer) 를 디스패치하여 정보 구조와 사용자 플로우를 설계하세요.\n"
-        "입력: spec + arch + .impeccable.md\n"
-        "저장 경로: docs/spec-design/design/ia/{YYYY-MM-DD}-{feature}.md\n"
-        "완료 후 current_label=PHASE2_UI_IA_DONE"
-    ),
-    "PHASE2_UI_IA_DONE": (
-        "[SPEC-DESIGN] IA 설계 완료. 사용자 검토 필요.\n"
-        "1. IA 요약(섹션/네비게이션/핵심 플로우)을 사용자에게 제시\n"
-        "2. waiting_for_user=true, approval_type='ia' 설정\n"
-        "3. 승인 시 current_label=PHASE2_UI_IA_USER_APPROVED"
-    ),
-    "PHASE2_UI_IA_USER_APPROVED": (
-        "[SPEC-DESIGN] IA 승인됨.\n"
-        "visual_tool 이 미설정이면 사용자에게 선택 요청:\n"
-        "  - claude-design (기본, 수동 게이트)\n"
-        "  - stitch (자동 MCP)\n"
-        "set_visual_tool <choice> 호출 후 Agent(ui-designer) 디스패치하여\n"
-        "시각 디자인 브리프를 생성하세요.\n"
-        "완료 후 current_label=PHASE2_UI_BRIEF_READY"
-    ),
-    "PHASE2_UI_BRIEF_READY": (
-        "[SPEC-DESIGN] 시각 디자인 브리프 준비 완료.\n"
-        "visual_tool 분기:\n"
-        "- claude-design: 사용자에게 브리프 위치(docs/spec-design/design/ui/claude-design/{feature}/BRIEF.md)를\n"
-        "  안내하고 Claude Design 에서 작업 후 HTML 번들을 bundle/ 디렉토리에 export 요청.\n"
-        "  waiting_for_user=true, approval_type='bundle' 설정. 사용자 응답 시 set_bundle_path 로 경로 기록\n"
-        "  후 검증하고 current_label=PHASE2_UI_BUNDLE_RECEIVED\n"
-        "- stitch: Agent(ui-designer) 를 재디스패치하여 MCP 로 스크린 자동 생성\n"
-        "  완료 후 current_label=PHASE2_UI_STITCH_GENERATED"
-    ),
-    "PHASE2_UI_BUNDLE_RECEIVED": (
-        "[SPEC-DESIGN] 번들 수신 완료. 품질 검증 루프 1회차 시작.\n"
-        "current_label 을 PHASE2_UI_ITER_1_CRITIQUE 로 전진하세요."
-    ),
-    "PHASE2_UI_STITCH_GENERATED": (
-        "[SPEC-DESIGN] Stitch 스크린 생성 완료. 품질 검증 루프 1회차 시작.\n"
-        "current_label 을 PHASE2_UI_ITER_1_CRITIQUE 로 전진하세요."
+        "- FULL 모드: Agent(sdd-ui-designer) 디스패치 + e2e-config.json 생성 → current_label=PHASE2_UI_DESIGN_COMPLETE\n"
+        "- SIMPLE 모드: UI/API 건너뛰고 current_label=PHASE2_DESIGN_USER_APPROVED"
     ),
     "PHASE2_UI_DESIGN_COMPLETE": (
-        "[SPEC-DESIGN] UI 디자인 품질 루프 통과. 디테일 강화 단계 진입.\n"
-        "current_label 을 PHASE2_UI_DETAIL_ENRICHED 로 전진하고 다음 impeccable 스킬들을 순차 호출하세요:\n"
-        "  1. Skill(impeccable:animate) — 모션·마이크로 인터랙션\n"
-        "  2. Skill(impeccable:clarify) — UX copy 개선\n"
-        "  3. Skill(impeccable:harden) — 에러/엣지/i18n\n"
-        "  4. Skill(impeccable:adapt) — 반응형\n"
-        "각 결과를 UI 명세 문서에 섹션별로 누적 기록."
-    ),
-    "PHASE2_UI_DETAIL_ENRICHED": (
-        "[SPEC-DESIGN] 디테일 강화 완료. UI 최종 사용자 승인 게이트.\n"
-        "1. UI 명세 + DESIGN.md + iteration 리포트 요약을 사용자에게 제시\n"
+        "[SDD-PIPELINE] UI 명세 완료. 사용자 승인 필요.\n"
+        "1. UI 명세 + Stitch 링크를 사용자에게 제시\n"
         "2. waiting_for_user=true, approval_type='ui' 설정\n"
-        "3. 승인 시 current_label=PHASE2_UI_USER_APPROVED"
-    ),
-    "PHASE2_UI_USER_APPROVED": (
-        "[SPEC-DESIGN] UI 최종 승인. API 설계 진입.\n"
-        "Agent(api-designer) 를 디스패치하세요 (입력: spec + arch + IA + UI).\n"
-        "완료 후 current_label=PHASE2_API_DESIGN_COMPLETE"
+        "3. 승인 시 Agent(sdd-api-designer) 디스패치 → current_label=PHASE2_API_DESIGN_COMPLETE"
     ),
     "PHASE2_API_DESIGN_COMPLETE": (
-        "[SPEC-DESIGN] API 명세 완료. 사용자 승인 필요.\n"
+        "[SDD-PIPELINE] API 명세 완료. 사용자 승인 필요.\n"
         "1. API 계약을 사용자에게 제시\n"
         "2. waiting_for_user=true, approval_type='api' 설정\n"
-        "3. 승인 시 current_label=PHASE2_FINAL_APPROVED"
+        "3. 승인 시 current_label=PHASE2_DESIGN_USER_APPROVED"
     ),
-    "PHASE2_FINAL_APPROVED": None,  # 터미널
+    "PHASE2_DESIGN_USER_APPROVED": (
+        "[SDD-PIPELINE] 전체 설계 승인됨.\n"
+        "FULL 모드: Agent(sdd-context-manager) 디스패치하여 context 문서 생성.\n"
+        "완료 후 current_label=PHASE2_USER_APPROVED."
+    ),
+    "PHASE2_USER_APPROVED": (
+        "[SDD-PIPELINE] Phase 2 완료. Phase 3 시작.\n"
+        "current_label 을 PHASE3_PLAN_START 로 갱신하세요."
+    ),
+    "PHASE3_PLAN_START": (
+        "[SDD-PIPELINE] Phase 3 시작. 태스크 문서 생성 필요.\n"
+        "Agent(sdd-taskmaster, mode='tasks') 를 디스패치하세요.\n"
+        "완료 후 current_label=PHASE3_TASKMASTER_DONE."
+    ),
+    "PHASE3_TASKMASTER_DONE": (
+        "[SDD-PIPELINE] 태스크 문서 생성 완료. DAG 구성 필요.\n"
+        "Agent(sdd-taskmaster, mode='dag') 를 디스패치하여 ORCHESTRATOR_STATE.md 를 생성하세요.\n"
+        "완료 후 current_label=PHASE3_DAG_CONSTRUCTED."
+    ),
+    "PHASE3_DAG_CONSTRUCTED": (
+        "[SDD-PIPELINE] DAG 구성 완료. 사용자 승인 필요.\n"
+        "1. 태스크 목록 + Wave 구성 + 예상 시간을 사용자에게 제시\n"
+        "2. waiting_for_user=true, approval_type='plan' 설정\n"
+        "3. 승인 시 current_label=PHASE3_USER_APPROVED"
+    ),
+    "PHASE3_USER_APPROVED": (
+        "[SDD-PIPELINE] Phase 3 완료. Phase 4 진입.\n"
+        "다음을 수행하세요:\n"
+        "1. git commit --allow-empty -m 'chore: Phase 4 실행 시작'\n"
+        "2. pipeline.json 의 current_label=PHASE4_WORKTREE_CREATED 로 갱신\n"
+        "3. Skill(sdd-orchestrator) 를 호출하여 Wave/Task 실행을 위임\n"
+        "파이프라인은 여기서 종료됩니다. 이후 Stop 훅은 개입하지 않습니다."
+    ),
+    "PHASE4_WORKTREE_CREATED": None,  # 터미널
 }
 
 # ─── 파일 존재 검사 (라벨별 전이 조건) ────────────────────────
 
 def has_spec(project_dir: Path, feature: str) -> bool:
-    return bool(list(project_dir.glob("docs/spec-design/spec/*.md")))
+    return bool(list(project_dir.glob("docs/sdd/spec/*.md")))
 
 def has_blocker_pass(project_dir: Path, feature: str) -> bool:
-    for f in project_dir.glob("docs/spec-design/spec/*.md"):
+    for f in project_dir.glob("docs/sdd/spec/*.md"):
         try:
             if "BLOCKER_PASS" in f.read_text():
                 return True
@@ -180,91 +160,23 @@ def has_worktree(project_dir: Path, feature: str, worktree_path: str) -> bool:
     return Path(worktree_path).is_dir()
 
 def has_arch(project_dir: Path, feature: str) -> bool:
-    return bool(list(project_dir.glob("docs/spec-design/design/arch/*.md")))
+    return bool(list(project_dir.glob("docs/sdd/design/arch/*.md")))
 
 def has_ui(project_dir: Path, feature: str) -> bool:
-    return bool(list(project_dir.glob("docs/spec-design/design/ui/*.md")))
+    return bool(list(project_dir.glob("docs/sdd/design/ui/*.md")))
 
 def has_api(project_dir: Path, feature: str) -> bool:
-    return bool(list(project_dir.glob("docs/spec-design/design/api/*.md")))
+    return bool(list(project_dir.glob("docs/sdd/design/api/*.md")))
 
-def has_ia(project_dir: Path, feature: str) -> bool:
-    return bool(list(project_dir.glob("docs/spec-design/design/ia/*.md")))
+def has_context(project_dir: Path, feature: str) -> bool:
+    return bool(list(project_dir.glob("docs/sdd/context/*.md")))
 
-def has_impeccable_context(project_dir: Path) -> bool:
-    return (project_dir / ".impeccable.md").exists()
+def has_tasks(project_dir: Path, feature: str) -> bool:
+    return bool(list(project_dir.glob(f"docs/sdd/task/{feature}/T-*.md")) or
+                list(project_dir.glob("docs/sdd/task/*/T-*.md")))
 
-
-# ─── Iteration 라벨 동적 directive 생성 ────────────────────────
-# PHASE2_UI_ITER_{N}_{STAGE} (N=1..4, STAGE=CRITIQUE|AUDIT|NORMALIZE|USER_GATE) 처리
-
-ITER_STAGE_DIRECTIVES = {
-    "CRITIQUE": (
-        "Skill(impeccable:critique) 를 호출하여 시각 디자인을 UX 관점에서 평가하세요.\n"
-        "평가 결과를 docs/spec-design/design/ui/iteration-reports/{{feature}}/iter-{n}.md 에 저장.\n"
-        "완료 후 current_label=PHASE2_UI_ITER_{n}_AUDIT"
-    ),
-    "AUDIT": (
-        "Skill(impeccable:audit) 를 호출하여 접근성/성능/안티패턴을 기술 체크하세요.\n"
-        "결과를 iter-{n}.md 에 append.\n"
-        "완료 후 current_label=PHASE2_UI_ITER_{n}_NORMALIZE"
-    ),
-    "NORMALIZE": (
-        "Skill(impeccable:normalize) 를 호출하여 디자인 시스템 일관성을 검증하세요.\n"
-        "결과를 iter-{n}.md 에 append.\n"
-        "완료 후 current_label=PHASE2_UI_ITER_{n}_USER_GATE"
-    ),
-    "USER_GATE": (
-        "[SPEC-DESIGN] 품질 검증 {n}회차 완료. 사용자 게이트.\n"
-        "iter-{n}.md 요약(critique/audit/normalize 점수 + 주요 지적)을 제시하고:\n"
-        "  - 통과/ok/approve → current_label=PHASE2_UI_DESIGN_COMPLETE (디테일 강화로 진입)\n"
-        "  - 재작업 + 지시 → visual_tool 에 맞춰 ui-designer 재디스패치해 번들/스크린 개선.\n"
-        "    이후 inc_iteration 호출, current_label=PHASE2_UI_ITER_{next_n}_CRITIQUE\n"
-        "  - 중단 → cancel_pipeline\n"
-        "{max_note}"
-    ),
-}
-
-def parse_iter_label(label: str):
-    """
-    PHASE2_UI_ITER_{N}_{STAGE} 를 (N, STAGE) 로 파싱.
-    매칭 안 되면 None 반환.
-    """
-    prefix = "PHASE2_UI_ITER_"
-    if not label.startswith(prefix):
-        return None
-    rest = label[len(prefix):]
-    parts = rest.split("_", 1)
-    if len(parts) != 2:
-        return None
-    try:
-        n = int(parts[0])
-    except ValueError:
-        return None
-    stage = parts[1]
-    if stage not in ITER_STAGE_DIRECTIVES:
-        return None
-    return (n, stage)
-
-def iter_directive(label: str, state: dict) -> str:
-    """Iteration 라벨의 directive 생성 (N 과 max_iter 에 따라 동적)."""
-    parsed = parse_iter_label(label)
-    if parsed is None:
-        return None
-    n, stage = parsed
-    max_iter = state.get("ui_iteration", {}).get("max", 4)
-    next_n = n + 1
-
-    if stage == "USER_GATE":
-        if n >= max_iter:
-            max_note = (
-                f"⚠️ 최대 iteration({max_iter}회) 소진. 재작업 선택 시 "
-                "강제 통과(PHASE2_UI_DESIGN_COMPLETE로 전진)하거나 중단만 가능."
-            )
-            return ITER_STAGE_DIRECTIVES[stage].format(n=n, next_n=next_n, max_note=max_note)
-        return ITER_STAGE_DIRECTIVES[stage].format(n=n, next_n=next_n, max_note="")
-
-    return ITER_STAGE_DIRECTIVES[stage].format(n=n)
+def has_orchestrator_state(project_dir: Path) -> bool:
+    return (project_dir / "docs/sdd/ORCHESTRATOR_STATE.md").exists()
 
 
 # ─── 상태 파일 I/O ─────────────────────────────────────────────
@@ -381,6 +293,11 @@ def label_prerequisite_met(label: str, state: dict, project_dir: Path) -> tuple:
         "PHASE2_ARCH_STRUCTURE_DONE":    lambda: has_arch(project_dir, feature),
         "PHASE2_UI_DESIGN_COMPLETE":     lambda: has_ui(project_dir, feature),
         "PHASE2_API_DESIGN_COMPLETE":    lambda: has_api(project_dir, feature),
+        "PHASE2_USER_APPROVED":          lambda: (
+            has_context(project_dir, feature) if state.get("mode") == "FULL" else True
+        ),
+        "PHASE3_TASKMASTER_DONE":        lambda: has_tasks(project_dir, feature),
+        "PHASE3_DAG_CONSTRUCTED":        lambda: has_orchestrator_state(project_dir),
     }
 
     if label not in checks:
@@ -390,7 +307,7 @@ def label_prerequisite_met(label: str, state: dict, project_dir: Path) -> tuple:
         if checks[label]():
             return (True, "")
         return (False, f"[{label}] 선행 파일이 아직 없습니다. directive 를 따라 생성하세요.")
-    except Exception:
+    except Exception as e:
         return (True, "")  # fail-safe: 검증 에러 시 진행 허용
 
 
@@ -431,12 +348,12 @@ def decide(stop_data: dict, project_dir: Path, pipeline_path: Path) -> dict:
     if allow_cb:
         return {"continue": True, "suppressOutput": True}
 
-    # Step 5: 터미널 라벨 (Phase 2 최종 승인)
+    # Step 5: 터미널 라벨 (Phase 4 진입 완료)
     current_label = state.get("current_label", "")
-    if current_label == "PHASE2_FINAL_APPROVED":
+    if current_label == "PHASE4_WORKTREE_CREATED":
         return {"continue": True, "suppressOutput": True}
 
-    # Step 6: 사용자 승인 대기 중 → Codex 멈춤 허용
+    # Step 6: 사용자 승인 대기 중 → Claude 멈춤 허용
     if state.get("waiting_for_user", False):
         return {"continue": True, "suppressOutput": True}
 
@@ -445,9 +362,6 @@ def decide(stop_data: dict, project_dir: Path, pipeline_path: Path) -> dict:
 
     # Step 8: 다음 액션 지시문 생성
     directive = DIRECTIVES.get(current_label)
-    if directive is None:
-        # Iteration 동적 라벨 (PHASE2_UI_ITER_{N}_{STAGE}) 시도
-        directive = iter_directive(current_label, state)
     if not directive:
         return {"continue": True, "suppressOutput": True}  # 정의 안 된 라벨 → 허용
 
@@ -474,7 +388,7 @@ def main():
         stop_data = {}
 
     project_dir = Path(os.environ.get("CODEX_PROJECT_DIR", os.getcwd()))
-    pipeline_path = project_dir / ".harness/state/pipeline.json"
+    pipeline_path = project_dir / ".agents/state/pipeline.json"
 
     try:
         result = decide(stop_data, project_dir, pipeline_path)

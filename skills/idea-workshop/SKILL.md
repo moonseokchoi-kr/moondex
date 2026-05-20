@@ -5,14 +5,14 @@ description: "아이디어의 전체 라이프사이클을 관리하는 통합 �
 
 # Idea Workshop — 아이디어 통합 워크숍
 
-아이디어의 전 라이프사이클을 단일 스킬로 관리한다. 발산부터 냉철 검증, PRD 작성, spec-design 전환까지.
+아이디어의 전 라이프사이클을 단일 스킬로 관리한다. 발산부터 냉철 검증, PRD 작성, SDD 전환까지.
 
 ## 전체 흐름
 
 ```
-Phase 1: 발산        Phase 2: 리프레이밍    Phase 3A: 팀 리서치    Phase 3B: 냉철 검증    Phase 3C: PRD 작성     Phase 4: spec-design
+Phase 1: 발산        Phase 2: 리프레이밍    Phase 3A: 팀 리서치    Phase 3B: 냉철 검증    Phase 3C: PRD 작성     Phase 4: SDD
  [솔로]              [솔로]                 [Agent Team]           [대화형]              [Reviewer]            [전환]
- 아이디어 확장        다각도 탐색            병렬 리서치             실증 기반 반증         품질 게이트           spec-design 호출
+ 아이디어 확장        다각도 탐색            병렬 리서치             실증 기반 반증         품질 게이트           sdd 호출
 ```
 
 Phase 2 ↔ Phase 3B는 **이터레이션 루프**. 검증에서 방향 결함 발견 시 Phase 2로 되돌린다.
@@ -33,7 +33,7 @@ Phase 2 ↔ Phase 3B는 **이터레이션 루프**. 검증에서 방향 결함 �
 - "다른 방향", "리프레이밍", "비틀어서" → Phase 2
 - "검증", "냉정하게", "팀 불러서 조사" → Phase 3A
 - "정리", "기획서", "PRD" → Phase 3C
-- "구현 시작", "spec-design" → Phase 4
+- "구현 시작", "SDD" → Phase 4
 
 ---
 
@@ -300,12 +300,12 @@ cmux set-status idea "기획 완료" --icon "checkmark.circle" --color "#4CAF50"
 
 ---
 
-## Phase 4: spec-design 전환
+## Phase 4: SDD 전환
 
 1. `docs/PRD.md` 핵심만 사용자에게 요약 보고
-2. spec-design 안내:
+2. SDD 안내:
 ```
-PRD 완성되었습니다. 설계는 /spec-design 으로 스펙 작성 + 개발 시작 가능합니다.
+PRD 완성되었습니다. 구현은 /sdd 로 스펙 작성 + 개발 시작 가능합니다.
 ```
 3. `cmux clear-status idea`
 
@@ -332,7 +332,7 @@ cmux set-status idea "PRD 작성" --icon "doc.text" --color "#2196F3" 2>/dev/nul
 # Phase 4
 cmux set-status idea "기획 완료" --icon "checkmark.circle" --color "#4CAF50" 2>/dev/null || true
 
-# spec-design 전환
+# sdd 전환
 cmux clear-status idea 2>/dev/null || true
 ```
 

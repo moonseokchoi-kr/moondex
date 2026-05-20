@@ -2,7 +2,7 @@
 # enforcement/harness-check.sh — SessionStart
 #
 # 프로젝트에 harness가 설정되어 있는지 확인한다.
-# harness가 없는 실제 프로젝트라면 Codex에게 /harness 즉시 실행을 지시한다.
+# harness가 없는 실제 프로젝트라면 Claude에게 /harness 즉시 실행을 지시한다.
 #
 # harness 설정 여부 판단:
 #   - .agents/hooks/harness/ 존재 → harness 스킬이 설치한 훅
