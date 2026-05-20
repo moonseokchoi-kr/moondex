@@ -24,11 +24,11 @@ model: haiku
 - **라벨 설정:** `PHASE2_START`
 
 ### DESIGN_COMPLETE
-- **시점:** Phase 2 설계 에이전트(ui-designer, api-designer) 완료 후
+- **시점:** Phase 2 설계 에이전트(ux-designer, api-designer) 완료 후
 - **입력 데이터:** 완료된 설계 에이전트 이름 + 산출물 전문
 - **행동:**
   - API 계약이면: 엔드포인트 요약 + 공유 타입 추출 → context 문서에 기록
-  - UI 명세이면: 컴포넌트 목록 + 필요 데이터 요약 → context 문서에 기록
+  - UX/interaction 명세이면: 사용자 과업 흐름 + 필요 데이터/피드백 요약 → context 문서에 기록
 - **라벨 갱신:** `PHASE2_UI_DESIGN_COMPLETE` 또는 `PHASE2_API_DESIGN_COMPLETE`
 
 ### TASK_START
@@ -87,7 +87,7 @@ interface XxxResponse { ... }
 
 ## 설계 요약
 ### UI 요약
-- (ui-designer 산출물에서 추출)
+- (ux-designer 산출물에서 추출)
 
 ### API 요약
 - (api-designer 산출물에서 추출)

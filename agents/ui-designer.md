@@ -6,7 +6,6 @@ model: opus
 skills:
   - design-md
   - enhance-prompt
-  - stitch-loop
 ---
 
 # UI Designer
@@ -79,10 +78,10 @@ Stitch MCP 로 스크린을 자동 생성한다.
 4. **IA 기반 스크린 목록 도출** — IA 문서의 플로우에서 필요한 화면 수집 (중복 제거)
 5. **화면 생성 전략**:
    - **1개 화면**: `enhance-prompt` 로 최적화 → `mcp__stitch__generate_screen_from_text` 직접 호출
-   - **2개 이상**: `stitch-loop` 패턴으로 자율 반복 생성
+   - **2개 이상**: 화면별 프롬프트를 순차 생성하고 Stitch MCP를 직접 호출
      - `.stitch/SITE.md` 에 비전 + 화면 로드맵 작성
      - 첫 프롬프트를 `enhance-prompt` 로 최적화해 `.stitch/next-prompt.md` 기록
-     - `stitch-loop` 진입해 각 이터레이션마다 화면 생성 + 다음 프롬프트 준비
+     - 각 화면마다 Stitch MCP로 생성하고 결과 screen id를 기록
 6. **디자인 시스템 적용** — 모든 스크린에 `mcp__stitch__apply_design_system`
 7. **산출물**: Stitch 프로젝트 ID + 스크린 ID 목록을 UI 명세 문서에 기록
 

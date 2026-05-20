@@ -18,7 +18,7 @@
 | 보안 기본선 | **완료** — Hook S1(시크릿), S2(위험명령), S3(민감파일) + security-baseline.md |
 | SDD Phase 4 | **완료** — Review → Ship → Verify (선택적) |
 | SDD develop 평가 | **완료** — architect-reviewer가 develop 문서 품질 검증 (#7-#11) |
-| SDD Stitch 연동 | **완료** — sdd-ui-designer에 Stitch MCP 연동 (ASCII 폴백) |
+| SDD Stitch 연동 | **완료** — sdd-ux-designer에 Stitch MCP 연동 (ASCII 폴백) |
 | develop 폴더 구조 | **완료** — develop 템플릿에 폴더 구조 섹션 추가 |
 | 모델 최적화 | **완료** — opus 4개, sonnet 14개, haiku 4개 분배 |
 | 패키징 | **완료** — setup.sh (--host claude/codex, --link/--copy) |
@@ -75,7 +75,7 @@
 ### 5. SDD 개선
 - develop 문서 평가 단계 추가 (architect-reviewer 역할 확장, 검증 항목 #7-#11)
 - develop 템플릿에 폴더 구조 섹션 추가 ((NEW)/(MODIFY) 마커)
-- Stitch MCP 연동 (sdd-ui-designer가 실제 시각 디자인 생성)
+- Stitch MCP 연동 (sdd-ux-designer가 실제 시각 디자인 생성)
 - 사용자 결정: "DDD 등 특정 아키텍처를 강제하지 않는다" (기존 프로젝트 컨벤션 따름)
 
 ### 6. 플러그인 레포 생성 + 배포 테스트

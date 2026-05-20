@@ -89,12 +89,12 @@ DIRECTIVES = {
     "PHASE2_ARCH_USER_APPROVED": (
         "[SDD-PIPELINE] 아키텍처 승인됨.\n"
         "모드에 따라 분기:\n"
-        "- FULL 모드: Agent(sdd-ui-designer) 디스패치 + e2e-config.json 생성 → current_label=PHASE2_UI_DESIGN_COMPLETE\n"
+        "- FULL 모드: Agent(sdd-ux-designer) 디스패치 + e2e-config.json 생성 → current_label=PHASE2_UI_DESIGN_COMPLETE\n"
         "- SIMPLE 모드: UI/API 건너뛰고 current_label=PHASE2_DESIGN_USER_APPROVED"
     ),
     "PHASE2_UI_DESIGN_COMPLETE": (
-        "[SDD-PIPELINE] UI 명세 완료. 사용자 승인 필요.\n"
-        "1. UI 명세 + Stitch 링크를 사용자에게 제시\n"
+        "[SDD-PIPELINE] UX/interaction 명세 완료. 사용자 승인 필요.\n"
+        "1. 사용자 과업 흐름, 주요 인터랙션, 상태별 피드백, E2E 경계를 사용자에게 제시\n"
         "2. waiting_for_user=true, approval_type='ui' 설정\n"
         "3. 승인 시 Agent(sdd-api-designer) 디스패치 → current_label=PHASE2_API_DESIGN_COMPLETE"
     ),

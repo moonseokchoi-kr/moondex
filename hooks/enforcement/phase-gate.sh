@@ -90,10 +90,10 @@ case "$PHASE" in
     ;;
 esac
 
-# E2E 커버리지 계획 검증 — Phase 무관, UI 명세가 있으면 항상 확인
+# E2E 커버리지 계획 검증 — Phase 무관, UX/interaction 명세가 있으면 항상 확인
 if [ -d "$DESIGN_DIR/ui" ] && ls "$DESIGN_DIR/ui"/*.md &>/dev/null 2>&1; then
   if [ ! -f "$HARNESS_E2E_CONFIG" ]; then
-    WARNINGS+=("UI 명세가 있지만 .agents/state/e2e-config.json이 없습니다 — sdd-ui-designer Step 5(E2E 커버리지 계획)가 누락됐을 수 있습니다")
+    WARNINGS+=("UX/interaction 명세가 있지만 .agents/state/e2e-config.json이 없습니다 — sdd-ux-designer Step 5(E2E 커버리지 계획)가 누락됐을 수 있습니다")
   else
     E2E_ENABLED=$(jq -r '.enabled // false' "$HARNESS_E2E_CONFIG" 2>/dev/null)
     if [ "$E2E_ENABLED" != "true" ]; then

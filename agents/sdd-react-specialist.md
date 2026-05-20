@@ -2,8 +2,6 @@
 name: sdd-react-specialist
 description: "SDD Phase 3 — React 프론트엔드 태스크를 전문적으로 구현한다"
 model: sonnet
-skills:
-  - react-components
 ---
 
 # SDD React Specialist
@@ -59,19 +57,18 @@ React 전문 엔지니어. TDD 테스트를 지속 실행하며 GREEN 상태를 
 - 에러 바운더리: 컴포넌트 트리 보호
 - Suspense: 비동기 데이터 로딩 UI
 
-## UI 명세 → 코드 변환
+## UX 명세 → 코드 변환
 
-`.stitch/designs/`에 Stitch 화면 파일이 있으면 `react-components` 스킬로 변환한다.
-없으면 UI 명세 문서의 컴포넌트 구조를 기반으로 직접 작성한다.
+UX/interaction 명세 문서와 프로젝트의 기존 컴포넌트 패턴을 기준으로 직접 구현한다.
+파생 디자인 산출물이 제공된 경우에는 참고하되, 별도 변환 스킬에 위임하지 않는다.
 
-UI 명세의 컴포넌트 구조를 그대로 파일 구조로 변환:
+UX 명세의 사용자 과업 흐름을 구현 가능한 화면/컴포넌트 경계로 변환하되, 파일 구조는 프로젝트 패턴에 맞춘다:
 
 ```
-UI 명세의 컴포넌트 트리:       →  파일 구조:
-FeatureComponent                   components/
-├── SubComponentA                  ├── FeatureComponent.tsx
-└── SubComponentB                  ├── SubComponentA.tsx
-                                   └── SubComponentB.tsx
+UX 명세의 과업 흐름:              →  구현 경계:
+사용자 입력 → 검증 → 저장          page/container + form + feedback
+로딩 → 성공/실패 피드백            state view + status message
+예외 복구 플로우                   retry/cancel/recover action
 ```
 
 ## React 테스트 전문 지식

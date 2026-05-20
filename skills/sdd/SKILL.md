@@ -24,7 +24,7 @@ source "$HARNESS_HOOKS/enforcement/lib/pipeline-utils.sh"
 init_pipeline "<feature-name>" "<FULL|SIMPLE>"
 ```
 
-- `FULL`: UI + API 필요 (프론트+백 혼합, 3개 이상 기능)
+- `FULL`: UX/UI + API 필요 (프론트+백 혼합, 3개 이상 기능)
 - `SIMPLE`: arch만 (기능 3개 이하, UI/API 미언급)
 
 ### 흐름
@@ -113,7 +113,7 @@ docs/sdd/
 ├── spec/{YYYY-MM-DD}-{feature}.md
 ├── design/                              # Phase 2 설계
 │   ├── arch/{YYYY-MM-DD}-{feature}.md   # 아키텍처 (모든 모드)
-│   ├── ui/{YYYY-MM-DD}-{feature}.md     # UI/UX 명세 (FULL 모드)
+│   ├── ui/{YYYY-MM-DD}-{feature}.md     # UX/interaction 명세 (FULL 모드)
 │   └── api/{YYYY-MM-DD}-{feature}.md    # API 계약 (FULL 모드)
 ├── context/{YYYY-MM-DD}-{feature}.md    # 공유 상태 (FULL 모드)
 ├── task/{feature}/{YYYY-MM-DD}-T-{N}-{task}.md  # Phase 3 태스크
@@ -123,7 +123,7 @@ docs/sdd/
 .agents/state/
 ├── pipeline.json                        # 파이프라인 상태 (current_label, waiting_for_user 등)
 │                                         # init_pipeline 시 생성, cancel_pipeline 시 삭제
-└── e2e-config.json                      # Phase 2 완료 시 sdd-ui-designer가 생성
+└── e2e-config.json                      # Phase 2 완료 시 sdd-ux-designer가 생성
                                          # e2e-gate.sh가 커밋 시 참조
 ```
 
@@ -139,7 +139,7 @@ docs/sdd/
 |----------|------|------|
 | spec 없음 | P1 미시작 | — |
 | spec 있음 + design/arch 없음 | **P2 미시작** | Phase 1 완료 |
-| Phase 1 완료 + design/arch 있음 | P2 진행 중 | ui-designer/api-designer 진행 |
+| Phase 1 완료 + design/arch 있음 | P2 진행 중 | ux-designer/api-designer 진행 |
 | Phase 1 완료 + design/arch 있음 + (FULL 모드인데 design/ui 또는 design/api 누락) | **P2 미완** | → 누락분 복원 |
 | Phase 2 완료 + task 문서 없음 | P3 미시작 | — |
 | Phase 2 완료 + task 있음 + ORCHESTRATOR_STATE 없음 | P3 진행 중 | taskmaster dag 모드 미수행 |
@@ -192,7 +192,7 @@ PHASE1_UX_RESEARCH_DONE → PHASE1_SPEC_DRAFT → PHASE1_BLOCKER_CHECK_PASS → 
 | 에이전트 | Phase | 모델 | 역할 |
 |---------|-------|------|------|
 | `sdd-ux-researcher` | 1 | sonnet | 사용자 요구사항 분석 + spec 작성 |
-| `sdd-ui-designer` | 2 | opus | UI/UX 명세 |
+| `sdd-ux-designer` | 2 | opus | UX/interaction 명세 |
 | `sdd-blocker-checker` | 1 | haiku | spec 블로커 탐지 |
 | `sdd-context-manager` | 전체 | haiku | 공유 상태 관리 |
 | `webapp-architect` | 2 | opus | 웹 앱 아키텍처 결정, develop 작성 |
@@ -254,6 +254,15 @@ sdd는 직접 spec을 작성하지 않는다. 에이전트에 위임한다.
 - WHEN [조건] THE SYSTEM SHALL [동작]
 - Acceptance: [검증 조건]
 
+## UX 흐름 요구사항
+### UX1: {핵심 과업명}
+- 사용자 목표:
+- 시작 맥락:
+- 주요 흐름: 1) ... → 2) ... → 3) ...
+- 완료 신호:
+- 실패/예외 흐름:
+- 필요한 피드백:
+
 ## 용어 정의
 ```
 
@@ -262,7 +271,7 @@ sdd는 직접 spec을 작성하지 않는다. 에이전트에 위임한다.
 ## Phase 2: Design
 
 sdd는 직접 설계를 작성하지 않는다. [webapp/flutter/native]-architect + ui-designer + api-designer + architect-reviewer 협업.
-설계 산출물 = 아키텍처(arch), 사용자 인터페이스(ui), API 계약(api). **태스크 목록 없음** (Phase 3에서 도출).
+설계 산출물 = 아키텍처(arch), UX/interaction 명세(ui), API 계약(api). **태스크 목록 없음** (Phase 3에서 도출).
 
 ### Phase 2 진입: worktree 격리 (필수)
 
@@ -329,17 +338,18 @@ Phase 2 프로세스를 시작하기 **전에** 아래 체크리스트를 먼저
    피드백 있으면 architect 재디스패치 후 재검토
    → PHASE2_ARCH_USER_APPROVED
 
-3. sdd-ui-designer → 순수 UX 명세 (아키텍처 제약 안에서)
-   ※ 디스패치 프롬프트에 반드시 포함: "Stitch MCP로 화면을 생성하고 design-md 스킬로 DESIGN.md를 작성해야 한다"
-   ※ 작성 범위: 화면 레이아웃, 플로우, 인터랙션, 비주얼 가이드
-   ※ 작성 금지: 상태 타입/관리 위치, API 엔드포인트, 프레임워크 API 명칭
-   → 산출물: design/ui/ + docs/sdd/design/DESIGN.md (둘 다 필수)
-   → sdd-architect-reviewer → UI 명세 리뷰 → 수정 → PASS
-   → [사용자 UI 피드백] → 반영
+3. sdd-ux-designer → UX/interaction 명세 (아키텍처 제약 안에서)
+   ※ 디스패치 프롬프트에 반드시 포함: "구체적 시각 디자인은 필수가 아니며, 사용자 과업 흐름·판단 지점·피드백을 먼저 정의하라"
+   ※ 작성 범위: 사용자 목표, 과업 흐름, 진입/완료/예외 경로, 인터랙션, 상태별 피드백, 접근성, E2E 경계
+   ※ 작성 금지: 색상/타이포그래피/픽셀 레이아웃 고정, 상태 타입/관리 위치, API 엔드포인트, 프레임워크 API 명칭
+   ※ 와이어프레임/Stitch/DESIGN.md는 사용자가 요청하거나 UX 리스크가 높을 때만 파생 산출물로 권고
+   → 산출물: design/ui/ (필수). 파생 디자인 산출물은 선택
+   → sdd-architect-reviewer → UX 명세 리뷰 → 수정 → PASS
+   → [사용자 UX 피드백] → 반영
    → PHASE2_UI_DESIGN_COMPLETE
 
-4. sdd-api-designer (UI 명세 필수 입력) → UI 명세에서 도출된 데이터 요구사항 + arch 기반 API/데이터 계약 설계
-   ※ UI 설계 중 발견된 데이터 요구사항이 API 범위를 결정함 — ui-designer 완료 후 진행
+4. sdd-api-designer (UX/interaction 명세 필수 입력) → 사용자 과업 흐름에서 도출된 데이터 요구사항 + arch 기반 API/데이터 계약 설계
+   ※ 사용자의 판단 지점과 시스템 피드백에 필요한 데이터가 API 범위를 결정함 — ux-designer 완료 후 진행
    → design/api/ 저장
    → sdd-architect-reviewer → API 명세 리뷰 → 수정 → PASS
    → [사용자 API 피드백] → 반영
