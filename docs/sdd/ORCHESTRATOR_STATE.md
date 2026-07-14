@@ -6,10 +6,10 @@
 - Spec document: `docs/sdd/spec/2026-07-14-codex-harness-parity.md`
 - Feature: `codex-harness-parity`
 - Started at: `2026-07-14T00:00:00+09:00`
-- Last updated: `2026-07-14T00:00:00+09:00`
-- Status: `PLANNING`
-- Phase 3 approval: `PENDING`
-- Worktree: `Not created; Phase 4 preflight must create or select an isolated worktree.`
+- Last updated: `2026-07-14T00:20:00+09:00`
+- Status: `EXECUTING`
+- Phase 3 approval: `APPROVED 2026-07-14`
+- Worktree: `/Users/moon/Workspace/moondex-codex-harness-parity` on `feat/codex-harness-parity`
 
 ## Codex adapter constraints
 
@@ -47,7 +47,7 @@ T-1
 
 | ID | Wave | Status | Iteration | Role profile | Notes |
 |---|---:|---|---:|---|---|
-| T-1 | 1 | pending | 0 | sdd-python-engineer | Baseline contract and configuration. |
+| T-1 | 1 | complete | 1 | sdd-python-engineer | `pytest`: 6 passed; CLI and bytecode compilation passed. |
 | T-2 | 2 | pending | 0 | sdd-python-engineer | State transitions and phase preflight. |
 | T-3 | 2 | pending | 0 | sdd-python-engineer | Learning core and safety policy. |
 | T-4 | 2 | pending | 0 | sdd-python-engineer | PR convergence state machine. |
@@ -84,5 +84,6 @@ T-1
 ## History
 
 - [2026-07-14T00:00:00+09:00] Phase 3 task plan and DAG created from approved spec and architecture SSOT.
-- [2026-07-14T00:00:00+09:00] Awaiting user approval before Phase 4 worktree/preflight.
-
+- [2026-07-14T00:00:00+09:00] User approved Phase 3 plan.
+- [2026-07-14T00:10:00+09:00] Phase 4 worktree created; T-1 started.
+- [2026-07-14T00:20:00+09:00] T-1 completed: offline config tests passed; secure defaults and CLI baseline recorded.
