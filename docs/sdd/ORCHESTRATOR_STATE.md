@@ -49,9 +49,9 @@ T-1
 |---|---:|---|---:|---|---|
 | T-1 | 1 | complete | 1 | sdd-python-engineer | `pytest`: 6 passed; CLI and bytecode compilation passed. |
 | T-2 | 2 | complete | 1 | sdd-python-engineer | `pytest tests/state`: 9 passed; CLI preflight contract verified. |
-| T-3 | 2 | pending | 0 | sdd-python-engineer | Learning core and safety policy. |
-| T-4 | 2 | pending | 0 | sdd-python-engineer | PR convergence state machine. |
-| T-5 | 2 | pending | 0 | sdd-python-engineer | Code-mapper core. |
+| T-3 | 2 | complete | 1 | sdd-python-engineer | Cursor, tier, proposal, and sync-skip tests passed. |
+| T-4 | 2 | complete | 1 | sdd-python-engineer | Comment dedup, convergence, and escalation tests passed. |
+| T-5 | 2 | complete | 1 | sdd-python-engineer | Three graph states and approximate fallback tests passed. |
 | T-6 | 3 | pending | 0 | sdd-implementer | Codex skill adapters. |
 | T-7 | 3 | pending | 0 | sdd-python-engineer | Preflight, hook wrapper, and CI adapter. |
 | T-8 | 3 | pending | 0 | sdd-implementer | Role contracts and SDD resume. |
@@ -89,3 +89,4 @@ T-1
 - [2026-07-14T00:20:00+09:00] T-1 completed: offline config tests passed; secure defaults and CLI baseline recorded.
 - [2026-07-14T00:25:00+09:00] T-2 started: explicit state transition and preflight adapter.
 - [2026-07-14T00:40:00+09:00] T-2 completed: transition, retry, ownership, atomic-I/O, and resume preflight evidence passed.
+- [2026-07-15T09:00:00+09:00] T-3/T-4/T-5 completed: portable deterministic cores verified by offline tests.
