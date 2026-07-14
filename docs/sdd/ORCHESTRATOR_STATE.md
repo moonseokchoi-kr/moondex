@@ -52,10 +52,10 @@ T-1
 | T-3 | 2 | complete | 1 | sdd-python-engineer | Cursor, tier, proposal, and sync-skip tests passed. |
 | T-4 | 2 | complete | 1 | sdd-python-engineer | Comment dedup, convergence, and escalation tests passed. |
 | T-5 | 2 | complete | 1 | sdd-python-engineer | Three graph states and approximate fallback tests passed. |
-| T-6 | 3 | pending | 0 | sdd-implementer | Codex skill adapters. |
-| T-7 | 3 | pending | 0 | sdd-python-engineer | Preflight, hook wrapper, and CI adapter. |
+| T-6 | 3 | implementing | 1 | sdd-implementer | Core skill surfaces and adapter checks added. |
+| T-7 | 3 | implementing | 1 | sdd-python-engineer | Initial project-local verifier added; enforcement suite remains. |
 | T-8 | 3 | pending | 0 | sdd-implementer | Role contracts and SDD resume. |
-| T-9 | 3 | pending | 0 | sdd-python-engineer | Benchmarks and evaluation boundary. |
+| T-9 | 3 | implementing | 1 | sdd-python-engineer | Train/held-out substrate created; score gate remains. |
 | T-10 | 4 | pending | 0 | sdd-implementer | Manifest, guidance, and portability audit. |
 | T-11 | 5 | pending | 0 | sdd-test-automator | End-to-end acceptance and result evidence. |
 
@@ -90,3 +90,4 @@ T-1
 - [2026-07-14T00:25:00+09:00] T-2 started: explicit state transition and preflight adapter.
 - [2026-07-14T00:40:00+09:00] T-2 completed: transition, retry, ownership, atomic-I/O, and resume preflight evidence passed.
 - [2026-07-15T09:00:00+09:00] T-3/T-4/T-5 completed: portable deterministic cores verified by offline tests.
+- [2026-07-15T09:20:00+09:00] T-6/T-7/T-9 started: portable skill surfaces, verifier baseline, and evaluation layout added.
