@@ -3,7 +3,7 @@
   "runtime_protocol": 1,
   "plugin": {
     "name": "moondex",
-    "version": "0.3.1"
+    "version": "0.4.0"
   },
   "mode_policy": "regular-not-group-or-world-writable",
   "files": [
@@ -11,7 +11,7 @@
       "path": ".codex-plugin/plugin.json",
       "kind": "regular",
       "size": 1331,
-      "sha256": "2ef3959938fa3cef6f7ca017d5a1aa568572a9b271ab5c8c98e0879e03b8942b"
+      "sha256": "fbf54baa222d87a115f2b0877e1f8aab538fa51ea1bfe672b3c5c22a67a07496"
     },
     {
       "path": "harness_core/__init__.py",
