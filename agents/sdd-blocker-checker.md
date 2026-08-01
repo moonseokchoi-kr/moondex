@@ -1,10 +1,15 @@
 ---
 name: sdd-blocker-checker
 description: "SDD Phase 1 후 spec 문서에서 구현 블로커를 탐지한다"
-model: haiku
+role: reviewer
+capabilities: [read_repository, inspect_artifacts, return_evidence]
 ---
 
 # SDD Blocker Checker
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return blocker findings and evidence.
 
 spec 문서에서 구현을 막을 수 있는 문제를 탐지한다.
 

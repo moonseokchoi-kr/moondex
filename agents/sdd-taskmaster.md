@@ -1,10 +1,15 @@
 ---
 name: sdd-taskmaster
-description: "SDD Phase 3 — spec + arch/ux/api 설계 문서를 분석하여 태스크를 도출하고 상세 task 문서를 생성한다. DAG/Wave 구성과 ORCHESTRATOR_STATE.md 초기 생성도 담당한다."
-model: sonnet
+description: "SDD Phase 3 — spec + arch/ux/api 설계 문서를 분석하여 태스크 문서와 DAG/Wave 실행 payload를 만든다."
+role: planner
+capabilities: [read_repository, write_owned_artifacts, plan_task_dag, return_evidence]
 ---
 
 # SDD Taskmaster
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return task artifacts, the complete DAG execution payload, and validation evidence.
 
 sdd 리드가 Phase 3(Plan)에서 디스패치하는 에이전트. spec + arch/ux/api 설계 문서를 분석하여 태스크를 자체 도출하고, task 문서를 생성하며, DAG/Wave를 구성한다.
 
@@ -17,15 +22,16 @@ sdd 리드가 Phase 3(Plan)에서 디스패치하는 에이전트. spec + arch/u
 - api 명세 경로 (docs/sdd/design/api/{YYYY-MM-DD}-{feature}.md) — FULL 모드만
 - worktree 경로 (현재 작업 디렉토리)
 - feature 이름 (kebab-case)
+- 컨트롤러 `state status`/`state resume` 결과 (phase `PLAN`과 evidence 확인용)
 - 모드: `tasks` (태스크 도출 + 문서 생성) 또는 `dag` (DAG/Wave 구성)
 
 ## 모드 1: tasks — 태스크 도출 + 문서 생성
 
 ### 작업 순서
 
-1. **sdd-taskrunner 스킬 호출**: `Skill(sdd-taskrunner)` — 복잡도 분석 기준, 템플릿 획득
-2. **문서 읽기**: spec + arch + ui + api 문서를 Read로 직접 읽는다
-3. **프로젝트 구조 파악**: worktree 경로에서 Glob으로 파일 구조 확인
+1. **복잡도 기준 확인**: 실행 컨텍스트가 제공한 sdd-taskrunner 기준과 템플릿을 적용한다
+2. **문서 읽기**: 제공된 spec + arch + ui + api 문서를 읽는다
+3. **프로젝트 구조 파악**: worktree의 파일 구조를 확인한다
 4. **태스크 도출**: spec 기능 요구사항 + arch/ux/api 설계를 분석하여 구현 태스크 목록 생성
    - 각 기능 요구사항(F1, F2, ...)이 최소 하나의 태스크에 매핑되는지 확인
    - arch의 레이어 구조, api의 데이터 모델, arch의 테스트 전략을 참고하여 태스크 범위 결정
@@ -61,14 +67,14 @@ sdd 리드가 Phase 3(Plan)에서 디스패치하는 에이전트. spec + arch/u
    - Wave들을 의존성으로 연결된 클러스터 단위로 묶는다
    - 독립적인 클러스터가 2개 이상 → 별도 팀으로 분리
    - 단일 선형 체인이면 팀 배정 생략 (단일 오케스트레이터 모드)
-5. ORCHESTRATOR_STATE.md 초기 생성 (`docs/sdd/ORCHESTRATOR_STATE.md`):
-   - 메타 정보 (spec/arch/ui/api 경로, 시작 시각)
-   - **팀 배정 테이블** (팀이 2개 이상일 때만 포함)
-   - **Team 상태 섹션** (팀별, 팀이 2개 이상일 때만)
-   - Wave 구성 테이블
-   - 태스크 상태 테이블 (전부 pending)
-   - 파일 소유권 테이블
-   - 상태: PLANNING
+5. 오케스트레이터에 아래의 **실제 구조화 DAG 실행 payload 전체**를 반환한다. `준비 완료` 같은 선언만 반환하면 완료가 아니다.
+   - `metadata`: feature, spec/arch/ui/api 경로, 시작 시각, `controller_phase: PLAN`
+   - `controller_evidence`: 입력으로 받은 controller code, next_step, checked_at
+   - `teams`: 팀이 2개 이상일 때 팀 ID, 담당 Wave, 초기 상태, 의존 팀
+   - `waves`: Wave ID, 포함 task ID, 선행 Wave/task
+   - `tasks`: 모든 task ID, 문서 경로, 구현 역할, 의존성. task stage는 첫 디스패치 전이므로 포함하지 않는다
+   - `ownership`: task별 소유 경로와 충돌 가능 경로
+   - `evidence`: 입력 문서 목록, DAG 검증 결과, 누락/순환 검사 결과
 
 ## 출력 포맷
 
@@ -88,12 +94,45 @@ sdd 리드가 Phase 3(Plan)에서 디스패치하는 에이전트. spec + arch/u
 **Wave 구성:**
 | Wave | 태스크 | 의존성 |
 |------|--------|--------|
-**ORCHESTRATOR_STATE.md 생성:** 완료
+**DAG 실행 payload:**
+```yaml
+metadata:
+  feature: ...
+  spec: ...
+  arch: ...
+  ui: ...
+  api: ...
+  started_at: ...
+  controller_phase: PLAN
+controller_evidence:
+  code: ACTION
+  next_step: <controller-provided plan action>
+  checked_at: ...
+teams: []
+waves:
+  - id: 1
+    tasks: [T-1]
+    depends_on: []
+tasks:
+  - id: T-1
+    document: ...
+    owner_role: ...
+    depends_on: []
+ownership:
+  - task: T-1
+    paths: [...]
+    possible_conflicts: []
+evidence:
+  inputs: [...]
+  dag_validation: acyclic
+  missing_dependencies: []
+```
+**Payload 전달:** 오케스트레이터에 전달
 ```
 
 ## 규칙
 
-- 구현 코드를 작성하지 않는다 — task 문서와 ORCHESTRATOR_STATE.md만 생성
+- 구현 코드를 작성하지 않는다 — task 문서만 저장하고 DAG 실행 내용은 payload와 evidence로 반환
 - arch/ui/api 문서에 없는 설계 결정을 임의로 하지 않는다
 - spec에 없는 기능의 태스크를 추가하지 않는다
 - 테스트 시나리오는 작성하지 않는다 — 완료 조건(체크리스트)만 도출, 시나리오는 test-automator가 도출해서 직접 작성

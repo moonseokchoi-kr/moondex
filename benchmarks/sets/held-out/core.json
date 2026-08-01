@@ -1,1 +1,23 @@
-[{"case":"harness-tier-proposal","expected":"PROPOSAL"}]
+[
+  {
+    "id": "learning-harness-is-proposal",
+    "domain": "learning",
+    "operation": "learning.route_change",
+    "input": {"paths": ["skills/self-improve/SKILL.md"], "train_improved": true, "held_out_regressions": 0},
+    "expected": {"action": "PROPOSAL"}
+  },
+  {
+    "id": "pr-design-question-escalates",
+    "domain": "pr",
+    "operation": "pr.transition",
+    "input": {"state": {}, "signals": [{"kind": "comment_escalate"}]},
+    "expected": {"status": "NEEDS_HUMAN"}
+  },
+  {
+    "id": "mapper-uninitialized-is-not-healthy",
+    "domain": "mapping",
+    "operation": "code_mapper.classify_probe",
+    "input": {"graph_probe": "not initialized"},
+    "expected": {"state": "not_initialized", "approximate": false}
+  }
+]

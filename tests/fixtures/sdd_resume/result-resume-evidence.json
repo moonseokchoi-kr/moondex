@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "feature": "result-resume",
+  "completion_identity": "result-resume:2026-07-23:verified",
+  "verified": true,
+  "summary": "All checks passed. Authorization: Bearer fixture-secret-must-not-render\nProxy-Authorization: Basic cHJveHktc2VjcmV0",
+  "validation": [
+    {"name": "compliance", "status": "PASS", "evidence": "api_key=fixture-api-secret"},
+    {"name": "tests", "status": "PASS", "evidence": "204 tests passed; --token fixture-argv-secret"}
+  ]
+}

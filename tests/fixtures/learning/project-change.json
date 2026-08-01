@@ -1,0 +1,11 @@
+{
+  "paths": ["src/service.py"],
+  "protected_roots": [".harness"],
+  "rollback_record": {"id": "rollback-1", "command": "git revert --no-edit HEAD"},
+  "run_cap": 2,
+  "applied_in_run": 0,
+  "train_improved": true,
+  "held_out_regressions": 0,
+  "recurrence_confirmed": true,
+  "critic_passed": true
+}

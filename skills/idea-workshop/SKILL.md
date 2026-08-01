@@ -10,8 +10,8 @@ description: "아이디어의 전체 라이프사이클을 관리하는 통합 �
 ## 전체 흐름
 
 ```
-Phase 1: 발산        Phase 2: 리프레이밍    Phase 3A: 팀 리서치    Phase 3B: 냉철 검증    Phase 3C: PRD 작성     Phase 4: SDD
- [솔로]              [솔로]                 [Agent Team]           [대화형]              [Reviewer]            [전환]
+Phase 1: 발산        Phase 2: 리프레이밍    Phase 3A: 역할 리서치  Phase 3B: 냉철 검증    Phase 3C: PRD 작성     Phase 4: SDD
+ [대화형]            [대화형]               [독립 역할 병렬 가능]  [대화형]              [리뷰 역할]            [전환]
  아이디어 확장        다각도 탐색            병렬 리서치             실증 기반 반증         품질 게이트           sdd 호출
 ```
 
@@ -118,41 +118,55 @@ Phase 2 ↔ Phase 3B는 **이터레이션 루프**. 검증에서 방향 결함 �
 
 ---
 
-## Phase 3A: 팀 리서치 (Agent Team)
+## Phase 3A: 역할 기반 리서치
 
-사용자가 방향 선택하면 **기획팀 소집**.
+사용자가 방향을 선택하면 오케스트레이터가 네 개의 독립 연구 역할을 준비한다. 현재
+Codex 실행 환경이 협업 worker를 지원하고 작업이 서로 독립적이면 병렬로 위임할 수 있다.
+협업 기능이 없거나 사용하지 않는 경우에도 같은 입력·산출물 계약으로 역할을 순차 실행한다.
+팀이나 background 실행이 자동으로 생성된다고 가정하지 않는다.
 
-### 팀 생성
+### 역할 DAG와 디스패치 계약
 
-```
-cmux set-status idea "기획팀 소집 중" --icon "person.3"
+| Wave | 역할 프로필 | 시작 조건 | 소유 산출물 |
+|---|---|---|---|
+| 1 | `idea-market-researcher` | 아이디어, 선택 방향, 시장 범위 | `docs/research/market-research.md` + 경쟁 앱 목록·가격 evidence |
+| 1 | `idea-feasibility-checker` | 아이디어, 선택 방향, 기술 제약 | `docs/research/feasibility.md` + MAU별 인프라 비용 evidence |
+| 2 | `idea-user-researcher` | market의 경쟁 앱 목록 또는 출처가 명시된 동등한 사전 계산 입력 | `docs/research/user-research.md` + 지불 의향·가격 반응 인용 evidence |
+| 3 | `idea-biz-model-designer` | user 지불 의향 인용 + market 경쟁 가격 + feasibility 인프라 비용 | `docs/research/business-model.md` + 가격·마진 evidence |
+| 4 | `idea-reviewer` | 위 네 research artifact와 Phase 3B 검증 기록 | `docs/PRD.md` + `docs/research/review-log.md` |
 
-TeamCreate(team_name: "idea-{feature-slug}", description: "{아이디어 한줄 요약}")
+market과 feasibility는 각자의 base input이 있으면 Wave 1에서 병렬로 시작할 수 있다.
+feasibility가 이후 market 기술 정보나 user 디바이스 evidence를 받으면 최종 산출물에
+반영한다. user는 경쟁 앱 목록 없이 시작하지 않으며, 동등한 사전 계산 입력을 쓸 때는
+그 출처와 생성 근거를 result evidence에 남긴다. business는 세 필수 입력이 모두
+검증되기 전에는 시작하지 않는다. reviewer는 네 research artifact가 모두 존재하고
+각 역할의 validation evidence가 통과한 뒤에만 마지막으로 실행한다.
 
-TaskCreate(title: "시장 조사", description: "docs/research/market-research.md 작성")
-TaskCreate(title: "사용자 조사", description: "docs/research/user-research.md 작성")
-TaskCreate(title: "기술 타당성", description: "docs/research/feasibility.md 작성")
-TaskCreate(title: "비즈니스 모델", description: "docs/research/business-model.md 작성")
-
-Agent(team_name:"idea-{slug}", name:"market-researcher",   subagent_type:"idea-market-researcher",   prompt:"{아이디어 + 선택 방향}")
-Agent(team_name:"idea-{slug}", name:"user-researcher",     subagent_type:"idea-user-researcher",     prompt:"{아이디어 + 선택 방향}")
-Agent(team_name:"idea-{slug}", name:"feasibility-checker", subagent_type:"idea-feasibility-checker", prompt:"{아이디어 + 선택 방향}")
-Agent(team_name:"idea-{slug}", name:"biz-model-designer",  subagent_type:"idea-biz-model-designer",  prompt:"{아이디어 + 선택 방향}")
-
-cmux set-status idea "팀 리서치 중" --icon "magnifyingglass" --color "#FF9800"
-```
+각 위임은 해당 `agents/<role>.md`의 host-neutral capability, 소유권, 공통 결과 envelope를
+입력으로 사용한다. 오케스트레이터는 역할, 입력 artifact/evidence, 기대 파일, 검증 기준을
+명시하고 결과를 수신한 뒤에만 의존 역할을 시작한다. `NEEDS_CONTEXT`가 반환되면 요청된
+입력을 만든 upstream 역할 또는 사용자에게 route하고, 동일 revision의 필수 evidence가
+준비될 때까지 해당 역할을 시작·완료 처리하지 않는다.
 
 ### 팀 작업 방식
 
-- 4명이 병렬로 각자 태스크 선택 후 조사
-- 팀원 간 **직접 SendMessage** (market→user로 경쟁사 리스트, user→biz로 지불 의향 등)
+- 같은 Wave의 독립 역할만 실행 환경이 지원할 때 병렬로 조사
+- 역할 간 자료 전달은 오케스트레이터가 결과 envelope를 받아 다음 역할 입력에 명시적으로 전달
 - 각 팀원은 `docs/research/` 아래 자신의 파일 저장
 - 각 에이전트 파일에 정의된 **품질 자가 점검 체크리스트** 미달 시 파일 쓰지 않고 재조사
-- 완료 시 리더에게 유휴 알림
+- 완료 시 소유 파일, 검증, evidence 또는 blocker를 오케스트레이터에 반환
 
-### 4명 전원 유휴 → Phase 3B 자동 진입
+협업 기능이 없는 순차 fallback은 반드시 `market → feasibility` 또는
+`feasibility → market`으로 Wave 1을 완료한 뒤 `user → business → reviewer` 순서를
+지킨다. 병렬 실행이 없다는 이유로 dependency를 건너뛰지 않는다.
 
-사용자가 "검증 대화 건너뛰자" 요청하면 Phase 3C로 직행.
+### 네 research 역할 완료 → Phase 3B 제안
+
+market, feasibility, user, business 산출물과 품질 근거가 모두 준비되면 오케스트레이터가
+Phase 3B 진입을 제안한다. reviewer는 Phase 3B 검증 완료 또는 사용자의 명시적 skip 뒤
+Wave 4에서 실행한다.
+자동 진입하거나 다음 turn의 실행을 약속하지 않는다. 사용자가 "검증 대화 건너뛰자"고
+요청하면 Phase 3C로 진행한다.
 
 ---
 
@@ -268,17 +282,9 @@ Phase 1로 돌아가 완전히 다른 씨앗을 찾을까요?"
 
 Phase 3B 졸업 후 또는 사용자가 건너뛰기 요청 시.
 
-```
-cmux set-status idea "PRD 작성 중" --icon "doc.text" --color "#2196F3"
-
-Agent(
-  team_name: "idea-{slug}",
-  name: "idea-reviewer",
-  subagent_type: "idea-reviewer",
-  prompt: "docs/research/ 4개 파일 + Phase 3B 검증 결과를 기반으로 docs/PRD.md 작성.
-  1단계 품질 메트릭 → 2단계 정합성 → 3단계 Critical 판정 → 4단계 PRD 작성 순서 엄수."
-)
-```
+오케스트레이터는 `idea-reviewer` 역할 프로필에 `docs/research/`의 네 산출물과 Phase 3B
+검증 결과를 전달한다. 기대 결과는 `docs/PRD.md`와 `docs/research/review-log.md`이며,
+품질 메트릭 → 교차 정합성 → Critical 판정 → PRD 작성 순서를 계약에 명시한다.
 
 리뷰어는:
 1. **품질 메트릭** 검증 (각 파일 독립, Bash/Grep으로 자동 집계)
@@ -288,15 +294,11 @@ Agent(
 
 품질 미달 시 기획서 쓰지 않고 재조사 루프.
 
-### 팀 정리
+### 협업 정리
 
-리뷰어 완료 후:
-```
-각 팀원에게 SendMessage(message: {type: "shutdown_request"})
-모든 팀원 종료 확인 → TeamDelete
-
-cmux set-status idea "기획 완료" --icon "checkmark.circle" --color "#4CAF50"
-```
+리뷰어 완료 후 오케스트레이터는 실행 환경이 제공하는 협업 수명주기 기능이 있다면
+자신이 만든 worker만 정상 종료한다. 별도 협업 기능이 없었다면 정리할 팀 상태도 없다.
+종료 여부가 PRD 품질 판정을 대신하지 않는다.
 
 ---
 
@@ -307,34 +309,8 @@ cmux set-status idea "기획 완료" --icon "checkmark.circle" --color "#4CAF50"
 ```
 PRD 완성되었습니다. 구현은 /sdd 로 스펙 작성 + 개발 시작 가능합니다.
 ```
-3. `cmux clear-status idea`
-
----
-
-## cmux 진행률 표시
-
-```bash
-# Phase 1
-cmux set-status idea "발산" --icon "lightbulb" 2>/dev/null || true
-
-# Phase 2
-cmux set-status idea "리프레이밍" --icon "arrow.triangle.2.circlepath" 2>/dev/null || true
-
-# Phase 3A
-cmux set-status idea "팀 리서치" --icon "magnifyingglass" --color "#FF9800" 2>/dev/null || true
-
-# Phase 3B
-cmux set-status idea "냉철 검증" --icon "scale.3d" --color "#F44336" 2>/dev/null || true
-
-# Phase 3C
-cmux set-status idea "PRD 작성" --icon "doc.text" --color "#2196F3" 2>/dev/null || true
-
-# Phase 4
-cmux set-status idea "기획 완료" --icon "checkmark.circle" --color "#4CAF50" 2>/dev/null || true
-
-# sdd 전환
-cmux clear-status idea 2>/dev/null || true
-```
+3. 사용 가능한 UI 진행 표시 capability가 있으면 현재 Phase를 advisory 상태로 표시할 수
+   있다. 표시 기능의 부재나 실패는 workflow 결과 또는 Phase 전환을 바꾸지 않는다.
 
 ---
 

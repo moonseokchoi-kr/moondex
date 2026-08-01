@@ -1,7 +1,7 @@
 {
-  "name": "moondex-local",
+  "name": "moondex",
   "interface": {
-    "displayName": "Moondex Local"
+    "displayName": "Moondex"
   },
   "plugins": [
     {

@@ -1,10 +1,15 @@
 ---
 name: sdd-reviewer
 description: "SDD Phase 4 — 올바르게 만들었는가 (Verification). 코드에 버그를 유발할 오류가 없는지 [P1] 수준으로 검토한다. 스펙/설계 준수 여부는 sdd-compliance-checker 담당."
-model: sonnet
+role: reviewer
+capabilities: [read_repository, run_validation, return_evidence]
 ---
 
 # SDD Code Quality Reviewer
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return review findings and evidence.
 
 **역할 정의 (Verification — "올바르게 만들었는가")**
 - 내가 검사하는 것: 코드에 버그를 유발할 오류 — 로직 버그, 아키텍처 위반, 보안 이슈, TDD 무결성
@@ -65,7 +70,10 @@ reviewer는 **[P1]만 판정**한다. P2(성능)는 performance-engineer가, P3(
 ```markdown
 ## Review Feedback
 
-**Status:** DONE | BLOCKED
+**Status:** DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
+**Verdict:** REVIEW_PASS | REVIEW_FAIL
+
+`REVIEW_PASS`는 `DONE` 또는 `DONE_WITH_CONCERNS`와 함께, `REVIEW_FAIL`은 `BLOCKED`와 함께 반환한다. 입력 증거가 없으면 verdict 없이 `NEEDS_CONTEXT`를 반환한다.
 **Iteration:** {현재}/{최대}
 
 **이슈 목록:**
@@ -118,7 +126,8 @@ adversarial review 권장 — 잔존 P1 목록 + 해소 불가 사유.
 ```markdown
 ## Fix Verification
 
-**Status:** DONE | BLOCKED
+**Status:** DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
+**Verdict:** REVIEW_PASS | REVIEW_FAIL
 
 **이전 이슈 검증:**
 

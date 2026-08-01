@@ -1,0 +1,49 @@
+name: moondex-verify
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  verify:
+    name: moondex-verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline deterministic tests
+        run: python3 -m pytest tests -q
+      - name: Resolve and verify the shared outgoing range
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .harness/reports
+          if [[ "$EVENT" == pull_request ]]; then
+            # Make the snapshot-pinned integration ref available locally; the
+            # verifier rejects a range it cannot prove from this checkout.
+            git update-ref "refs/heads/$DEFAULT_BRANCH" "$PR_BASE"
+            # Base SHA is both the range base and immutable trusted policy source.
+            python3 scripts/verify.py --project-root . --source ci --target-ref "refs/pull/${{ github.event.pull_request.number }}/head" --tip "$PR_HEAD" --remote-base "$PR_BASE" --policy-base "$PR_BASE" --trusted-policy --branch "${{ github.head_ref }}" --default-branch "$DEFAULT_BRANCH" --audit-file .harness/reports/enforcement.json
+          else
+            git update-ref "refs/heads/$DEFAULT_BRANCH" "$(git rev-parse "origin/$DEFAULT_BRANCH")"
+            args=(--project-root . --source ci --target-ref "${{ github.ref }}" --tip "${{ github.sha }}" --branch "${{ github.ref_name }}" --default-branch "$DEFAULT_BRANCH" --audit-file .harness/reports/enforcement.json)
+            if [[ "$BEFORE" =~ ^0+$ ]]; then args+=(--integration-base "refs/heads/$DEFAULT_BRANCH"); else args+=(--remote-base "$BEFORE"); fi
+            python3 scripts/verify.py "${args[@]}"
+          fi
+      - name: Publish deterministic enforcement evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moondex-enforcement-evidence
+          path: .harness/reports/enforcement.json
+          if-no-files-found: warn

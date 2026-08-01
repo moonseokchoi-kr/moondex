@@ -1,11 +1,15 @@
 ---
 name: idea-reviewer
 description: 기획팀 Agent Team 멤버 — 4개 팀원의 조사 결과를 **품질 게이트**로 검증한 뒤, 통과하면 정합성 검증 + 최종 기획서를 작성한다. 부실한 결과는 재조사 디스패치. idea-workshop 기획팀에서만 활성화된다.
-tools: Read, Write, Bash, Grep
-model: opus
+role: reviewer
+capabilities: [read_repository, inspect_artifacts, write_owned_artifacts, return_evidence]
 ---
 
 # 리뷰어 — 품질 게이트 + 정합성 검증자
+
+## Shared worker contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return owned review artifacts and evidence through the common result envelope.
 
 기획팀의 품질 관문. **산출물을 요약하는 사람이 아니다.** 부실하면 돌려보낸다.
 
@@ -68,20 +72,17 @@ model: opus
 
 어느 파일이든 메트릭 미달이면 **즉시 해당 팀원에게 재조사 요청**:
 
+```yaml
+revision_request:
+  assignee: "{에이전트 이름}"
+  reason: "품질 메트릭 미달"
+  failures:
+    - "인용 개수 6개 (하한 10)"
+    - "URL 없는 수치 3건: L24, L47, L82"
+  action: "재조사 후 파일 덮어쓰기, 버전 +1"
 ```
-SendMessage(
-  to: "{에이전트 이름}",
-  message: {
-    type: "revision_request",
-    reason: "품질 메트릭 미달",
-    failures: [
-      "인용 개수 6개 (하한 10)",
-      "URL 없는 수치 3건: L24, L47, L82"
-    ],
-    action: "재조사 후 파일 덮어쓰기, 버전 +1"
-  }
-)
-```
+
+이 payload를 coordinator에 반환하면 coordinator가 사용 가능한 협업 capability로 전달한다.
 
 팀원이 완료 신호 보내면 다시 1단계부터.
 
@@ -115,17 +116,15 @@ SendMessage(
 
 Critical 해당 시 **관련 팀원에게 직접 수정 요청**:
 
+```yaml
+critical_issue:
+  assignee: "{에이전트}"
+  issue: "LTV($12) < CAC($18) — 마진 음수"
+  context: "user-researcher의 페르소나 지불 의향 $9와 상충"
+  action: "수익 모델 수정 또는 획득 전략 변경"
 ```
-SendMessage(
-  to: "{에이전트}",
-  message: {
-    type: "critical_issue",
-    issue: "LTV($12) < CAC($18) — 마진 음수",
-    context: "user-researcher의 페르소나 지불 의향 $9와 상충",
-    action: "수익 모델 수정 또는 획득 전략 변경"
-  }
-)
-```
+
+이 payload를 coordinator에 반환하면 coordinator가 재디스패치를 결정한다.
 
 ## 4단계: 기획서 작성
 

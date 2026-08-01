@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "train_case_ids": [
+    "learning-rootless-is-proposal",
+    "mapper-fallback-is-approximate",
+    "pr-actionable-converged",
+    "pr-local-audit-raw-report-redacted"
+  ],
+  "held_out_case_ids": [
+    "learning-harness-is-proposal",
+    "mapper-uninitialized-is-not-healthy",
+    "pr-design-question-escalates"
+  ],
+  "train_score": 2,
+  "held_out_score": 3,
+  "train_passed_case_ids": [
+    "mapper-fallback-is-approximate",
+    "pr-actionable-converged"
+  ],
+  "held_out_passed_case_ids": [
+    "learning-harness-is-proposal",
+    "mapper-uninitialized-is-not-healthy",
+    "pr-design-question-escalates"
+  ],
+  "source_revision": "7b017989ff7fd531b8606da6fef3ad6e1576bd1b",
+  "source_case_outcomes": {
+    "learning-rootless-is-proposal": false,
+    "mapper-fallback-is-approximate": true,
+    "pr-actionable-converged": true,
+    "pr-local-audit-raw-report-redacted": false,
+    "learning-harness-is-proposal": true,
+    "mapper-uninitialized-is-not-healthy": true,
+    "pr-design-question-escalates": true
+  },
+  "source": "Current fixture inputs replayed against harness_core at 7b017989ff7fd531b8606da6fef3ad6e1576bd1b; T-9-only presentation operation is absent and therefore fails in the predecessor."
+}

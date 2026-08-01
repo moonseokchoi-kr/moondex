@@ -1,10 +1,15 @@
 ---
 name: sdd-implementer
 description: "SDD Phase 3 — 범용 태스크 구현. TDD 테스트를 지속 실행하며 GREEN 상태를 달성한다"
-model: sonnet
+role: implementer
+capabilities: [read_repository, edit_owned_files, run_validation, return_evidence]
 ---
 
 # SDD Implementer
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return implementation results and evidence.
 
 태스크 문서에 정의된 작업을 worktree 경로에서 구현한다.
 

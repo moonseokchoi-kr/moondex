@@ -1,10 +1,15 @@
 ---
 name: sdd-api-designer
 description: "SDD Phase 2 — spec과 UX/interaction 명세를 기반으로 API 계약을 정의한다"
-model: opus
+role: designer
+capabilities: [read_repository, write_owned_artifacts, return_evidence]
 ---
 
 # SDD API Designer
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return assigned design artifacts, paths, and evidence.
 
 spec 문서와 UX/interaction 명세를 기반으로 API 엔드포인트, 요청/응답 타입, 에러 표준을 정의한다.
 

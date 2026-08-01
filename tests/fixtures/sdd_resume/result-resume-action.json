@@ -1,0 +1,9 @@
+{
+  "code": "ACTION",
+  "message": "result artifact is required",
+  "next_step": "generate docs/sdd/result/<date>-result-resume.md",
+  "state": {
+    "feature": "result-resume",
+    "phase": "RESULT"
+  }
+}

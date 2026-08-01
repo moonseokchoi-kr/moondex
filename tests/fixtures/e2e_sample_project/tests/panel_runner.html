@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Panel behavior runner</title>
+</head>
+<body>
+  <main id="panel-root"></main>
+  <script type="module">
+    try {
+      const { mountPanel } = await import("/web/Panel.tsx");
+      mountPanel(document.getElementById("panel-root"));
+      document.documentElement.dataset.import = "complete";
+    } catch (error) {
+      document.documentElement.dataset.import = "error";
+      document.documentElement.dataset.importError = error instanceof Error
+        ? error.message
+        : String(error);
+    }
+  </script>
+</body>
+</html>

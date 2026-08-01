@@ -1,0 +1,9 @@
+{
+  "code": "ACTION",
+  "message": "result artifact is required",
+  "next_step": "generate docs/sdd/result/<date>-result-sync.md",
+  "state": {
+    "feature": "result-sync",
+    "phase": "RESULT"
+  }
+}

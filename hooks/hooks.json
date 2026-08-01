@@ -24,19 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/dangerous-command.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/secret-detect.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/enforcement/branch-gate.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/enforcement/e2e-gate.sh"
+            "command": "${CODEX_PLUGIN_ROOT}/hooks/bash-pretool-dispatcher.sh"
           }
         ]
       },
@@ -45,19 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/sensitive-file.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/file-ownership.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/enforcement/role-gate.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CODEX_PLUGIN_ROOT}/hooks/enforcement/tdd-gate.sh"
+            "command": "${CODEX_PLUGIN_ROOT}/hooks/write-pretool-dispatcher.sh"
           }
         ]
       }

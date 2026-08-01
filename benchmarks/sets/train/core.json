@@ -1,1 +1,34 @@
-[{"case":"project-tier-apply","expected":"APPLY"}]
+[
+  {
+    "id": "learning-rootless-is-proposal",
+    "domain": "learning",
+    "operation": "learning.route_change",
+    "input": {"paths": ["app.py"], "train_improved": true, "held_out_regressions": 0},
+    "expected": {"action": "PROPOSAL", "compatibility_mode": true}
+  },
+  {
+    "id": "pr-actionable-converged",
+    "domain": "pr",
+    "operation": "pr.transition",
+    "input": {"state": {}, "signals": []},
+    "expected": {"status": "CONVERGED"}
+  },
+  {
+    "id": "mapper-fallback-is-approximate",
+    "domain": "mapping",
+    "operation": "code_mapper.classify_probe",
+    "input": {"graph_probe": ""},
+    "expected": {"state": "unavailable", "approximate": true}
+  },
+  {
+    "id": "pr-local-audit-raw-report-redacted",
+    "domain": "pr",
+    "operation": "pr.presentation_boundary",
+    "input": {
+      "credential_literal": "trusted-local-token-7C2",
+      "raw_audit": {"evidence": [{"credential": "trusted-local-token-7C2"}]},
+      "rendered_report": {"dispositions": [{"evidence": [{"credential": "[REDACTED]"}]}]}
+    },
+    "expected": {"raw_audit_retains_literal": true, "rendered_report_redacted": true}
+  }
+]

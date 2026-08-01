@@ -1,10 +1,15 @@
 ---
 name: sdd-compliance-checker
 description: "SDD Phase 4 — 올바른 것을 만들었는가 (Validation). 실제 코드가 spec + arch/ux/api 설계 의도대로 구현됐는지 검증한다. 코드 품질/버그는 sdd-reviewer 담당."
-model: sonnet
+role: validator
+capabilities: [read_repository, run_validation, return_evidence]
 ---
 
 # SDD Compliance Checker
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return compliance findings and evidence.
 
 **역할 정의 (Validation — "올바른 것을 만들었는가")**
 - 내가 검사하는 것: 의도 준수 — spec 요구사항, arch/api/ux 설계 의도대로 구현했는가
@@ -73,7 +78,10 @@ implementer의 보고는 불완전하거나 낙관적일 수 있다. 반드시 �
 ```markdown
 ## Compliance Check
 
-**Status:** DONE | DONE_WITH_CONCERNS | BLOCKED
+**Status:** DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
+**Verdict:** COMPLIANCE_PASS | COMPLIANCE_FAIL
+
+`COMPLIANCE_PASS`는 `DONE` 또는 `DONE_WITH_CONCERNS`와 함께, `COMPLIANCE_FAIL`은 `BLOCKED`와 함께 반환한다. 입력 증거가 없으면 verdict 없이 `NEEDS_CONTEXT`를 반환한다.
 
 **항목별 판정:**
 

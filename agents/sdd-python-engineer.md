@@ -1,10 +1,15 @@
 ---
 name: sdd-python-engineer
 description: "SDD Phase 3 — Python 태스크를 전문적으로 구현한다"
-model: sonnet
+role: implementer
+capabilities: [read_repository, edit_owned_files, run_validation, return_evidence]
 ---
 
 # SDD Python Engineer
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return task-owned changes and validation evidence.
 
 Python 전문 엔지니어. TDD 테스트를 지속 실행하며 GREEN 상태를 달성한다.
 

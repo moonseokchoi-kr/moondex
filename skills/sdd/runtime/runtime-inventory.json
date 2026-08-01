@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "runtime_protocol": 1,
+  "plugin": {
+    "name": "moondex",
+    "version": "0.3.1"
+  },
+  "mode_policy": "regular-not-group-or-world-writable",
+  "files": [
+    {
+      "path": ".codex-plugin/plugin.json",
+      "kind": "regular",
+      "size": 1331,
+      "sha256": "2ef3959938fa3cef6f7ca017d5a1aa568572a9b271ab5c8c98e0879e03b8942b"
+    },
+    {
+      "path": "harness_core/__init__.py",
+      "kind": "regular",
+      "size": 145,
+      "sha256": "be56c5a4da9081bc30bd2e6f742845bf1a29a25a125522800c9466ca4c6a2c81"
+    },
+    {
+      "path": "harness_core/cli.py",
+      "kind": "regular",
+      "size": 11856,
+      "sha256": "6de5f7987bb910e893f17e7de893dd59a1614346e4616667b9843252d26d3880"
+    },
+    {
+      "path": "harness_core/code_mapper/__init__.py",
+      "kind": "regular",
+      "size": 1123,
+      "sha256": "aecf7affdb2c38e2c7fcccc79109762b30ff593990ebaca7a36bb52091aab9a6"
+    },
+    {
+      "path": "harness_core/config.py",
+      "kind": "regular",
+      "size": 3683,
+      "sha256": "17f3ca31208e4d8a85a0e5e9a346ab0b0b291056c431680ac739cac31ecc0071"
+    },
+    {
+      "path": "harness_core/enforcement/__init__.py",
+      "kind": "regular",
+      "size": 885,
+      "sha256": "617f1bd8b5dd8c2bf088b034f40ffaa9138f9bdbd7b5d56f1459cf198c3869a5"
+    },
+    {
+      "path": "harness_core/enforcement/core.py",
+      "kind": "regular",
+      "size": 35710,
+      "sha256": "c9a158c1c5402d8240368047c56d14a1875c045abd4b63d4995c64fd42339461"
+    },
+    {
+      "path": "harness_core/learning/__init__.py",
+      "kind": "regular",
+      "size": 8406,
+      "sha256": "dff54529456a3eb0560370d73d4cd6bf3f23f6dcdfe796d1f4a378ffd1b7688a"
+    },
+    {
+      "path": "harness_core/pr/__init__.py",
+      "kind": "regular",
+      "size": 38256,
+      "sha256": "a909986045d0150af6245e925796bb1c8c8d63eb22b6e9226db1e617d536132f"
+    },
+    {
+      "path": "harness_core/state/__init__.py",
+      "kind": "regular",
+      "size": 793,
+      "sha256": "0f9728772359ccd6882ac7122d616a9976e1f25e45c2701d8ca297bc0642dc65"
+    },
+    {
+      "path": "harness_core/state/pipeline.py",
+      "kind": "regular",
+      "size": 25907,
+      "sha256": "c0d8493eb0ad6c8080b4a4eeb385035a884b9966bcaba2ce2397ac2a0da9e069"
+    },
+    {
+      "path": "harness_core/state/storage.py",
+      "kind": "regular",
+      "size": 2151,
+      "sha256": "a522d7af2b79beba27b2f39de77b167de2b96f37d66fbf18db360f47170e9654"
+    },
+    {
+      "path": "scripts/adapter_render.py",
+      "kind": "regular",
+      "size": 4913,
+      "sha256": "f2b973b00dea9b43df91834f9e44031c720cbb5ac32cac764c9647dfc64c542c"
+    },
+    {
+      "path": "scripts/code_mapper_adapter.py",
+      "kind": "regular",
+      "size": 4147,
+      "sha256": "07fe7509e11c114d7627b810b9b731f638aeb0c11efb76ca1ed4c2cea9f1c485"
+    },
+    {
+      "path": "scripts/pr_converge_adapter.py",
+      "kind": "regular",
+      "size": 10560,
+      "sha256": "2739d87bdefa098eb768dc42e50e27d4e8e04da72088c30ccd84d84e686116ce"
+    },
+    {
+      "path": "scripts/self_improve_adapter.py",
+      "kind": "regular",
+      "size": 5236,
+      "sha256": "81b26f2f43cfdea7ff831613ff3f5c1bead699381bb2c498ccc4bbcb951a4374"
+    },
+    {
+      "path": "scripts/verify.py",
+      "kind": "regular",
+      "size": 4153,
+      "sha256": "7d1eba0d5693f96e9362dfc7e3d30ac2ed17fc09f00bd16e5cf25922ffca58ce"
+    },
+    {
+      "path": "skills/sdd-orchestrator/scripts/result-action.py",
+      "kind": "regular",
+      "size": 32654,
+      "sha256": "05ec9ce1f16b1318e3085911e5e036efb461df330a5131e7decad019a370df78"
+    },
+    {
+      "path": "skills/sdd/runtime/moondex-runtime.py",
+      "kind": "regular",
+      "size": 9548,
+      "sha256": "98c7d3564dd28d1f8b04a546aec32f13432c3e735cad94217f748364440a9ad1"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "feature": "result-sync",
+  "completion_identity": "result-sync:2026-07-23:verified",
+  "verified": true,
+  "summary": "Configured sync passed. Authorization: Bearer configured-secret-must-not-render",
+  "validation": [
+    {"name": "task", "status": "PASS", "evidence": "token=configured-token-secret"},
+    {"name": "integration", "status": "PASS", "evidence": "integration passed"}
+  ]
+}

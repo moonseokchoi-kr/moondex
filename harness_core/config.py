@@ -11,7 +11,7 @@ from typing import Any
 DEFAULT_CONFIG: dict[str, Any] = {
     "schema_version": 1,
     "knowledge_sync": {"enabled": False},
-    "ci": {"required_check_name": "moondex-verify"},
+    "ci": {"required_check_name": "moondex-verify", "integration_base_ref": "refs/heads/main"},
     "security": {"secret_scan": True, "protected_paths": []},
 }
 
@@ -84,6 +84,9 @@ def _validate_ci(value: dict[str, Any], source: str) -> None:
     name = value.get("required_check_name")
     if not isinstance(name, str) or not name.strip():
         raise ConfigError(f"{source}.ci.required_check_name must be a non-empty string.")
+    base_ref = value.get("integration_base_ref")
+    if not isinstance(base_ref, str) or not base_ref.startswith("refs/heads/") or len(base_ref) <= len("refs/heads/"):
+        raise ConfigError(f"{source}.ci.integration_base_ref must be a non-empty refs/heads/* ref.")
 
 
 def _validate_security(value: dict[str, Any], source: str) -> None:
@@ -92,4 +95,3 @@ def _validate_security(value: dict[str, Any], source: str) -> None:
     paths = value.get("protected_paths")
     if not isinstance(paths, list) or not all(isinstance(item, str) for item in paths):
         raise ConfigError(f"{source}.security.protected_paths must be a list of strings.")
-

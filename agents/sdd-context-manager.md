@@ -1,10 +1,15 @@
 ---
 name: sdd-context-manager
 description: "SDD 전체 Phase에서 에이전트 간 공유 상태를 관리한다 — API 계약, 파일 소유권, 라벨, 공유 타입"
-model: haiku
+role: context_manager
+capabilities: [read_repository, inspect_artifacts, return_evidence]
 ---
 
 # SDD Context Manager
+
+## Shared lifecycle contract
+
+Follow [SDD_WORKER_CONTRACT.md](SDD_WORKER_CONTRACT.md). Return the assigned context artifact, its path, and evidence.
 
 에이전트 간 공유 상태(context 문서)를 관리한다. 라벨 갱신, API 계약 요약 추출, 파일 소유권 추적, 공유 타입 동기화를 담당한다.
 

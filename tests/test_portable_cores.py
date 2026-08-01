@@ -8,7 +8,9 @@ from harness_core.pr import normalize_comments, transition
 def test_learning_cursor_and_tier_safety() -> None:
     assert process([{"a": 1}, {"b": 2}], 1)["next_cursor"] == 2
     assert route_change(["harness_core/state/pipeline.py"], train_improved=True)["action"] == "PROPOSAL"
-    assert route_change(["app.py"], train_improved=True)["action"] == "APPLY"
+    # Without a trusted repository root, compatibility routing cannot prove
+    # canonical containment or the current protected-root policy.
+    assert route_change(["app.py"], train_improved=True)["action"] == "PROPOSAL"
     assert knowledge_sync_outcome({})["status"] == "SKIPPED"
 
 

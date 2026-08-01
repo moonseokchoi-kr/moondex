@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "input_identity": "local-fixture-001",
+  "complete": true,
+  "comments": [
+    {
+      "schema_version": 1,
+      "source": "inline",
+      "source_identity": "local/inline/17",
+      "comment_id": 17,
+      "revision_identity": "r1",
+      "body_hash": "814d88723d429148bff1fb65ab7faf5bbb640cb0f5f9bd9d312b6972125b8a2c",
+      "author": "reviewer",
+      "body": "Add the missing boundary assertion.",
+      "created_at": "2026-07-19T10:00:00Z",
+      "path": "harness_core/pr/__init__.py",
+      "line": 12
+    }
+  ]
+}

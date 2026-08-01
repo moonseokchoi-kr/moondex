@@ -275,7 +275,7 @@ exit 0
         "matcher": "Edit",
         "hooks": [{
           "type": "command",
-          "command": "\"$CODEX_PROJECT_DIR\"/.agents/hooks/harness/check-claude-md-size.sh"
+          "command": "\"$CODEX_PROJECT_DIR\"/.agents/hooks/harness/check-agents-md-size.sh"
         }]
       },
       {

@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "feature": "codex-harness-parity",
+  "environment": {
+    "network_required": false,
+    "host_variables_unset": [
+      "HARNESS_HOOKS",
+      "CODEX_PLUGIN_ROOT",
+      "CLAUDE_PLUGIN_ROOT",
+      "PYTHONPATH",
+      "CODEX_SESSION_ID"
+    ],
+    "fixture": "tests/fixtures/e2e_sample_project",
+    "rendered_ui_boundary": {
+      "browser": "Chrome/148.0.7778.179",
+      "transport": "bounded loopback Chrome DevTools Protocol via Python stdlib RFC6455",
+      "observations": [
+        "initial innerText Ready",
+        "initial computed-visible true with nonzero layout rectangle",
+        "initial aria-pressed false",
+        "actual coordinate mouse move/press/release",
+        "post-click innerText Complete",
+        "post-click computed-visible true with nonzero layout rectangle",
+        "post-click aria-pressed true"
+      ],
+      "not_claimed": "pixel or screenshot parity"
+    }
+  },
+  "validation_runs": {
+    "environment_unset_e2e": {
+      "command": "env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT -u PYTHONPATH -u CODEX_SESSION_ID python3 -m pytest tests/e2e -q",
+      "passed": 10
+    },
+    "clean_environment_full_suite": {
+      "command": "env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT -u PYTHONPATH -u CODEX_SESSION_ID -u GITHUB_TOKEN -u GH_TOKEN -u OPENAI_API_KEY -u ANTHROPIC_API_KEY python3 -m pytest tests -q",
+      "passed": 270
+    },
+    "exact_criterion_nodes": {
+      "F1": 37,
+      "F2": 3,
+      "F3": 12,
+      "F4": 1,
+      "F5": 8,
+      "F6": 5,
+      "F7": 1,
+      "F8": 2,
+      "F9": 14,
+      "F10": 4
+    }
+  },
+  "criteria": {
+    "F1": {
+      "outcome": "PASS",
+      "evidence": "Manifest skills, active surface, recursive runtime closure, and host-neutral public instructions are executable and classified.",
+      "commands": [
+        "python3 -m pytest tests/test_portability_policy.py tests/test_agent_profiles.py -q"
+      ]
+    },
+    "F2": {
+      "outcome": "PASS",
+      "evidence": "An opaque installed runtime completes separate start/status/resume/doctor turns and SPEC to RESULT using only consumer-local state. Lower-level controller cases separately prove arbitrary hook/plugin environment parity and non-destructive corruption, lock, and ambiguity handling.",
+      "commands": [
+        "env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT -u PYTHONPATH python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_clean_environment_controller_plan_to_result_and_recorded_outcomes -q",
+        "python3 -m pytest tests/state/test_pipeline.py::test_clean_environment_has_identical_controller_decisions tests/state/test_pipeline.py::test_corruption_busy_and_ambiguous_are_non_destructive -q"
+      ]
+    },
+    "F3": {
+      "outcome": "PASS",
+      "evidence": "A real consumer-owned loopback Chrome CDP test imports the same ECMAScript-valid Panel.tsx, observes computed-visible Ready/false, dispatches a coordinate click to the actual button, and observes computed-visible Complete/true; shared explicit verify passes on the same changed file before RESULT. A no-op handler with old expected literals/test-id retained in comments still fails behaviorally and blocks RESULT. Browser unavailable, consumer behavior failure, shared-gate failure, default-branch, missing-E2E, and secret failures are non-skipping failures. This is rendered DOM/computed visibility/click evidence, not pixel or screenshot parity. Lower-level cases cover explicit/worktree/hook parity, assignment/JSON/Bearer forms, and expired or malformed allowlists.",
+      "commands": [
+        "python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_clean_environment_controller_plan_to_result_and_recorded_outcomes tests/e2e/test_codex_harness_acceptance.py::test_lifecycle_blocks_result_when_executable_acceptance_gate_fails tests/e2e/test_codex_harness_acceptance.py::test_consumer_runner_browser_unavailable_fails_loudly tests/e2e/test_codex_harness_acceptance.py::test_intentional_local_gate_failures_block_before_completion -q",
+        "python3 -m pytest tests/enforcement/test_core.py::test_worktree_and_explicit_have_same_canonical_paths tests/enforcement/test_core.py::test_secret_forms_fail_without_leaking_literal tests/enforcement/test_core.py::test_expired_or_malformed_allowlist_fails_closed -q"
+      ]
+    },
+    "F4": {
+      "outcome": "PASS",
+      "evidence": "A schema-valid test-owned sole-writer simulation validates worker envelopes and appends engineer/compliance/review/test, retry, escalation-open, and explicit USER resolution events. It is not claimed as a production orchestrator API. Its incomplete task table makes the production controller block RESULT; resolved stages plus executable gate PASS evidence permit RESULT.",
+      "commands": [
+        "python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_clean_environment_controller_plan_to_result_and_recorded_outcomes -q"
+      ]
+    },
+    "F5": {
+      "outcome": "PASS",
+      "evidence": "One E2E collection produces SAFE_FIX, justified REJECTED, and ESCALATED dispositions; unresolved escalation or a failed local command prevents convergence, while exact user resolution plus build/lint/test success converges. Lower-level cases prove strict malformed-input rejection, edited/reopened revision redisposition, and audit lock/I/O failure closure.",
+      "commands": [
+        "python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_pr_dispositions_convergence_and_raw_audit_redaction_boundary -q",
+        "python3 -m pytest tests/pr/test_local_review.py::test_strict_json_rejects_permissive_forms tests/pr/test_local_review.py::test_snapshot_lifecycle_redisposes_edited_or_reopened_comment tests/pr/test_local_review.py::test_atomic_audit_lock_failure_fails_closed tests/pr/test_local_review.py::test_audit_io_failure_fails_closed -q"
+      ]
+    },
+    "F6": {
+      "outcome": "PASS",
+      "evidence": "The same explicit learning policy returns APPLY for a canonical project file and proposal-only for a protected harness file without automatic mutation. Lower-level cases separately cover traversal, absolute/NUL input, out-of-root symlink alias, and broken-link containment.",
+      "commands": [
+        "python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_learning_tiers_mapper_and_offline_evidence_remain_separate -q",
+        "python3 -m pytest tests/learning/test_learning_safety.py::test_invalid_targets_are_blocked_without_an_automatic_edit tests/learning/test_learning_safety.py::test_symlink_alias_and_broken_link_do_not_apply -q"
+      ]
+    },
+    "F7": {
+      "outcome": "PASS",
+      "evidence": "The installed adapter distinguishes unavailable, not-initialized, and healthy graph states; fallback is explicitly approximate and does not claim call relationships.",
+      "commands": [
+        "python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_learning_tiers_mapper_and_offline_evidence_remain_separate -q"
+      ]
+    },
+    "F8": {
+      "outcome": "PASS",
+      "evidence": "Trusted-local audit retains raw review evidence only below .harness/audit, while CLI/report and this result evidence are redacted; unconfigured knowledge sync is SKIPPED and no external destination is written.",
+      "commands": [
+        "python3 -m pytest tests/e2e/test_codex_harness_acceptance.py::test_pr_dispositions_convergence_and_raw_audit_redaction_boundary tests/e2e/test_codex_harness_acceptance.py::test_learning_tiers_mapper_and_offline_evidence_remain_separate -q"
+      ]
+    },
+    "F9": {
+      "outcome": "PASS",
+      "evidence": "The deterministic offline train and held-out fixture runner is collected by pytest; live eval remains an explicit non-pytest command.",
+      "commands": [
+        "python3 -m pytest tests/benchmarks -q"
+      ]
+    },
+    "F10": {
+      "outcome": "PASS",
+      "evidence": "Active role profiles share host-neutral result/ownership contracts. The test-owned sole-writer simulation validates those envelope fields and creates authoritative fixture events; production controller transition authority is verified separately and is not attributed to the simulator.",
+      "commands": [
+        "python3 -m pytest tests/test_agent_profiles.py::test_active_profile_universe_is_host_neutral_and_contract_bound tests/test_agent_profiles.py::test_active_profiles_have_host_neutral_frontmatter_and_execution_contracts tests/test_agent_profiles.py::test_each_controller_transition_has_one_phase_scoped_authority_owner tests/e2e/test_codex_harness_acceptance.py::test_clean_environment_controller_plan_to_result_and_recorded_outcomes -q"
+      ]
+    }
+  },
+  "limitations": [
+    {
+      "scope": "optional external CI/provider extension",
+      "status": "NOT_EXECUTED",
+      "completion_impact": "none",
+      "reason": "Hosted CI required checks, remote head identity, provider posting, export, and sharing are outside the trusted-local baseline and require explicit external configuration."
+    }
+  ]
+}

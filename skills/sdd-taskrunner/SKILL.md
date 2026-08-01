@@ -6,7 +6,10 @@ user-invocable: false
 
 # SDD Task Runner (참고 문서)
 
-**이 스킬은 실행 로직이 아니라 "참고 문서"다.** sdd-taskmaster 에이전트가 작업 시작 시 `Skill(sdd-taskrunner)`로 호출하여 아래 기준을 로드한다. 사용자나 sdd 리드가 직접 호출하지 않는다.
+**이 스킬은 실행 로직이 아니라 package-relative 참고 capability다.**
+sdd-taskmaster는 task 계획을 만들 때 현재 설치된 이 스킬 패키지의 `SKILL.md`와
+아래 template을 읽어 기준을 로드한다. 특정 host의 skill 호출 문법을 요구하지 않으며,
+사용자나 SDD coordinator가 별도 실행 단계로 호출하지 않는다.
 
 ## 복잡도 → Steps 수 매핑
 
@@ -78,4 +81,6 @@ user-invocable: false
 - 완료 조건을 구체적으로 작성한다 — 테스트 시나리오는 test-automator가 직접 도출 (정상/경계/에러 케이스 포함)
 - Steps는 각각 독립적으로 검증 가능해야 함
 - 변경 예상 파일은 프로젝트 구조를 분석하여 구체적 경로로 작성
-- 템플릿: `~/.agents/skills/sdd-taskrunner/assets/templates/task-document.md`
+- 템플릿: 이 스킬 패키지 디렉터리를 기준으로
+  `assets/templates/task-document.md`를 해석한다. 개인 홈이나 전역 설치 경로를
+  조합하지 않는다.

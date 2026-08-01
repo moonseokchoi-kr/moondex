@@ -1,29 +1,32 @@
-# T-2: Implement State Transitions and Phase Preflight
+# T-2: Rebuild the Host-Independent SDD State Controller
 
 ## Related documents
 
-- Spec: `docs/sdd/spec/2026-07-14-codex-harness-parity.md` (F2, F3, F4)
-- Architecture: `docs/sdd/design/arch/2026-07-14-codex-harness-parity.md` (state and E0-E3 enforcement)
+- Spec: `docs/sdd/spec/2026-07-14-codex-harness-parity.md` (F2, F4, F8)
+- Architecture: `docs/sdd/design/arch/2026-07-14-codex-harness-parity.md` (execution control, state and authority, validation design)
 
 ## Implementer / test type
 
 - Implementer profile: Python engineer
-- Test type: unit and integration fixtures
-- Complexity: 8/10 (high)
+- Test type: offline unit and clean-process integration fixtures
+- Complexity: 10/10 (high)
 
 ## Owned paths
 
 - `harness_core/state/`
+- `harness_core/cli.py` (state command registration and rendering only)
 - `tests/state/`
 - `tests/fixtures/state/`
 
 ## Completion conditions
 
-- [ ] `pipeline.json` schema, phase order, approval rules, retry limits, and resume data are represented by deterministic code.
-- [ ] Invalid phase jumps, missing artifacts, missing approvals, and retry-limit breaches fail with a reason and remediation.
-- [ ] Preflight checks distinguish documentation state from runtime state and never require an unsupported lifecycle event.
-- [ ] Only the orchestrator-facing transition API may mutate normalized state.
-- [ ] Fixtures prove that an interrupted run can identify the next valid action from files alone.
+- [ ] `python3 -m harness_core state start|status|resume|transition|doctor` is a stdlib-only, host-independent controller interface; its behavior does not depend on `HARNESS_HOOKS`, `CODEX_PLUGIN_ROOT`, a session ID, or a lifecycle hook.
+- [ ] `state start <feature>` atomically creates a new normalized `.harness/state/pipeline.json` only when no active state for that feature exists. It never overwrites an existing active state or guesses a replacement state.
+- [ ] `status` and `resume` are read-only: from state plus required SDD artifacts they return one deterministic `ACTION`, `WAITING_USER`, `BLOCKED_*`, `STATE_*`, `COMPLETE`, or `ADVISORY_UNAVAILABLE` result and a manually executable next step without changing state.
+- [ ] Only the orchestrator-facing `transition` API can advance phase, approval, retry, worktree, or task status. It validates expected prior state, adjacent transition rules, required artifacts, explicit approvals, and retry/circuit-breaker limits under an exclusive lock.
+- [ ] State creation and transition use atomic replace, fsync, and rollback-safe error handling. Lock contention/loss preserves the prior state and returns `STATE_BUSY`; malformed or document-inconsistent state returns `STATE_INVALID`; more than one active feature without an explicit target returns `AMBIGUOUS_FEATURE`.
+- [ ] `doctor` reports missing, unusable, or legacy hooks only as `ADVISORY_UNAVAILABLE`, including the current state and a manual start/resume/verification command. Hook absence never makes start, status, resume, or transition fail.
+- [ ] Tests prove idempotent start/resume, read-only status/resume, approval and artifact gates, lock contention, corruption, stale/interrupted state, retry escalation, and identical controller decisions in clean environments with `HARNESS_HOOKS`/`CODEX_PLUGIN_ROOT` unset or arbitrary.
 
 ## Dependencies
 
@@ -31,21 +34,23 @@
 
 ## Expected changed files
 
-- `harness_core/state/`, `tests/state/`, `tests/fixtures/state/`
+- `harness_core/state/`, state CLI registration, state tests, and state fixtures only
 
 ## Steps
 
-- [ ] Define schemas and pure transition functions for planning, execution, completion, and escalation.
-- [ ] Implement artifact, approval, worktree, ownership, and retry preflight checks as explicit commands/APIs.
-- [ ] Make state writes atomic and preserve actionable failure information.
-- [ ] Build resume fixtures covering incomplete documents, approval denial, and interrupted task execution.
-- [ ] Add tests for each rejected transition and each allowed adjacent transition.
-- [ ] Run state tests without network or LLM access.
+- [ ] Replace the prior preflight-centric state contract with versioned normalized state and explicit result/action schemas.
+- [ ] Implement atomic new-state creation and idempotent active-feature detection without reading host hook variables.
+- [ ] Implement read-only `status`/`resume` artifact inspection and deterministic next-action/user-gate calculation.
+- [ ] Implement single-writer `transition` with expected-state checks, approvals, artifact gates, retry/circuit-breaker handling, lock discipline, and durable writes.
+- [ ] Implement advisory-only hook discovery in `doctor`; do not source legacy shell helpers or wait for Stop-hook directives.
+- [ ] Add clean-process fixtures for unset/arbitrary host variables, hook absence, existing state, ambiguous features, corruption, interrupted work, locks, approval gates, and retry limits.
+- [ ] Run the offline state suite and CLI smoke commands.
 
 ## Validation commands
 
 ```bash
-python3 -m pytest tests/state -q
-python3 -m harness_core preflight phase --help
+env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT python3 -m pytest tests/state -q
+env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT python3 -m harness_core state start --help
+env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT python3 -m harness_core state resume --help
+env -u HARNESS_HOOKS -u CODEX_PLUGIN_ROOT python3 -m harness_core state doctor --help
 ```
-
