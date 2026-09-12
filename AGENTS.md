@@ -25,7 +25,7 @@ orchestrator may inject into collaborators; their presence does not register or 
 - Keep execution state under `.moondex/` and durable revisions/results under `docs/execution/`.
 - Script owns shared state, scheduling and verification. Current AI performs assigned implementation and judgment.
 - Required verification has no total-time/token cutoff. Two failed automatic repairs require a recorded decision.
-- Retired SDD instructions are routing notices only; do not invoke the historical controller as a product mode.
+- Retired SDD assets live under `legacy/`, outside skill discovery and the installed runtime closure. Do not use them as a product workflow.
 - Keep raw reproduction evidence below `.harness/audit/`; render redacted CLI, report, result,
   sync, and export surfaces.
 - Knowledge sync is opt-in through project-local configuration. Never infer a destination.
@@ -56,7 +56,7 @@ bash -n hooks/*.sh hooks/enforcement/*.sh hooks/enforcement/lib/*.sh
 python3 -m py_compile hooks/enforcement/stop-pipeline.py
 ```
 
-The versioned `skills/sdd/runtime/runtime-inventory.json` must remain aligned with the recursive
+The versioned `runtime/runtime-inventory.json` must remain aligned with the recursive
 installed-runtime dependency closure. There is no public regeneration command to infer; update
 the inventory in the same development change and let the tests verify its paths, sizes, and
 hashes.

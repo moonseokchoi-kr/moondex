@@ -30,7 +30,7 @@ def _installed_plugin(tmp_path: Path) -> tuple[Path, Path, Path]:
         target = installation / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-    runtime = installation / "skills/sdd/runtime/moondex-runtime.py"
+    runtime = installation / "runtime/moondex-runtime.py"
     return installation, consumer, runtime
 
 

@@ -149,7 +149,8 @@ $moondex:harness audit
 `status`는 읽기 전용입니다. `resume`은 승인된 실행을 복구하고 진행할 수 있습니다.
 AI는 결과를 제출하고 advance를 호출하며 공유 상태를 직접 수정하지 않습니다.
 총시간·토큰 제한은 없고, 확인된 실패의 자동 복구는 최대 2회입니다.
-구형 SDD phase 실행은 퇴역했으며 이전 문서·기록은 보존합니다.
+구형 SDD 스킬은 공개 목록에서 제거했고, 역사 자료와 회귀 검증용 파일은 `legacy/`에 보존합니다.
+공용 런처는 `runtime/`에 있으며 설치 실행 경로는 legacy 파일을 필요로 하지 않습니다.
 
 ## 로컬 데이터와 선택 기능
 
@@ -171,7 +172,9 @@ AI는 결과를 제출하고 advance를 호출하며 공유 상태를 직접 수
 | `$moondex:self-improve` | 검증된 로컬 학습 후보 처리 |
 | `$moondex:code-mapper` | 코드 영향 탐색과 명시적 fallback |
 | `$moondex:harness audit` | 프로젝트 하네스 점검 |
-| `$moondex:handoff` | 세션 컨텍스트 보존 |
+| `$moondex:handoff` | 실행 상태를 조회해 재개 문맥 보존 |
+| `$moondex:git-worktree` | 요청한 기준 commit으로 작업공간 격리 |
+| `$moondex:adversarial-review` | 반복 실패 원인과 대안 분석 |
 
 ## 플러그인 개발자 전용
 
@@ -179,18 +182,17 @@ AI는 결과를 제출하고 advance를 호출하며 공유 상태를 직접 수
 자체를 개발할 때만 checkout 루트에서 실행합니다.
 
 ```bash
-python3 -m harness_core state --project-root . status <feature>
 python3 -m harness_core preflight --help
 python3 scripts/verify.py --help
 python3 scripts/pr_converge_adapter.py --help
-python3 skills/sdd-orchestrator/scripts/result-action.py --help
+python3 runtime/moondex-runtime.py execute --help
 python3 scripts/run-benchmarks.py --help
 # Optional and mutating: installs wrappers in this checkout's .git/hooks/
 bash scripts/install-hooks.sh
 python3 -m pytest tests -q
 ```
 
-`skills/sdd/runtime/runtime-inventory.json`은 설치 런타임의 manifest, 크기, SHA-256,
+`runtime/runtime-inventory.json`은 설치 런타임의 manifest, 크기, SHA-256,
 파일 종류를 고정합니다. 런타임 의존 파일을 변경했다면 별도의 공개 재생성 명령을
 추정하지 말고, 같은 변경에서 인벤토리를 갱신한 뒤 전체 테스트와 plugin validator를
 실행하세요. `tests/test_agent_profiles.py`가 인벤토리와 재귀 로컬 의존성 폐쇄의

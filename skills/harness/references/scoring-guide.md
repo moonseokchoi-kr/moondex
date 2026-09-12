@@ -57,7 +57,7 @@ AGENTS.md 또는 AGENTS.md가 프로젝트 이해의 명확한 시작점인가?
 | 3 | 기본 도구 있으나 CI에서 선택적 |
 | 5 | CI 필수이나 아키텍처 규칙은 수동 리뷰 |
 | 8 | 핵심 invariant 도구 강제 + 명확 메시지 |
-| 10 | 모든 규칙 자동화 + hook + 수정 가이드 포함 에러 메시지 |
+| 10 | 관련 규칙의 실행 검증 + 수정 가이드 포함 에러 메시지 |
 
 ## P4. Convention Over Configuration (관례 우선)
 
@@ -187,3 +187,5 @@ audit 리포트의 개선 항목은 이 순서로 정렬한다:
 | 10 | P2 Map, Not Manual | 탐색 효율 |
 | 11 | P5 Progressive Disclosure | 정보 과부하 방지 |
 | 12 | P7 Garbage Collection | 거짓 신호 제거 |
+
+점수는 선택적 진단 도구다. Hook 부재 자체는 결함이 아니며 실행 증거가 완료 판정을 결정한다.

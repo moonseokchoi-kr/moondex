@@ -9,8 +9,7 @@ Agree on observable outcomes, scope and acceptance criteria before implementatio
 Preparation can be a conversation or any useful documents; do not impose phase documents.
 Read [the execution contract](references/execution-contract.md) when preparing or revising a bundle.
 
-Resolve `<moondex-runtime>` to `../sdd/runtime/moondex-runtime.py` relative to this loaded skill.
-The directory name is a retained common launcher location, not an SDD execution mode.
+Resolve `<moondex-runtime>` to `../../runtime/moondex-runtime.py` relative to this loaded skill.
 Never require a consumer checkout cwd or PYTHONPATH.
 
 ```bash

@@ -22,6 +22,8 @@
     "harness_core/state/__init__.py",
     "harness_core/state/pipeline.py",
     "harness_core/state/storage.py",
+    "runtime/moondex-runtime.py",
+    "runtime/runtime-inventory.json",
     "scripts/adapter_render.py",
     "scripts/code_mapper_adapter.py",
     "scripts/pr_converge_adapter.py",
@@ -29,8 +31,6 @@
     "scripts/verify.py",
     "skills/adversarial-review/SKILL.md",
     "skills/code-mapper/SKILL.md",
-    "skills/design-md/SKILL.md",
-    "skills/enhance-prompt/SKILL.md",
     "skills/execute/SKILL.md",
     "skills/execute/references/execution-contract.md",
     "skills/git-worktree/SKILL.md",
@@ -42,25 +42,12 @@
     "skills/harness/references/security-baseline.md",
     "skills/idea-workshop/SKILL.md",
     "skills/pr-converge/SKILL.md",
-    "skills/sdd-orchestrator/SKILL.md",
-    "skills/sdd-orchestrator/references/agent-dispatch-guide.md",
-    "skills/sdd-orchestrator/references/state-schema.md",
-    "skills/sdd-orchestrator/scripts/on-rate-limit.sh",
-    "skills/sdd-orchestrator/scripts/result-action.py",
-    "skills/sdd-taskrunner/SKILL.md",
-    "skills/sdd-taskrunner/assets/templates/task-document.md",
-    "skills/sdd/SKILL.md",
-    "skills/sdd/runtime/moondex-runtime.py",
-    "skills/sdd/runtime/runtime-inventory.json",
     "skills/self-improve/SKILL.md"
   ],
   "excluded": {
-    "skills/harness/references/host-configs.md": "unlinked compatibility notes; not executable guidance",
-    "skills/sdd-taskrunner/assets/prompts/analyze.md": "unlinked compatibility prompt; taskrunner consumes the package-relative template instead",
-    "skills/sdd-taskrunner/assets/prompts/expand.md": "unlinked compatibility prompt; taskrunner consumes the package-relative template instead",
-    "skills/sdd-taskrunner/assets/prompts/scenario.md": "unlinked compatibility prompt; taskrunner consumes the package-relative template instead",
     "archive/": "non-executable history; each archived document carries MOONDEX_ARCHIVED_NON_EXECUTABLE",
     "README.md#Porting notes": "external Claude Design product-name exception only",
-    "AGENTS.md#Porting Notes": "external Claude Design product-name exception only"
+    "AGENTS.md#Porting Notes": "external Claude Design product-name exception only",
+    "legacy/": "Retired skill instructions and regression helpers; not public entrypoints or runtime dependencies"
   }
 }

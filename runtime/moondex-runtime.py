@@ -17,14 +17,13 @@ import unicodedata
 
 RUNTIME_PROTOCOL = 1
 RUNTIME_FILE = Path(__file__).resolve()
-PLUGIN_ROOT = RUNTIME_FILE.parents[3]
+PLUGIN_ROOT = RUNTIME_FILE.parents[1]
 INVENTORY_FILE = RUNTIME_FILE.with_name("runtime-inventory.json")
 ENTRY_POINTS = {
     "verify": "scripts/verify.py",
     "code-mapper": "scripts/code_mapper_adapter.py",
     "pr-converge": "scripts/pr_converge_adapter.py",
     "self-improve": "scripts/self_improve_adapter.py",
-    "result-action": "skills/sdd-orchestrator/scripts/result-action.py",
 }
 USAGE = f"""usage: moondex-runtime <command> [arguments]
 
@@ -228,7 +227,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if command in {"state", "result-action"} or (command == "preflight" and command_arguments[:1] == ["phase"]):
             print(json.dumps({"code": "LEGACY_WORKFLOW_RETIRED", "next": "$moondex:execute", "message": "Historical records are preserved; they are not execution approval or evidence."}))
             return 2
-        if command in {"state", "preflight", "doctor"}:
+        if command in {"preflight", "doctor"}:
             from harness_core.cli import main as controller_main
 
             return controller_main([command, *command_arguments])

@@ -17,10 +17,10 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SDD_SKILL = ROOT / "skills/sdd/SKILL.md"
-EXECUTION_SKILL = ROOT / "skills/sdd-orchestrator/SKILL.md"
-RESULT_ACTION = ROOT / "skills/sdd-orchestrator/scripts/result-action.py"
-MOONDEX_RUNTIME = ROOT / "skills/sdd/runtime/moondex-runtime.py"
+SDD_SKILL = ROOT / "legacy/sdd/SKILL.md"
+EXECUTION_SKILL = ROOT / "legacy/sdd-orchestrator/SKILL.md"
+RESULT_ACTION = ROOT / "legacy/sdd-orchestrator/scripts/result-action.py"
+MOONDEX_RUNTIME = ROOT / "runtime/moondex-runtime.py"
 FIXTURES = ROOT / "tests/fixtures/sdd_resume"
 AUTHORITY_COMMAND = re.compile(
     r'<!-- authority-transition (?P<expected>[A-Z]+)->(?P<target>[A-Z]+) '

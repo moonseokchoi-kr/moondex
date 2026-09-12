@@ -10,7 +10,7 @@ Run this workflow only when explicitly requested. It never runs automatically at
 From the target repository, supply an append-only JSON array of learning entries and a JSON array of proposed changed paths:
 
 Resolve `<moondex-runtime>` to the absolute
-`../sdd/runtime/moondex-runtime.py` path from this loaded skill directory, never
+`../../runtime/moondex-runtime.py` path from this loaded skill directory, never
 from the consumer cwd or a user-supplied installation path.
 
 ```sh

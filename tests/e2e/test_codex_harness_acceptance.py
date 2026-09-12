@@ -40,7 +40,7 @@ def _opaque_runtime(tmp_path: Path) -> tuple[Path, Path]:
         target = installation / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-    return installation, installation / "skills/sdd/runtime/moondex-runtime.py"
+    return installation, installation / "runtime/moondex-runtime.py"
 
 
 def _snapshot(root: Path) -> dict[str, tuple[str, int, bytes | str]]:

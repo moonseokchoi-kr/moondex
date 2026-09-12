@@ -128,6 +128,12 @@
       "sha256": "a522d7af2b79beba27b2f39de77b167de2b96f37d66fbf18db360f47170e9654"
     },
     {
+      "path": "runtime/moondex-runtime.py",
+      "kind": "regular",
+      "size": 9949,
+      "sha256": "e9913a54d337b0426ee92bc89938dc882831583e7ba1a6a673e0327ba09715b8"
+    },
+    {
       "path": "scripts/adapter_render.py",
       "kind": "regular",
       "size": 4913,
@@ -156,18 +162,6 @@
       "kind": "regular",
       "size": 4153,
       "sha256": "7d1eba0d5693f96e9362dfc7e3d30ac2ed17fc09f00bd16e5cf25922ffca58ce"
-    },
-    {
-      "path": "skills/sdd-orchestrator/scripts/result-action.py",
-      "kind": "regular",
-      "size": 32654,
-      "sha256": "05ec9ce1f16b1318e3085911e5e036efb461df330a5131e7decad019a370df78"
-    },
-    {
-      "path": "skills/sdd/runtime/moondex-runtime.py",
-      "kind": "regular",
-      "size": 10031,
-      "sha256": "b7f4d1ea1b83f0da1cb40e822e1cebbb8f161599453f37c953cbfd5dfce24df0"
     }
   ]
 }

@@ -1,58 +1,25 @@
 ---
 name: git-worktree
-description: "Use when starting isolated feature work that should not affect the current working directory — creates a git worktree with a dedicated branch"
-argument-hint: "[feature-name]"
-context: fork
+description: Create an isolated Git worktree for requested feature work while preserving existing changes and the selected base revision.
 ---
 
-# Git Worktree 생성
+# Git Worktree
 
-feature 브랜치 + worktree를 생성하여 격리된 작업 환경을 만든다.
+격리된 작업공간이 요청되었거나 실제로 필요한 경우에 사용한다. 단계 이름을 이유로 새 worktree를 만들지 않는다.
 
-**인수**: `$ARGUMENTS` — feature 이름 (kebab-case). 예: `money-track-mvp`
+현재 Git 상태, 기존 worktree/브랜치, 요청된 기준 ref와 실제 commit을 먼저 확인한다.
+사용자가 최신 remote 기준을 요청했다면 fetch 후 그 commit을 기록한다.
+기존 경로나 브랜치를 덮어쓰지 않고, 현재 미커밋 파일을 임의로 새 작업공간에 복사하지 않는다.
 
-## 사용 시점
+Orca가 관리하는 작업공간이면 사용 가능한 `orca-cli` 스킬과 설치 CLI 가이드를 확인해 그 관리 경로로 생성한다.
+필요한 기능을 사용할 수 없으면 제약을 보고하고 관리 상태를 raw Git으로 몰래 대체하지 않는다.
+일반 Git 저장소에서는 충돌 없는 경로와 branch를 정한 뒤 다음 형태로 만든다:
 
-- SDD Phase 2 진입 시 (sdd 스킬에서 호출) — Phase 2, 3, 4 모두 이 worktree 안에서 작업
-- 독립적인 기능 작업이 현재 디렉토리에 영향을 주지 않아야 할 때
-
-## 프로세스
-
-1. **브랜치명**: `feat/$ARGUMENTS`
-2. **worktree 경로**: `./worktrees/$ARGUMENTS`
-   - **프로젝트 루트** 아래 `worktrees/` 디렉토리에 생성
-   - `.agents/` 아래에 절대 생성하지 않는다 (설정 디렉토리, 권한 문제)
-   - 이미 존재하면 사용자에게 알림
-3. **생성**:
-   ```bash
-   git worktree add ./worktrees/$ARGUMENTS -b feat/$ARGUMENTS
-   ```
-4. **안전 검증**:
-   - worktree 경로가 `.gitignore`에 포함되어 있는지 확인 (없으면 추가)
-   - 생성된 디렉토리에서 `git status`로 정상 상태 확인
-5. **스냅샷 커밋** (AGENTS.md 규칙):
-   ```bash
-   cd ./worktrees/$ARGUMENTS
-   git add -A
-   git commit -m "snapshot: $ARGUMENTS 작업 시작 전" --allow-empty
-   ```
-
-## 출력
-
-호출자에게 다음 정보를 반환:
-- worktree 절대 경로: `{project-root}/worktrees/$ARGUMENTS`
-- 브랜치명: `feat/$ARGUMENTS`
-- 생성 성공 여부
-
-## 정리
-
-worktree 정리는 이 스킬의 책임이 아니다. 호출자(sdd 스킬)가 완료 후 처리한다:
-```bash
-git worktree remove ./worktrees/$ARGUMENTS
+```sh
+git worktree add -b <new-branch> <new-path> <base-commit>
 ```
 
-## 에러 처리
-
-- 브랜치가 이미 존재: 사용자에게 기존 브랜치 사용 여부 확인
-- 디스크 부족 / 경로 충돌: 에러 메시지와 함께 사용자에게 알림
-- 생성 실패: 원인 로그 출력 후 수동 생성 가이드 제공
+저장소 안에 만들 경우 해당 경로의 ignore 여부를 먼저 확인한다. 생성 후 작업 경로·브랜치·HEAD를
+조회해 선택한 base와 일치하는지 검증하고 사용자에게 보고한다.
+자동 snapshot commit, 다른 작업공간의 정리, merge/push는 생성 작업에 포함되지 않는다.
+작업공간 제거가 요청되면 미커밋 변경과 실행 중인 소유 작업이 없는지 먼저 확인한다.

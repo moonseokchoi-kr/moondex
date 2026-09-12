@@ -1,4 +1,4 @@
-"""Policy checks for controller-first active SDD instructions."""
+"""Active package integrity plus explicitly retained legacy contract regressions."""
 
 import ast
 import hashlib
@@ -28,8 +28,6 @@ ACTIVE_REACHABLE_FILES = [
 ]
 ACTIVE = [
     ROOT / "skills/execute/SKILL.md",
-    ROOT / "skills/sdd/SKILL.md",
-    ROOT / "skills/sdd-orchestrator/SKILL.md",
 ]
 PROFILE_MANIFEST = json.loads(
     (ROOT / "agents/PROFILE_MANIFEST.json").read_text(encoding="utf-8")
@@ -153,11 +151,11 @@ ARCHIVED_PROFILE_FILES = [
 ACTIVE_SDD_SOURCE_EXTENSIONS = {".md", ".py", ".sh", ".json", ".txt", ".toml", ".yaml", ".yml"}
 
 
-def active_sdd_package_files() -> list[Path]:
+def legacy_sdd_package_files() -> list[Path]:
     """Inventory executable/text policy surfaces, never runtime bytecode artifacts."""
     return sorted(
         path
-        for package in (ROOT / "skills/sdd", ROOT / "skills/sdd-orchestrator")
+        for package in (ROOT / "legacy/sdd", ROOT / "legacy/sdd-orchestrator")
         for path in package.rglob("*")
         if path.is_file()
         and "__pycache__" not in path.parts
@@ -165,10 +163,10 @@ def active_sdd_package_files() -> list[Path]:
     )
 
 
-ACTIVE_SDD_PACKAGE_FILES = active_sdd_package_files()
-ACTIVE_SDD_REFERENCE_FILES = sorted(
+LEGACY_SDD_PACKAGE_FILES = legacy_sdd_package_files()
+LEGACY_SDD_REFERENCE_FILES = sorted(
     path
-    for path in ACTIVE_SDD_PACKAGE_FILES
+    for path in LEGACY_SDD_PACKAGE_FILES
     if "references" in path.relative_to(ROOT).parts
 )
 ARCHIVED_SDD_ROOT = ROOT / "archive/sdd"
@@ -231,7 +229,7 @@ def test_active_sdd_paths_are_host_neutral_and_explicit() -> None:
     )
     combined = "\n".join(path.read_text(encoding="utf-8") for path in ACTIVE)
     assert "python3 <moondex-runtime> execute" in combined
-    assert "../sdd/runtime/moondex-runtime.py" in combined
+    assert "../../runtime/moondex-runtime.py" in combined
     assert " status" in combined
     assert " resume" in combined
     assert " advance" in combined
@@ -253,15 +251,16 @@ def test_active_python_commands_use_the_package_relative_runtime() -> None:
         assert all(
             line.startswith("python3 <moondex-runtime> ") for line in commands
         ), f"consumer-cwd Python command in {path}: {commands}"
-        assert "../sdd/runtime/moondex-runtime.py" in "\n".join(lines)
+        assert "../../runtime/moondex-runtime.py" in "\n".join(lines)
 
 
-def test_retired_entries_do_not_authorize_phase_transitions() -> None:
+def test_retired_entries_are_not_discovered_or_packaged() -> None:
+    discovered = {p.parent.name for p in ACTIVE_MANIFEST_SKILL_FILES}
+    assert "execute" in discovered
+    assert not discovered & {"sdd", "sdd-orchestrator", "sdd-taskrunner"}
+    assert not any(p.relative_to(ROOT).parts[0] == "legacy" for p in ACTIVE_REACHABLE_FILES)
     for name in ("sdd", "sdd-orchestrator", "sdd-taskrunner"):
-        text = (ROOT / "skills" / name / "SKILL.md").read_text()
-        assert not AUTHORITY_TRANSITION.search(text)
-        assert "$moondex:execute" in text
-    # Actual transition rejection and observed execution are tested via installed CLI E2E.
+        assert (ROOT / "legacy" / name / "SKILL.md").is_file()
 
 
 def test_active_package_scan_ignores_runtime_bytecode_after_normal_invocation(
@@ -271,16 +270,16 @@ def test_active_package_scan_ignores_runtime_bytecode_after_normal_invocation(
     env.pop("PYTHONDONTWRITEBYTECODE", None)
     env["PYTHONPYCACHEPREFIX"] = str(tmp_path / "pycache")
     result = subprocess.run(
-        ["python3", str(ROOT / "skills/sdd/runtime/moondex-runtime.py"), "execute", "--help"],
+        ["python3", str(ROOT / "runtime/moondex-runtime.py"), "execute", "--help"],
         cwd=ROOT, env=env, check=False, text=True, capture_output=True,
     )
     assert result.returncode == 0, result.stderr
-    cache = ROOT / "skills/sdd-orchestrator/scripts/__pycache__"
+    cache = ROOT / "legacy/sdd-orchestrator/scripts/__pycache__"
     artifact = cache / "result-action.runtime-test.pyc"
     cache.mkdir(exist_ok=True)
     artifact.write_bytes(b"\x00runtime-bytecode\xff")
     try:
-        files = active_sdd_package_files()
+        files = legacy_sdd_package_files()
         assert files and artifact not in files
         assert all("__pycache__" not in path.parts and path.suffix != ".pyc" for path in files)
         for path in files:
@@ -449,9 +448,6 @@ def test_active_surface_classifies_every_package_asset_and_reachable_reference()
         "skills/harness/references/security-baseline.md",
         "skills/harness/references/scoring-guide.md",
         "skills/harness/references/harness-principles.md",
-        "skills/sdd-taskrunner/assets/templates/task-document.md",
-        "skills/sdd-orchestrator/scripts/result-action.py",
-        "skills/sdd-orchestrator/scripts/on-rate-limit.sh",
     ):
         assert required in included
 
@@ -467,7 +463,7 @@ def test_active_python_dependency_closure_is_repo_complete_and_classified() -> N
     queue = [
         path for path in ACTIVE_REACHABLE_FILES
         if path.suffix == ".py"
-        and path.relative_to(ROOT).parts[0] in {"skills", "scripts"}
+        and path.relative_to(ROOT).parts[0] in {"skills", "scripts", "runtime"}
     ]
     visited = set()
     discovered = set()
@@ -486,7 +482,7 @@ def test_active_python_dependency_closure_is_repo_complete_and_classified() -> N
                 queue.append(dependency)
 
     adapter = (ROOT / "scripts/adapter_render.py").resolve()
-    result_action = ROOT / "skills/sdd-orchestrator/scripts/result-action.py"
+    result_action = ROOT / "legacy/sdd-orchestrator/scripts/result-action.py"
     assert adapter in discovered
     assert adapter in {
         dependency.resolve()
@@ -515,12 +511,11 @@ def test_active_python_dependency_closure_is_repo_complete_and_classified() -> N
 def test_runtime_inventory_exactly_binds_recursive_local_dependency_closure() -> None:
     """The install contract is the manifest plus all runtime-reachable local code."""
     seeds = [
-        ROOT / "skills/sdd/runtime/moondex-runtime.py",
+        ROOT / "runtime/moondex-runtime.py",
         ROOT / "scripts/verify.py",
         ROOT / "scripts/code_mapper_adapter.py",
         ROOT / "scripts/pr_converge_adapter.py",
         ROOT / "scripts/self_improve_adapter.py",
-        ROOT / "skills/sdd-orchestrator/scripts/result-action.py",
     ]
     queue = list(seeds)
     closure = set()
@@ -537,7 +532,7 @@ def test_runtime_inventory_exactly_binds_recursive_local_dependency_closure() ->
     expected = {
         path.relative_to(ROOT).as_posix() for path in closure
     } | {".codex-plugin/plugin.json"}
-    inventory_path = ROOT / "skills/sdd/runtime/runtime-inventory.json"
+    inventory_path = ROOT / "runtime/runtime-inventory.json"
     inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
     entries = inventory["files"]
     paths = [entry["path"] for entry in entries]
@@ -596,30 +591,13 @@ def test_local_module_resolver_detects_sibling_and_ambiguous_modules(tmp_path: P
         _local_module_files(tmp_path, consumer, "local_probe", 0)
 
 
-def test_idea_research_dispatch_preserves_outcomes_without_automatic_team_assumption() -> None:
-    workshop = (ROOT / "skills/idea-workshop/SKILL.md").read_text(encoding="utf-8")
-    expected = {
-        "idea-market-researcher": "docs/research/market-research.md",
-        "idea-user-researcher": "docs/research/user-research.md",
-        "idea-feasibility-checker": "docs/research/feasibility.md",
-        "idea-biz-model-designer": "docs/research/business-model.md",
-    }
-    for role, artifact in expected.items():
-        assert role in workshop and artifact in workshop
-    assert "병렬로 위임할 수 있다" in workshop
-    assert "| 1 | `idea-market-researcher`" in workshop
-    assert "| 1 | `idea-feasibility-checker`" in workshop
-    assert "| 2 | `idea-user-researcher`" in workshop
-    assert "| 3 | `idea-biz-model-designer`" in workshop
-    assert "| 4 | `idea-reviewer`" in workshop
-    assert "market의 경쟁 앱 목록 또는 출처가 명시된 동등한 사전 계산 입력" in workshop
-    assert "user 지불 의향 인용 + market 경쟁 가격 + feasibility 인프라 비용" in workshop
-    assert "`market → feasibility` 또는" in workshop
-    assert "`feasibility → market`" in workshop
-    assert "`user → business → reviewer`" in workshop
-    assert "`NEEDS_CONTEXT`가 반환되면" in workshop
-    assert "팀이나 background 실행이 자동으로 생성된다고 가정하지 않는다" in workshop
-    assert "docs/PRD.md" in workshop and "docs/research/review-log.md" in workshop
+def test_active_skills_resolve_their_shared_runtime_from_the_installation() -> None:
+    for name in ("execute", "code-mapper", "pr-converge", "self-improve", "handoff"):
+        folder = ROOT / "skills" / name
+        text = (folder / "SKILL.md").read_text()
+        match = re.search(r"`([^`]+/moondex-runtime.py)`", text)
+        assert match, name
+        assert (folder / match.group(1)).resolve() == ROOT / "runtime/moondex-runtime.py"
 
 
 def test_user_research_and_taskrunner_have_portable_fallbacks_and_relative_assets() -> None:
@@ -629,16 +607,15 @@ def test_user_research_and_taskrunner_have_portable_fallbacks_and_relative_asset
     assert "`NEEDS_CONTEXT`" in researcher
     assert "특정 브라우저 도구나 서비스가 필수라고 가정하지 않는다" in researcher
 
-    taskrunner_path = ROOT / "skills/sdd-taskrunner/SKILL.md"
+    taskrunner_path = ROOT / "legacy/sdd-taskrunner/SKILL.md"
     taskrunner = taskrunner_path.read_text(encoding="utf-8")
     relative = Path("assets/templates/task-document.md")
     assert (taskrunner_path.parent / relative).is_file()  # Historical asset preserved.
-    assert "../execute/SKILL.md" in taskrunner
-    assert (taskrunner_path.parent / "../execute/SKILL.md").resolve().is_file()
+    assert taskrunner_path not in ACTIVE_MANIFEST_SKILL_FILES
 
 
 def test_active_surfaces_do_not_link_archived_profiles() -> None:
-    active_files = [*ACTIVE_PROFILES, *ACTIVE, *ACTIVE_SDD_PACKAGE_FILES]
+    active_files = [*ACTIVE_PROFILES, *ACTIVE, *LEGACY_SDD_PACKAGE_FILES]
     active_text = "\n".join(path.read_text(encoding="utf-8") for path in active_files)
     linked = []
     for archived in PROFILE_MANIFEST["archived"]:
@@ -753,10 +730,10 @@ def test_stage_profiles_use_coherent_status_and_verdict_envelope() -> None:
     assert "`READY`는 lifecycle status가 아니라" in team
 
     guide = (
-        ROOT / "skills/sdd-orchestrator/references/agent-dispatch-guide.md"
+        ROOT / "legacy/sdd-orchestrator/references/agent-dispatch-guide.md"
     ).read_text(encoding="utf-8")
     schema = (
-        ROOT / "skills/sdd-orchestrator/references/state-schema.md"
+        ROOT / "legacy/sdd-orchestrator/references/state-schema.md"
     ).read_text(encoding="utf-8")
     for verdict in ("COMPLIANCE_PASS", "REVIEW_PASS", "TEST_PASS", "READY"):
         assert verdict in guide
@@ -767,22 +744,22 @@ def test_stage_profiles_use_coherent_status_and_verdict_envelope() -> None:
     assert "RESULT:" not in guide
 
 
-def test_all_active_references_use_controller_phase_and_task_stages_only() -> None:
+def test_legacy_references_preserve_historical_controller_stages() -> None:
     """References may display controller truth but cannot define a second lifecycle."""
-    assert ACTIVE_SDD_REFERENCE_FILES, "active reference discovery must not be empty"
+    assert LEGACY_SDD_REFERENCE_FILES, "active reference discovery must not be empty"
     forbidden = re.compile(
         r"\b(?:PLANNING|EXECUTING|PAUSED_AT_LIMIT|COMPLETED|"
         r"KNOWLEDGE_SYNCING|KNOWLEDGE_SYNCED|resume_at|pending|interrupted|escalated)\b"
     )
     violations = {}
-    for path in ACTIVE_SDD_REFERENCE_FILES:
+    for path in LEGACY_SDD_REFERENCE_FILES:
         matches = sorted(set(forbidden.findall(path.read_text(encoding="utf-8"))))
         if matches:
             violations[path.relative_to(ROOT).as_posix()] = matches
     assert not violations, f"active references define a second lifecycle: {violations}"
 
     schema = (
-        ROOT / "skills/sdd-orchestrator/references/state-schema.md"
+        ROOT / "legacy/sdd-orchestrator/references/state-schema.md"
     ).read_text(encoding="utf-8")
     assert "Controller phase: SPEC | DESIGN | PLAN | EXECUTE | RESULT" in schema
     declared_stages = re.findall(r"^- `([a-z]+)` —", schema, re.MULTILINE)
@@ -797,7 +774,7 @@ def test_all_active_references_use_controller_phase_and_task_stages_only() -> No
     assert "task stage는 첫 디스패치 전이므로 포함하지 않는다" in taskmaster
 
     guide = (
-        ROOT / "skills/sdd-orchestrator/references/agent-dispatch-guide.md"
+        ROOT / "legacy/sdd-orchestrator/references/agent-dispatch-guide.md"
     ).read_text(encoding="utf-8")
     assert "`state status`" in guide and "`state resume`" in guide
     assert "별도 pause phase" in guide
@@ -923,7 +900,7 @@ def test_entire_active_sdd_surface_has_no_legacy_lifecycle_targets() -> None:
     """References and optional scripts are executable guidance, not dead fixtures."""
     legacy_targets = re.compile(r"(?i)\.agents/(?:state|shared)(?:/|\b)")
     violations = {}
-    for path in [*ACTIVE_SDD_PROFILES, *ACTIVE_SDD_PACKAGE_FILES]:
+    for path in [*ACTIVE_SDD_PROFILES, *LEGACY_SDD_PACKAGE_FILES]:
         matches = sorted(set(legacy_targets.findall(path.read_text(encoding="utf-8"))))
         if matches:
             violations[path.relative_to(ROOT).as_posix()] = matches
@@ -941,7 +918,7 @@ def test_entire_active_sdd_package_is_host_neutral() -> None:
         "legacy pipeline source": re.compile(r"pipeline-utils\.sh"),
     }
     violations = {}
-    for path in ACTIVE_SDD_PACKAGE_FILES:
+    for path in LEGACY_SDD_PACKAGE_FILES:
         text = path.read_text(encoding="utf-8")
         matches = [name for name, pattern in forbidden.items() if pattern.search(text)]
         if matches:
@@ -961,7 +938,7 @@ def test_active_sdd_package_rejects_private_paths_and_legacy_handoff_guidance() 
         ),
     }
     violations = {}
-    for path in ACTIVE_SDD_PACKAGE_FILES:
+    for path in LEGACY_SDD_PACKAGE_FILES:
         text = path.read_text(encoding="utf-8")
         matches = [name for name, pattern in forbidden.items() if pattern.search(text)]
         if matches:
@@ -984,7 +961,7 @@ def test_archived_sdd_material_is_marked_and_unreferenced_by_active_instructions
 
     active_text = "\n".join(
         path.read_text(encoding="utf-8")
-        for path in [*ACTIVE, *ACTIVE_SDD_PROFILES, *ACTIVE_SDD_PACKAGE_FILES]
+        for path in [*ACTIVE, *ACTIVE_SDD_PROFILES, *LEGACY_SDD_PACKAGE_FILES]
     )
     referenced = [
         path.relative_to(ROOT).as_posix()
@@ -996,7 +973,7 @@ def test_archived_sdd_material_is_marked_and_unreferenced_by_active_instructions
 
 
 def test_optional_rate_limit_script_is_advisory_and_read_only(tmp_path: Path) -> None:
-    path = ROOT / "skills/sdd-orchestrator/scripts/on-rate-limit.sh"
+    path = ROOT / "legacy/sdd-orchestrator/scripts/on-rate-limit.sh"
     text = path.read_text(encoding="utf-8")
     assert "no project files were changed" in text
     assert "project-local controller" in text
@@ -1042,12 +1019,12 @@ def test_optional_rate_limit_script_is_advisory_and_read_only(tmp_path: Path) ->
     assert recursive_snapshot(project) == before
 
 
-def test_active_orchestrator_references_preserve_sole_writer_contract() -> None:
+def test_legacy_orchestrator_references_preserve_sole_writer_contract() -> None:
     state_schema = (
-        ROOT / "skills/sdd-orchestrator/references/state-schema.md"
+        ROOT / "legacy/sdd-orchestrator/references/state-schema.md"
     ).read_text(encoding="utf-8")
     dispatch_guide = (
-        ROOT / "skills/sdd-orchestrator/references/agent-dispatch-guide.md"
+        ROOT / "legacy/sdd-orchestrator/references/agent-dispatch-guide.md"
     ).read_text(encoding="utf-8")
     assert "lifecycle의 유일한 source of truth는 프로젝트 로컬 컨트롤러" in state_schema
     assert "오케스트레이터만 이 현황 문서를 쓰며" in state_schema

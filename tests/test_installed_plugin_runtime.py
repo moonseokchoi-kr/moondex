@@ -30,7 +30,7 @@ def _install_active_archive(destination: Path) -> Path:
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-    return destination / "skills/sdd/runtime/moondex-runtime.py"
+    return destination / "runtime/moondex-runtime.py"
 
 
 def _snapshot(root: Path) -> dict[str, tuple[str, int, bytes | str]]:
@@ -85,7 +85,7 @@ def _write_json(path: Path, value: object) -> None:
 
 
 def _rebind_inventory(installation: Path, relative: str) -> None:
-    inventory_path = installation / "skills/sdd/runtime/runtime-inventory.json"
+    inventory_path = installation / "runtime/runtime-inventory.json"
     inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
     content = (installation / relative).read_bytes()
     entry = next(item for item in inventory["files"] if item["path"] == relative)
@@ -336,7 +336,7 @@ def test_installed_runtime_tamper_matrix_fails_closed_without_mutation(
         _rebind_inventory(installation, ".codex-plugin/plugin.json")
     elif case.startswith("inventory-mode-"):
         mode = 0o666 if case.endswith("0666") else 0o620
-        (installation / "skills/sdd/runtime/runtime-inventory.json").chmod(mode)
+        (installation / "runtime/runtime-inventory.json").chmod(mode)
     elif case.startswith("manifest-mode-"):
         mode = 0o666 if case.endswith("0666") else 0o620
         (installation / ".codex-plugin/plugin.json").chmod(mode)
@@ -370,7 +370,7 @@ def test_installed_runtime_accepts_safe_inventory_modes(
     consumer = tmp_path / "consumer"
     consumer.mkdir()
     runtime = _install_active_archive(installation)
-    (installation / "skills/sdd/runtime/runtime-inventory.json").chmod(mode)
+    (installation / "runtime/runtime-inventory.json").chmod(mode)
     install_baseline = _snapshot(installation)
     consumer_baseline = _snapshot(consumer)
 
