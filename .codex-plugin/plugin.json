@@ -1,7 +1,7 @@
 {
   "name": "moondex",
-  "version": "0.4.0",
-  "description": "Project-local controller-first SDD and deterministic local harness workflows for Codex.",
+  "version": "0.5.0",
+  "description": "Agreed intent, script-owned delegated execution, observed verification and resumable evidence.",
   "author": {
     "name": "moonseokchoi-kr",
     "url": "https://github.com/moonseokchoi-kr"
@@ -10,19 +10,16 @@
   "repository": "https://github.com/moonseokchoi-kr/moondex",
   "license": "MIT",
   "keywords": [
-    "sdd",
+    "delegated-execution",
     "harness",
     "agent-orchestration",
-    "pipeline",
-    "design-doc",
-    "workflow",
-    "codex"
+    "verification"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Moondex",
-    "shortDescription": "Controller-first SDD and local harness workflows",
-    "longDescription": "Project-local skills for idea discovery, specification, design, planning, verified implementation, deterministic review convergence, enforcement, and optional knowledge sync.",
+    "shortDescription": "Delegated execution with verifiable results",
+    "longDescription": "Flexible preparation, immutable approval, script-owned execution and recovery, actual verification, and optional knowledge recording.",
     "developerName": "moonseokchoi-kr",
     "category": "Productivity",
     "capabilities": [
@@ -32,7 +29,7 @@
     ],
     "defaultPrompt": [
       "$moondex:idea-workshop으로 아이디어를 검증해줘",
-      "$moondex:sdd start my-feature로 요구 명세부터 구현 계획까지 진행해줘",
+      "$moondex:execute로 합의한 작업을 구현하고 검증해줘",
       "$moondex:harness audit으로 프로젝트 하네스를 점검해줘"
     ],
     "brandColor": "#2563EB"

@@ -1,6 +1,6 @@
 # Moondex
 
-Moondex는 아이디어 탐색, controller-first SDD, 로컬 검증, 리뷰 수렴을
+Moondex는 아이디어 탐색, 합의 기반 위임 실행, 실제 검증, 리뷰 수렴을
 프로젝트 안에서 재현 가능하게 실행하는 Codex 플러그인입니다. manifest가
 공개하는 실행 표면은 `skills/`뿐이며, `agents/`는 오케스트레이터가 주입할
 수 있는 역할 프로필입니다. 역할 프로필 파일이 존재한다고 worker가 자동으로
@@ -127,52 +127,46 @@ marketplace를 공유 모드로 여는 별도 handoff입니다.
 
 ## 사용자 실행
 
-위 View handoff에서 Codex 앱의 Install/Enable을 완료한 후, 소비자 프로젝트에서
-checkout 스크립트나 `PYTHONPATH`를 직접 다루지 않고 플러그인 스킬을 호출합니다.
+소비자 프로젝트에서 checkout 스크립트나 `PYTHONPATH`를 직접 다루지 않고 호출합니다.
 
 ```text
-$moondex:sdd start <feature>
+$moondex:execute
 $moondex:pr-converge
 $moondex:self-improve
 $moondex:code-mapper
 $moondex:harness audit
 ```
 
-각 스킬은 현재 로드된 스킬 패키지에서 `<moondex-runtime>`을 package-relative
-절대 경로로 해석합니다. 따라서 사용자는 플러그인의 설치 경로를 알 필요가 없고,
-소비자 프로젝트가 Moondex checkout이 아니어도 됩니다. 런타임 상태는 소비자
-프로젝트의 `.harness/state/`에, SDD 문서는 `docs/sdd/`에 기록됩니다.
+스킬은 `<moondex-runtime>`을 package-relative 경로로 해석합니다. 준비 형식은 자유이며
+사용자와 합의한 목표·설계·통과 조건을 revision bundle로 고정한 뒤 실행합니다.
+현재 대화 AI가 구현하고 script가 작업 배정·검증·복구를 담당합니다.
 
-`$moondex:sdd`의 controller 결과는 다음 의미를 가집니다.
+- `ACTION`: 배정된 구현·원인 분석·의도 검토·기록 작업을 수행합니다.
+- `WAITING_PROCESS`: 실제 실행 결과를 기다립니다. 긴 빌드·테스트는 실패가 아닙니다.
+- `WAITING_USER` / `RECOVERY_REQUIRED`: 저장된 질문·시도·증거·영향에 맞춰 결정합니다.
+- `COMPLETED`: 통합 검증과 필요한 기록을 마친 결과입니다.
 
-- `ACTION`: 반환된 한 단계만 수행합니다.
-- `WAITING_USER`: 명시된 spec, design 또는 plan 승인을 요청합니다.
-- `BLOCKED_ARTIFACT`: 지목된 산출물만 복구한 뒤 다시 재개합니다.
-- `COMPLETE`: durable result를 보고합니다.
-- `ADVISORY_UNAVAILABLE`: 선택적 로컬 통합이 없다는 진단이며 진행 차단이 아닙니다.
-
-`status`와 `resume`은 읽기 전용이고, 승인은 현재 요청된 전이에만 적용됩니다.
-worker는 결과와 검증 evidence를 반환할 뿐 `.harness/state/`나
-`docs/sdd/ORCHESTRATOR_STATE.md`를 직접 쓰지 않습니다.
+`status`는 읽기 전용입니다. `resume`은 승인된 실행을 복구하고 진행할 수 있습니다.
+AI는 결과를 제출하고 advance를 호출하며 공유 상태를 직접 수정하지 않습니다.
+총시간·토큰 제한은 없고, 확인된 실패의 자동 복구는 최대 2회입니다.
+구형 SDD phase 실행은 퇴역했으며 이전 문서·기록은 보존합니다.
 
 ## 로컬 데이터와 선택 기능
 
-- PR 코멘트는 정합성·소유 범위·검증 evidence에 따라 `SAFE_FIX`, `REJECTED`,
-  `ESCALATED`로 처분합니다.
-- 원문 재현 evidence는 소비자 프로젝트의 `.harness/audit/`에, redacted 표현은
-  `.harness/reports/`에 둡니다.
-- RESULT 지식 동기화는 명시적 설정이 없으면 `SYNC_SKIPPED`이며, 성공한 명시적
-  동기화만 `SYNC_APPLIED`입니다.
+- 실행 상태와 원본 증거는 `.moondex/`, 승인 revision과 결과는 `docs/execution/`에 기록합니다.
+- 다른 하네스 기능의 원문 evidence는 `.harness/audit/`, redacted 표현은 `.harness/reports/`에 둡니다.
+- Compound는 명시적 설정이 없으면 `SKIPPED`입니다. 필수 기록 미완료는 전체 완료가 아닙니다.
 - 개인 경로나 조직 destination의 기본값은 없습니다.
-- optional Git hook과 원격 `moondex-verify` check는 빠른 피드백/CI 확장입니다.
-  원격 CI나 게시 기능은 로컬 baseline의 전제조건이 아닙니다.
+- `moondex-verify` CI는 실제 지원되는 명시적 검증 명령을 사용합니다.
+- 자동 훅 등록은 없습니다. 명시적 실행기와 검증 명령이 동작을 담당합니다.
+- PR 처분은 `SAFE_FIX`, `REJECTED`, `ESCALATED`를 사용하며 자가개선은 별도 호출입니다.
 
 ## 주요 스킬
 
 | 호출 | 역할 |
 |---|---|
 | `$moondex:idea-workshop` | 아이디어 발산, 검증, PRD |
-| `$moondex:sdd start <feature>` | Spec → Design → Plan → Execute → Result |
+| `$moondex:execute` | 합의한 기준 → 위임 구현·검증 → 결과·재개 |
 | `$moondex:pr-converge` | 리뷰 코멘트 apply/reject/escalate 수렴 |
 | `$moondex:self-improve` | 검증된 로컬 학습 후보 처리 |
 | `$moondex:code-mapper` | 코드 영향 탐색과 명시적 fallback |

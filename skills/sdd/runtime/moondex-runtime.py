@@ -31,12 +31,12 @@ USAGE = f"""usage: moondex-runtime <command> [arguments]
 Package-relative Moondex runtime protocol v{RUNTIME_PROTOCOL}.
 
 commands:
-  state, preflight, doctor    project-local controller and validation CLI
+  execute                     delegated execution, evidence and resume
+  preflight, doctor           local validation and diagnostics
   verify                      compatibility verifier
   code-mapper                 code impact adapter
   pr-converge                 PR review convergence adapter
   self-improve                learning policy adapter
-  result-action               verified RESULT materializer
 """
 
 
@@ -222,6 +222,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         command, command_arguments = arguments[0], arguments[1:]
         _prepare_imports()
+        if command == "execute":
+            from harness_core.execution.cli import main as execute_main
+            return execute_main(command_arguments)
+        if command in {"state", "result-action"} or (command == "preflight" and command_arguments[:1] == ["phase"]):
+            print(json.dumps({"code": "LEGACY_WORKFLOW_RETIRED", "next": "$moondex:execute", "message": "Historical records are preserved; they are not execution approval or evidence."}))
+            return 2
         if command in {"state", "preflight", "doctor"}:
             from harness_core.cli import main as controller_main
 

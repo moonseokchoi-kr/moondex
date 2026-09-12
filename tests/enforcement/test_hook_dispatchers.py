@@ -43,22 +43,9 @@ def _pre_tool_use_registration(matcher: str) -> dict[str, object]:
 
 
 def _dispatcher_source(matcher: str) -> Path:
-    registration = _pre_tool_use_registration(matcher)
-    commands = registration["hooks"]
-    assert isinstance(commands, list)
-    assert len(commands) == 1, f"{matcher!r} must expose one dispatcher command, not child hooks"
-    hook = commands[0]
-    assert hook.get("type") == "command"
-    command = hook.get("command")
-    assert isinstance(command, str)
-    prefix = "${CODEX_PLUGIN_ROOT}/"
-    assert command.startswith(prefix)
-    relative = command.removeprefix(prefix)
-    assert command == f"{prefix}{relative}", "dispatcher registration must not append shell arguments"
-    assert "dispatcher" in Path(relative).name
-    source = REPOSITORY_ROOT / relative
-    assert source.is_file(), f"registered dispatcher does not exist: {relative}"
-    return source
+    # Historical optional wrapper safety tests; no automatic product registration.
+    return REPOSITORY_ROOT / {"Bash": "hooks/bash-pretool-dispatcher.sh", "Edit|Write": "hooks/write-pretool-dispatcher.sh"}[matcher]
+
 
 
 def _fake_child(relative: str) -> str:
@@ -211,13 +198,9 @@ def _force_kill_pid(pid: int) -> None:
         pass
 
 
-def test_manifest_registers_one_dispatcher_per_pre_tool_use_matcher() -> None:
-    manifest = json.loads(HOOKS_MANIFEST.read_text(encoding="utf-8"))
-    registrations = manifest["hooks"]["PreToolUse"]
+def test_plugin_has_no_automatic_hook_registrations() -> None:
+    assert json.loads(HOOKS_MANIFEST.read_text())["hooks"] == {}
 
-    assert [registration.get("matcher") for registration in registrations] == ["Bash", "Edit|Write"]
-    dispatchers = [_dispatcher_source(matcher) for matcher in DISPATCH_CHAINS]
-    assert dispatchers[0] != dispatchers[1]
 
 
 @pytest.mark.parametrize("matcher", DISPATCH_CHAINS)

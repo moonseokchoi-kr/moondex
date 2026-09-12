@@ -3,15 +3,15 @@
   "runtime_protocol": 1,
   "plugin": {
     "name": "moondex",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "mode_policy": "regular-not-group-or-world-writable",
   "files": [
     {
       "path": ".codex-plugin/plugin.json",
       "kind": "regular",
-      "size": 1331,
-      "sha256": "fbf54baa222d87a115f2b0877e1f8aab538fa51ea1bfe672b3c5c22a67a07496"
+      "size": 1245,
+      "sha256": "a5fd717f99c4251d16df8e580f75861da2e1e35bd11942c6aef0003e14689472"
     },
     {
       "path": "harness_core/__init__.py",
@@ -48,6 +48,54 @@
       "kind": "regular",
       "size": 35710,
       "sha256": "c9a158c1c5402d8240368047c56d14a1875c045abd4b63d4995c64fd42339461"
+    },
+    {
+      "path": "harness_core/execution/__init__.py",
+      "kind": "regular",
+      "size": 87,
+      "sha256": "31c4cd47a8569349c0a38660c6440af15dee4f380b2cad5d2dca760db674c072"
+    },
+    {
+      "path": "harness_core/execution/cli.py",
+      "kind": "regular",
+      "size": 2948,
+      "sha256": "c85895d0ffd99e7f587700625fbc39e299594f0b06f3b0860914a17e38616285"
+    },
+    {
+      "path": "harness_core/execution/compound.py",
+      "kind": "regular",
+      "size": 5439,
+      "sha256": "368e3b1f71ee077037bfe001017ebaff4eeaef98dd5e2e7ff64a9792d43f9148"
+    },
+    {
+      "path": "harness_core/execution/contracts.py",
+      "kind": "regular",
+      "size": 9761,
+      "sha256": "292a1523c4553456f334c984b51a7610db3639c3db8a0f9830eadba19724233f"
+    },
+    {
+      "path": "harness_core/execution/engine.py",
+      "kind": "regular",
+      "size": 37967,
+      "sha256": "1dcf3e1924f9a47ce34ab1d337e974d69ed6e9bc137babb93baac66d72935647"
+    },
+    {
+      "path": "harness_core/execution/orca.py",
+      "kind": "regular",
+      "size": 10562,
+      "sha256": "50c59b89ecb85181fb8fc9686c5a7e304515e4173e5d44584e0b65cf3221b2ba"
+    },
+    {
+      "path": "harness_core/execution/runner.py",
+      "kind": "regular",
+      "size": 7256,
+      "sha256": "c9478a3a4b066f73e4bb621d79df806dcd7dbae8c97544fd8be4b857dfe3b954"
+    },
+    {
+      "path": "harness_core/execution/store.py",
+      "kind": "regular",
+      "size": 5333,
+      "sha256": "8e816a3e36a171bff9610a3d903de911d7d0ce4dec884992f71bcb1fad9b3f1d"
     },
     {
       "path": "harness_core/learning/__init__.py",
@@ -118,8 +166,8 @@
     {
       "path": "skills/sdd/runtime/moondex-runtime.py",
       "kind": "regular",
-      "size": 9548,
-      "sha256": "98c7d3564dd28d1f8b04a546aec32f13432c3e735cad94217f748364440a9ad1"
+      "size": 10031,
+      "sha256": "b7f4d1ea1b83f0da1cb40e822e1cebbb8f161599453f37c953cbfd5dfce24df0"
     }
   ]
 }

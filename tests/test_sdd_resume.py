@@ -1,4 +1,6 @@
-"""Clean-process controller-first resume contract for active SDD instructions."""
+"""Historical implementation safety regressions and installed SDD retirement.
+New product acceptance lives in tests/execution; old fixture helpers are not user commands.
+"""
 
 import json
 import argparse
@@ -76,38 +78,15 @@ def _state(project: Path, *args: str) -> dict[str, object]:
     return json.loads(result.stdout)
 
 
-def _run_active_coordinator_transition(
-    project: Path, *, expected: str, target: str, worktree: Path | None = None,
-    skill: Path = SDD_SKILL, owner: str = "SDD coordinator",
-    feature: str = "authority-flow",
-) -> dict[str, object]:
-    """Execute the transition command published by the active SDD reference."""
-
-    matches = [
-        match
-        for match in AUTHORITY_COMMAND.finditer(skill.read_text(encoding="utf-8"))
-        if match.group("expected") == expected and match.group("target") == target
-    ]
-    assert len(matches) == 1
-    match = matches[0]
-    assert match.group("owner") == owner
-    command = match.group("command")
-    command = command.replace("<moondex-runtime>", str(MOONDEX_RUNTIME))
-    command = command.replace("<project-root>", str(project))
-    command = command.replace("<feature>", feature)
+def _run_active_coordinator_transition(project: Path, *, expected: str, target: str, worktree: Path | None = None, skill: Path = SDD_SKILL, owner: str = "historical library fixture", feature: str = "authority-flow") -> dict[str, object]:
+    """Build historical fixtures through the development library, not published skills."""
+    arguments = ["transition", "--feature", feature, "--expected", expected, "--target", target]
+    if expected in {"SPEC", "DESIGN", "PLAN"}:
+        arguments += ["--approve", expected.lower()]
     if worktree is not None:
-        command = command.replace("<worktree>", str(worktree))
-    argv = shlex.split(command)
-    assert argv[:3] == ["python3", str(MOONDEX_RUNTIME), "state"]
-    argv[0] = sys.executable
-    env = os.environ.copy()
-    env.pop("HARNESS_HOOKS", None)
-    env.pop("CODEX_PLUGIN_ROOT", None)
-    result = subprocess.run(
-        argv, cwd=ROOT, env=env, check=False, text=True, capture_output=True,
-    )
-    assert result.returncode == 0, result.stderr
-    return json.loads(result.stdout)
+        arguments += ["--worktree", str(worktree)]
+    return _state(project, *arguments)
+
 
 
 def _run_result_action(
@@ -262,83 +241,20 @@ def test_resume_waits_for_immediate_approval_and_only_transition_advances(
     assert state_path.read_bytes() != before
 
 
-def test_active_reference_drives_approved_flow_and_hands_authority_to_execute(
-    tmp_path: Path,
-) -> None:
-    """Follow only active-reference transition commands through the handoff."""
-
-    feature = "authority-flow"
-    assert _state(tmp_path, "start", feature)["state"]["phase"] == "SPEC"
-
-    spec_dir = tmp_path / "docs/sdd/spec"
-    spec_dir.mkdir(parents=True)
-    (spec_dir / "2026-07-23-authority-flow.md").write_text("# Spec\n", encoding="utf-8")
-    assert _state(tmp_path, "status", feature)["code"] == "WAITING_USER"
-    assert _state(tmp_path, "resume", feature)["state"]["phase"] == "SPEC"
-    design = _run_active_coordinator_transition(tmp_path, expected="SPEC", target="DESIGN")
-    assert design["state"]["phase"] == "DESIGN"
-
-    arch_dir = tmp_path / "docs/sdd/design/arch"
-    arch_dir.mkdir(parents=True)
-    (arch_dir / "2026-07-23-authority-flow.md").write_text("# Architecture\n", encoding="utf-8")
-    assert _state(tmp_path, "status", feature)["code"] == "WAITING_USER"
-    plan = _run_active_coordinator_transition(tmp_path, expected="DESIGN", target="PLAN")
-    assert plan["state"]["phase"] == "PLAN"
-
-    task_dir = tmp_path / "docs/sdd/task/authority-flow"
-    task_dir.mkdir(parents=True)
-    (task_dir / "2026-07-23-T-1-flow.md").write_text("# Task\n", encoding="utf-8")
-    orchestrator_state = tmp_path / "docs/sdd/ORCHESTRATOR_STATE.md"
-    orchestrator_state.write_text("# Orchestrator State\n", encoding="utf-8")
-    worktree = tmp_path / "worktrees/authority-flow"
-    worktree.mkdir(parents=True)
-    plan_resume = _state(tmp_path, "resume", feature)
-    assert plan_resume["code"] == "BLOCKED_ARTIFACT"
-    assert "worktree" in str(plan_resume["message"])
-    execute = _run_active_coordinator_transition(
-        tmp_path, expected="PLAN", target="EXECUTE", worktree=worktree,
-    )
-    assert execute["state"]["phase"] == "EXECUTE"
-
-    sdd = SDD_SKILL.read_text(encoding="utf-8")
-    execution = (ROOT / "skills/sdd-orchestrator/SKILL.md").read_text(encoding="utf-8")
-    assert "authority handoff: SDD coordinator -> execution orchestrator" in sdd
-    assert "authority handoff: SDD coordinator -> execution orchestrator" in execution
+def test_installed_legacy_phase_entry_is_retired_without_writing_state(tmp_path: Path) -> None:
+    result = subprocess.run([sys.executable, str(MOONDEX_RUNTIME), "state", "--project-root", str(tmp_path), "start", "retired"], capture_output=True, text=True)
+    assert result.returncode == 2
+    assert json.loads(result.stdout)["code"] == "LEGACY_WORKFLOW_RETIRED"
+    assert not list(tmp_path.iterdir())
 
 
-def test_active_reference_resumes_result_without_a_second_transition(tmp_path: Path) -> None:
-    """Recover an interrupted RESULT action through the published active path."""
 
-    feature = "result-resume"
-    state_path = _reach_result(tmp_path, feature)
-    result_state = state_path.read_bytes()
-    status = _state(tmp_path, "status", feature)
-    resumed = _state(tmp_path, "resume", feature)
-    assert status == resumed
-    assert resumed["code"] == "ACTION"
-    assert resumed["state"]["phase"] == "RESULT"
-    assert "result artifact" in str(resumed["message"])
-    assert RESULT_RESUME.search(EXECUTION_SKILL.read_text(encoding="utf-8"))
+def test_installed_legacy_result_cannot_materialize_unverified_success(tmp_path: Path) -> None:
+    result = subprocess.run([sys.executable, str(MOONDEX_RUNTIME), "result-action", "--project-root", str(tmp_path)], capture_output=True, text=True)
+    assert result.returncode == 2
+    assert json.loads(result.stdout)["code"] == "LEGACY_WORKFLOW_RETIRED"
+    assert not list(tmp_path.iterdir())
 
-    process, outcome = _run_result_action(
-        tmp_path,
-        feature=feature,
-        evidence_fixture="result-resume-evidence.json",
-    )
-    assert process.returncode == 0, process.stderr
-    assert outcome and outcome["Status"] == "DONE"
-    assert outcome["Verdict"] == "SYNC_SKIPPED"
-    assert outcome["transition_calls"] == 0
-    assert outcome["worker_dispatches"] == 0
-    assert state_path.read_bytes() == result_state
-    report = (tmp_path / "docs/sdd/result/2026-07-23-result-resume.md").read_text(encoding="utf-8")
-    assert "fixture-secret-must-not-render" not in report
-    assert "fixture-api-secret" not in report
-    assert "fixture-argv-secret" not in report
-    assert "[REDACTED]" in report
-    terminal = _state(tmp_path, "resume", feature)
-    assert terminal["code"] == "COMPLETE"
-    assert terminal["state"]["phase"] == "RESULT"
 
 
 def test_configured_result_action_applies_redacted_temp_sync(tmp_path: Path) -> None:

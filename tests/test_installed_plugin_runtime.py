@@ -106,87 +106,20 @@ def test_installed_runtime_operates_from_unrelated_consumer_without_pythonpath(
     output = []
 
     output.append(_successful(runtime, consumer, "--help"))
-    started = json.loads(
-        _successful(
-            runtime, consumer, "state", "--project-root", ".", "start", "portable-install"
-        )
-    )
-    assert started["code"] == "INITIALIZED"
-    output.append(
-        _successful(
-            runtime, consumer, "state", "--project-root", ".", "status", "portable-install"
-        )
-    )
-    output.append(
-        _successful(
-            runtime, consumer, "state", "--project-root", ".", "resume", "portable-install"
-        )
-    )
-    doctor = json.loads(
-        _successful(
-            runtime, consumer, "state", "--project-root", ".", "doctor", "portable-install"
-        )
-    )
-    assert doctor["code"] == "ADVISORY_UNAVAILABLE"
-
-    spec = consumer / "docs/sdd/spec/2026-07-30-portable-install.md"
-    spec.parent.mkdir(parents=True)
-    spec.write_text("# Portable install\n", encoding="utf-8")
-    transitioned = json.loads(
-        _successful(
-            runtime,
-            consumer,
-            "state",
-            "--project-root",
-            ".",
-            "transition",
-            "--feature",
-            "portable-install",
-            "--expected",
-            "SPEC",
-            "--target",
-            "DESIGN",
-            "--approve",
-            "spec",
-        )
-    )
-    assert transitioned["code"] == "ACTION"
-    assert transitioned["state"]["phase"] == "DESIGN"
-
-    arch = consumer / "docs/sdd/design/arch/2026-07-30-portable-install.md"
-    arch.parent.mkdir(parents=True)
-    arch.write_text("# Installed architecture\n", encoding="utf-8")
-    output.append(
-        _successful(
-            runtime,
-            consumer,
-            "preflight",
-            "phase",
-            "--project-root",
-            ".",
-            "--target-phase",
-            "PLAN",
-        )
-    )
-    planned = json.loads(
-        _successful(
-            runtime,
-            consumer,
-            "state",
-            "--project-root",
-            ".",
-            "transition",
-            "--feature",
-            "portable-install",
-            "--expected",
-            "DESIGN",
-            "--target",
-            "PLAN",
-            "--approve",
-            "design",
-        )
-    )
-    assert planned["state"]["phase"] == "PLAN"
+    retired = _invoke(runtime, consumer, "state", "--project-root", ".", "start", "portable-install")
+    assert retired.returncode == 2
+    assert json.loads(retired.stdout)["code"] == "LEGACY_WORKFLOW_RETIRED"
+    bundle = json.loads((ROOT / "tests/fixtures/execution/bundle.json").read_text())
+    _write_json(consumer / "bundle.json", bundle)
+    prepared = json.loads(_successful(runtime, consumer, "execute", "prepare", "--file", "bundle.json"))
+    _successful(runtime, consumer, "execute", "approve", "--digest", prepared["digest"], "--quote", "Implement fixture", "--source", "test user")
+    assignment = json.loads(_successful(runtime, consumer, "execute", "advance"))
+    (consumer / "src").mkdir()
+    (consumer / "src/value.txt").write_text("42")
+    submission = {k: assignment[k] for k in ("node_id", "attempt_id", "bundle", "action_key")}
+    submission.update(summary="Value saved", criteria_review={"C1": "Value is 42; actual gate verifies it"})
+    _write_json(consumer / "submission.json", submission)
+    _successful(runtime, consumer, "execute", "submit", "--file", "submission.json")
 
     _write_json(
         consumer / ".harness/state/tdd-manifest.json",
@@ -324,109 +257,20 @@ def test_installed_runtime_operates_from_unrelated_consumer_without_pythonpath(
     )
     assert converged["status"] == "CONVERGED"
 
-    task = consumer / "docs/sdd/task/portable-install/2026-07-30-T-1-runtime.md"
-    task.parent.mkdir(parents=True)
-    task.write_text("# Runtime task\n", encoding="utf-8")
-    orchestrator = consumer / "docs/sdd/ORCHESTRATOR_STATE.md"
-    orchestrator.write_text(
-        """# Orchestrator State
-
-- Feature: `portable-install`
-
-## Task status
-
-| ID | Wave | Status | Iteration | Role profile | Notes |
-|---|---:|---|---:|---|---|
-| T-1 | 1 | complete | 1 | engineer | installed acceptance passed |
-""",
-        encoding="utf-8",
-    )
-    worktree = consumer / "worktrees/portable-install"
-    worktree.mkdir(parents=True)
-    executing = json.loads(
-        _successful(
-            runtime,
-            consumer,
-            "state",
-            "--project-root",
-            ".",
-            "transition",
-            "--feature",
-            "portable-install",
-            "--expected",
-            "PLAN",
-            "--target",
-            "EXECUTE",
-            "--approve",
-            "plan",
-            "--worktree",
-            str(worktree),
-        )
-    )
-    assert executing["state"]["phase"] == "EXECUTE"
-    result_phase = json.loads(
-        _successful(
-            runtime,
-            consumer,
-            "state",
-            "--project-root",
-            ".",
-            "transition",
-            "--feature",
-            "portable-install",
-            "--expected",
-            "EXECUTE",
-            "--target",
-            "RESULT",
-        )
-    )
-    assert result_phase["state"]["phase"] == "RESULT"
-    action = json.loads(
-        _successful(
-            runtime, consumer, "state", "--project-root", ".", "resume", "portable-install"
-        )
-    )
-    controller_path = consumer / ".harness/result-input/controller.json"
-    evidence_path = consumer / ".harness/result-input/evidence.json"
-    _write_json(controller_path, action)
-    _write_json(
-        evidence_path,
-        {
-            "schema_version": 1,
-            "feature": "portable-install",
-            "completion_identity": "installed-runtime-0001",
-            "verified": True,
-            "summary": "Installed runtime acceptance passed.",
-            "validation": [
-                {
-                    "name": "installed-runtime",
-                    "status": "PASS",
-                    "evidence": "controller and adapters executed outside install cwd",
-                }
-            ],
-        },
-    )
-    materialized = json.loads(
-        _successful(
-            runtime,
-            consumer,
-            "result-action",
-            "--project-root",
-            ".",
-            "--feature",
-            "portable-install",
-            "--controller-result",
-            str(controller_path),
-            "--evidence",
-            str(evidence_path),
-            "--result-date",
-            "2026-07-30",
-        )
-    )
-    assert materialized["Status"] == "DONE"
-    assert (consumer / "docs/sdd/result/2026-07-30-portable-install.md").is_file()
-
-    assert (consumer / ".harness/state/pipeline.json").is_file()
+    import time
+    deadline = time.monotonic() + 20
+    while time.monotonic() < deadline:
+        outcome = json.loads(_successful(runtime, consumer, "execute", "resume"))
+        if outcome.get("kind") == "integration_review":
+            _write_json(consumer / "review.json", {"kind": "integration_review", "action_key": outcome["action_key"], "summary": "Observed installed gates", "criteria_review": {"C1": "The actual value and failing off-by-one were checked"}})
+            _successful(runtime, consumer, "execute", "submit", "--file", "review.json")
+        if outcome["code"] == "COMPLETED":
+            break
+        time.sleep(.025)
+    assert outcome["code"] == "COMPLETED", outcome
+    assert (consumer / outcome["report"]).is_file()
+    assert (consumer / ".moondex/STATE.json").is_file()
+    assert not (consumer / ".harness/state/pipeline.json").exists()
     assert not (installation / ".harness").exists()
     assert _snapshot(installation) == installed_before
     consumer_after = _snapshot(consumer)

@@ -26,6 +26,10 @@ RAW_CREDENTIAL = "e2e-local-credential-7C2X9"
 def _project(tmp_path: Path, name: str = "sample-project") -> Path:
     destination = tmp_path / name
     shutil.copytree(FIXTURE, destination)
+    state = destination / ".harness/state"
+    state.mkdir(parents=True, exist_ok=True)
+    (state / "tdd-manifest.json").write_text(json.dumps({"red_evidence":"panel behavior regression", "green_command":"python3 tests/consumer_panel_e2e.py"}))
+    (state / "e2e-config.json").write_text(json.dumps({"command":"python3 tests/consumer_panel_e2e.py"}))
     return destination
 
 
@@ -93,218 +97,10 @@ def _write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
 
-def _transition(
-    runtime: Path,
-    project: Path,
-    feature: str,
-    expected: str,
-    target: str,
-    *extra: str,
-) -> dict[str, object]:
-    return _json_run(
-        runtime,
-        project,
-        "state",
-        "--project-root",
-        ".",
-        "transition",
-        "--feature",
-        feature,
-        "--expected",
-        expected,
-        "--target",
-        target,
-        *extra,
-    )
 
 
-class _SoleWriterSimulation:
-    """Test-owned orchestration simulator; this is not a production controller API."""
-
-    STAGES = ("engineer", "compliance", "review", "test")
-    STATUSES = ("DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED")
-    REQUIRED = {
-        "schema_version",
-        "task_id",
-        "stage",
-        "status",
-        "iteration",
-        "changed_files",
-        "validation",
-        "evidence",
-    }
-
-    def __init__(self, project: Path, feature: str, task_id: str = "T-1") -> None:
-        self.project = project
-        self.feature = feature
-        self.task_id = task_id
-        self.events_path = (
-            project
-            / f".harness/state/sdd/{feature}/e2e-simulation/events.jsonl"
-        )
-        self.events: list[dict[str, object]] = []
-        self.stage_index = 0
-        self.failures: dict[str, int] = {}
-        self.open_escalations: set[str] = set()
-        self.gates: dict[str, str] = {}
-
-    def accept_worker_result(self, envelope: dict[str, object]) -> None:
-        assert set(envelope) == self.REQUIRED
-        assert envelope["schema_version"] == 1
-        assert envelope["task_id"] == self.task_id
-        stage = envelope["stage"]
-        status = envelope["status"]
-        assert stage in self.STAGES and status in self.STATUSES
-        assert stage == self.STAGES[self.stage_index]
-        assert (
-            isinstance(envelope["iteration"], int)
-            and not isinstance(envelope["iteration"], bool)
-            and envelope["iteration"] >= 1
-        )
-        assert isinstance(envelope["changed_files"], list)
-        assert all(
-            isinstance(path, str) and path
-            for path in envelope["changed_files"]
-        )
-        validation = envelope["validation"]
-        assert isinstance(validation, list) and validation
-        assert all(
-            isinstance(item, dict)
-            and set(item) == {"name", "status", "evidence"}
-            and item["status"] in {"PASS", "FAIL"}
-            and isinstance(item["name"], str)
-            and isinstance(item["evidence"], str)
-            for item in validation
-        )
-        if status in {"DONE", "DONE_WITH_CONCERNS"}:
-            assert all(item["status"] == "PASS" for item in validation)
-        event = {
-            "schema_version": 1,
-            "event_id": len(self.events) + 1,
-            "event_type": "worker_result",
-            **envelope,
-        }
-        self._append(event)
-        if status in {"DONE", "DONE_WITH_CONCERNS"}:
-            self.stage_index += 1
-            return
-        self.failures[stage] = self.failures.get(stage, 0) + 1
-        if self.failures[stage] >= 3:
-            escalation_id = f"{self.task_id}:{stage}"
-            self.open_escalations.add(escalation_id)
-            self._append(
-                {
-                    "schema_version": 1,
-                    "event_id": len(self.events) + 1,
-                    "event_type": "escalation_opened",
-                    "task_id": self.task_id,
-                    "stage": stage,
-                    "escalation_id": escalation_id,
-                    "reason": "three validated worker failures",
-                }
-            )
-
-    def resolve_escalation(self, escalation_id: str) -> None:
-        assert escalation_id in self.open_escalations
-        self.open_escalations.remove(escalation_id)
-        self._append(
-            {
-                "schema_version": 1,
-                "event_id": len(self.events) + 1,
-                "event_type": "escalation_resolved",
-                "task_id": self.task_id,
-                "escalation_id": escalation_id,
-                "authority": "USER",
-                "decision": "RETRY",
-                "evidence": "explicit local acceptance decision",
-            }
-        )
-
-    def accept_gate_report(self, name: str, report: dict[str, object]) -> None:
-        assert name in {"consumer_e2e", "shared_verify"}
-        assert report.get("schema_version") in {1, 3}
-        assert report.get("status") in {"PASS", "FAIL"}
-        self.gates[name] = str(report["status"])
-        self._append(
-            {
-                "schema_version": 1,
-                "event_id": len(self.events) + 1,
-                "event_type": "acceptance_gate",
-                "task_id": self.task_id,
-                "gate": name,
-                "status": report["status"],
-                "evidence": report.get("evidence", report.get("outcomes", [])),
-            }
-        )
-
-    @property
-    def complete(self) -> bool:
-        return (
-            self.stage_index == len(self.STAGES)
-            and not self.open_escalations
-            and self.gates
-            == {"consumer_e2e": "PASS", "shared_verify": "PASS"}
-        )
-
-    def render_authoritative_state(self) -> Path:
-        status = "complete" if self.complete else "testing"
-        notes = (
-            f"test-owned schema-valid simulation; events={len(self.events)}; "
-            f"open_escalations={len(self.open_escalations)}; "
-            f"consumer_e2e={self.gates.get('consumer_e2e', 'MISSING')}; "
-            f"shared_verify={self.gates.get('shared_verify', 'MISSING')}"
-        )
-        path = self.project / "docs/sdd/ORCHESTRATOR_STATE.md"
-        path.write_text(
-            f"""# Orchestrator State
-
-- Feature: `{self.feature}`
-- Evidence: `.harness/state/sdd/{self.feature}/e2e-simulation/events.jsonl`
-- Authority: test-owned sole-writer simulation (not a production controller API)
-
-## Task status
-
-| ID | Wave | Status | Iteration | Role profile | Notes |
-|---|---:|---|---:|---|---|
-| {self.task_id} | 1 | {status} | {len(self.events)} | sdd-test-automator | {notes} |
-""",
-            encoding="utf-8",
-        )
-        return path
-
-    def _append(self, event: dict[str, object]) -> None:
-        self.events.append(event)
-        self.events_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.events_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(event, sort_keys=True) + "\n")
 
 
-def _worker_envelope(
-    stage: str,
-    status: str,
-    iteration: int,
-    *,
-    validation_status: str | None = None,
-) -> dict[str, object]:
-    validation_status = validation_status or (
-        "PASS" if status in {"DONE", "DONE_WITH_CONCERNS"} else "FAIL"
-    )
-    return {
-        "schema_version": 1,
-        "task_id": "T-1",
-        "stage": stage,
-        "status": status,
-        "iteration": iteration,
-        "changed_files": ["web/Panel.tsx"],
-        "validation": [
-            {
-                "name": f"{stage}-validation",
-                "status": validation_status,
-                "evidence": f"deterministic {stage} evidence",
-            }
-        ],
-        "evidence": f"{stage} returned {status}",
-    }
 
 
 def _run_consumer_e2e(project: Path) -> dict[str, object]:
@@ -361,293 +157,12 @@ def _run_shared_verify(
     return payload
 
 
-def _assert_result_blocked(
-    runtime: Path, project: Path, feature: str
-) -> dict[str, object]:
-    blocked = _transition(runtime, project, feature, "EXECUTE", "RESULT")
-    assert blocked["code"] == "BLOCKED_ARTIFACT"
-    assert blocked["state"]["phase"] == "EXECUTE"
-    assert not (project / "docs/sdd/result").exists()
-    return blocked
 
 
-def _enter_execute_for_negative(
-    runtime: Path, project: Path, feature: str
-) -> _SoleWriterSimulation:
-    _json_run(runtime, project, "state", "--project-root", ".", "start", feature)
-    spec = project / f"docs/sdd/spec/2026-07-30-{feature}.md"
-    spec.parent.mkdir(parents=True)
-    spec.write_text("# Negative lifecycle specification\n", encoding="utf-8")
-    _transition(runtime, project, feature, "SPEC", "DESIGN", "--approve", "spec")
-    design = project / f"docs/sdd/design/arch/2026-07-30-{feature}.md"
-    design.parent.mkdir(parents=True)
-    design.write_text("# Negative lifecycle architecture\n", encoding="utf-8")
-    _transition(runtime, project, feature, "DESIGN", "PLAN", "--approve", "design")
-    task = project / f"docs/sdd/task/{feature}/2026-07-30-T-1-e2e.md"
-    task.parent.mkdir(parents=True)
-    task.write_text("# Negative lifecycle task\n", encoding="utf-8")
-    simulation = _SoleWriterSimulation(project, feature)
-    simulation.render_authoritative_state()
-    worktree = project / f"worktrees/{feature}"
-    worktree.mkdir(parents=True)
-    transitioned = _transition(
-        runtime,
-        project,
-        feature,
-        "PLAN",
-        "EXECUTE",
-        "--approve",
-        "plan",
-        "--worktree",
-        str(worktree),
-    )
-    assert transitioned["state"]["phase"] == "EXECUTE"
-    for stage in _SoleWriterSimulation.STAGES:
-        simulation.accept_worker_result(_worker_envelope(stage, "DONE", 1))
-    return simulation
 
 
-def test_clean_environment_controller_plan_to_result_and_recorded_outcomes(
-    tmp_path: Path,
-) -> None:
-    project = _project(tmp_path)
-    installation, runtime = _opaque_runtime(tmp_path)
-    install_before = _snapshot(installation)
-    feature = "e2e-parity"
-
-    started = _json_run(
-        runtime, project, "state", "--project-root", ".", "start", feature
-    )
-    assert started["code"] == "INITIALIZED"
-    state_path = project / ".harness/state/pipeline.json"
-    initial_bytes = state_path.read_bytes()
-
-    # These are separate ordinary Codex turns: no hook helper or session identity.
-    first_status = _json_run(
-        runtime, project, "state", "--project-root", ".", "status", feature
-    )
-    first_resume = _json_run(
-        runtime, project, "state", "--project-root", ".", "resume", feature
-    )
-    assert first_status == first_resume
-    assert state_path.read_bytes() == initial_bytes
-
-    before_doctor = _json_run(
-        runtime, project, "state", "--project-root", ".", "resume", feature
-    )
-    doctor = _json_run(
-        runtime, project, "state", "--project-root", ".", "doctor", feature
-    )
-    after_doctor = _json_run(
-        runtime, project, "state", "--project-root", ".", "resume", feature
-    )
-    assert doctor["code"] == "ADVISORY_UNAVAILABLE"
-    assert doctor["next_step"] == before_doctor["next_step"]
-    assert before_doctor == after_doctor
-
-    spec = project / "docs/sdd/spec/2026-07-30-e2e-parity.md"
-    spec.parent.mkdir(parents=True)
-    spec.write_text("# E2E parity specification\n", encoding="utf-8")
-    assert _transition(
-        runtime, project, feature, "SPEC", "DESIGN", "--approve", "spec"
-    )["state"]["phase"] == "DESIGN"
-
-    design = project / "docs/sdd/design/arch/2026-07-30-e2e-parity.md"
-    design.parent.mkdir(parents=True)
-    design.write_text("# E2E parity architecture\n", encoding="utf-8")
-    assert _transition(
-        runtime, project, feature, "DESIGN", "PLAN", "--approve", "design"
-    )["state"]["phase"] == "PLAN"
-
-    task = project / "docs/sdd/task/e2e-parity/2026-07-30-T-1-e2e.md"
-    task.parent.mkdir(parents=True)
-    task.write_text("# T-1 E2E task\n", encoding="utf-8")
-    simulation = _SoleWriterSimulation(project, feature)
-    simulation.render_authoritative_state()
-    worktree = project / "worktrees/e2e-parity"
-    worktree.mkdir(parents=True)
-    executing = _transition(
-        runtime,
-        project,
-        feature,
-        "PLAN",
-        "EXECUTE",
-        "--approve",
-        "plan",
-        "--worktree",
-        str(worktree),
-    )
-    assert executing["state"]["phase"] == "EXECUTE"
-
-    consumer_e2e = _run_consumer_e2e(project)
-    shared_verify = _run_shared_verify(runtime, project)
-    assert consumer_e2e["status"] == shared_verify["status"] == "PASS"
-    assert consumer_e2e["changed_file"] == "web/Panel.tsx"
-    assert shared_verify["changed_files"] == [
-        {"source": "explicit", "status": "M", "paths": ["web/Panel.tsx"]}
-    ]
-    simulation.accept_gate_report("consumer_e2e", consumer_e2e)
-    simulation.accept_gate_report("shared_verify", shared_verify)
-
-    simulation.accept_worker_result(_worker_envelope("engineer", "DONE", 1))
-    simulation.accept_worker_result(_worker_envelope("compliance", "DONE", 1))
-    simulation.accept_worker_result(_worker_envelope("review", "BLOCKED", 1))
-    simulation.render_authoritative_state()
-    _assert_result_blocked(runtime, project, feature)
-
-    simulation.accept_worker_result(_worker_envelope("review", "DONE", 2))
-    simulation.accept_worker_result(_worker_envelope("test", "BLOCKED", 1))
-    simulation.render_authoritative_state()
-    _assert_result_blocked(runtime, project, feature)
-    simulation.accept_worker_result(_worker_envelope("test", "BLOCKED", 2))
-    simulation.accept_worker_result(_worker_envelope("test", "BLOCKED", 3))
-    assert simulation.open_escalations == {"T-1:test"}
-    simulation.render_authoritative_state()
-    _assert_result_blocked(runtime, project, feature)
-
-    simulation.resolve_escalation("T-1:test")
-    simulation.accept_worker_result(_worker_envelope("test", "DONE", 4))
-    simulation.render_authoritative_state()
-    assert simulation.complete is True
-    persisted_events = [
-        json.loads(line)
-        for line in simulation.events_path.read_text(encoding="utf-8").splitlines()
-    ]
-    assert [event["event_type"] for event in persisted_events].count(
-        "worker_result"
-    ) == 8
-    assert any(
-        event["event_type"] == "escalation_opened" for event in persisted_events
-    )
-    assert any(
-        event["event_type"] == "escalation_resolved"
-        and event["authority"] == "USER"
-        for event in persisted_events
-    )
-
-    preflight = _run(
-        runtime,
-        project,
-        "preflight",
-        "phase",
-        "--project-root",
-        ".",
-        "--target-phase",
-        "RESULT",
-    )
-    assert preflight.returncode == 0, preflight.stderr or preflight.stdout
-    result_phase = _transition(runtime, project, feature, "EXECUTE", "RESULT")
-    assert result_phase["state"]["phase"] == "RESULT"
-    controller_result = _json_run(
-        runtime, project, "state", "--project-root", ".", "resume", feature
-    )
-    assert controller_result["code"] == "ACTION"
-    controller_path = project / ".harness/result-input/controller.json"
-    evidence_path = project / ".harness/result-input/evidence.json"
-    _write_json(controller_path, controller_result)
-    _write_json(
-        evidence_path,
-        {
-            "schema_version": 1,
-            "feature": feature,
-            "completion_identity": "e2e-consumer-gates-0001",
-            "verified": True,
-            "summary": "Consumer-owned E2E and shared explicit verification passed.",
-            "validation": [
-                {
-                    "name": "consumer-e2e",
-                    "status": consumer_e2e["status"],
-                    "evidence": ".harness/reports/consumer-e2e.json",
-                },
-                {
-                    "name": "shared-explicit-verify",
-                    "status": shared_verify["status"],
-                    "evidence": ".harness/reports/shared-verify.json",
-                },
-                {
-                    "name": "sole-writer-simulation",
-                    "status": "PASS",
-                    "evidence": str(simulation.events_path.relative_to(project)),
-                },
-            ],
-        },
-    )
-    materialized = _json_run(
-        runtime,
-        project,
-        "result-action",
-        "--project-root",
-        ".",
-        "--feature",
-        feature,
-        "--controller-result",
-        str(controller_path),
-        "--evidence",
-        str(evidence_path),
-        "--result-date",
-        "2026-07-30",
-    )
-    assert materialized["Status"] == "DONE"
-    assert materialized["Verdict"] == "SYNC_SKIPPED"
-    result = project / "docs/sdd/result/2026-07-30-e2e-parity.md"
-    rendered_result = result.read_text(encoding="utf-8")
-    assert "consumer-e2e" in rendered_result
-    assert "shared-explicit-verify" in rendered_result
-    assert "sole-writer-simulation" in rendered_result
-    complete = _json_run(
-        runtime, project, "state", "--project-root", ".", "resume", feature
-    )
-    assert complete["code"] == "COMPLETE"
-    persisted = json.loads(state_path.read_text(encoding="utf-8"))
-    assert "session" not in json.dumps(persisted).lower()
-    assert not (installation / ".harness").exists()
-    assert _snapshot(installation) == install_before
 
 
-@pytest.mark.parametrize("failure", ("consumer-e2e", "shared-verify"))
-def test_lifecycle_blocks_result_when_executable_acceptance_gate_fails(
-    tmp_path: Path, failure: str,
-) -> None:
-    project = _project(tmp_path, failure)
-    _, runtime = _opaque_runtime(tmp_path / failure)
-    feature = f"{failure}-failure"
-    simulation = _enter_execute_for_negative(runtime, project, feature)
-    if failure == "consumer-e2e":
-        (project / "web/Panel.tsx").write_text(
-            """// A source-string pseudo-test would still find all of these:
-// data-testid="portable-panel" >Ready</section> Complete
-export function mountPanel(root) {
-  const status = document.createElement('p');
-  status.setAttribute('role', 'status');
-  status.textContent = 'Ready';
-  const button = document.createElement('button');
-  button.setAttribute('aria-pressed', 'false');
-  button.textContent = 'Complete';
-  button.addEventListener('click', () => {});
-  root.replaceChildren(status, button);
-  return { status, button };
-}
-""",
-            encoding="utf-8",
-        )
-    consumer_e2e = _run_consumer_e2e(project)
-    if failure == "shared-verify":
-        (project / ".harness/state/e2e-config.json").unlink()
-    shared_verify = _run_shared_verify(runtime, project)
-    assert consumer_e2e["status"] == (
-        "FAIL" if failure == "consumer-e2e" else "PASS"
-    )
-    if failure == "consumer-e2e":
-        assert "E2E_BEHAVIOR_MISMATCH" in consumer_e2e["evidence"]["stderr"]
-    assert shared_verify["status"] == (
-        "FAIL" if failure == "shared-verify" else "PASS"
-    )
-    simulation.accept_gate_report("consumer_e2e", consumer_e2e)
-    simulation.accept_gate_report("shared_verify", shared_verify)
-    simulation.render_authoritative_state()
-    assert simulation.complete is False
-    _assert_result_blocked(runtime, project, feature)
-    assert not (project / ".harness/result-input").exists()
 
 
 def test_consumer_runner_browser_unavailable_fails_loudly(tmp_path: Path) -> None:
@@ -1030,3 +545,102 @@ def test_result_evidence_maps_f1_through_f10_without_raw_secret() -> None:
     )
     assert RAW_CREDENTIAL not in rendered
     assert "/Users/" not in rendered
+
+def _production_browser_bundle(project: Path, runtime: Path) -> dict:
+    b = json.loads((ROOT / "tests/fixtures/execution/bundle.json").read_text())
+    b.update(feature="browser-execution", inputs=["src", "web", "tests"])
+    b["criteria"][0].update(action="Click Complete in rendered panel", expected="Status Complete and aria-pressed true", failure="button with no effect")
+    b["nodes"][0].update(goal="Implement observable panel behavior", inputs=["src", "web", "tests"], write_scope=["src", "web"], outputs=["web/Panel.tsx"], gates=["browser", "policy"])
+    code = '''import json,sys,subprocess,tempfile,shutil
+from pathlib import Path
+root=Path.cwd()
+with tempfile.TemporaryDirectory() as tmp:
+    if sys.argv[2]=='defect':
+        check=Path(tmp)
+        for d in ['web','tests']: shutil.copytree(root/d,check/d)
+        p=check/'web/Panel.tsx'
+        p.write_text(p.read_text().replace('status.textContent = "Complete";', 'status.textContent = "Ready";'))
+    else: check=root
+    r=subprocess.run([sys.executable,'tests/consumer_panel_e2e.py'],cwd=check,capture_output=True,text=True)
+    print(r.stdout);print(r.stderr,file=sys.stderr)
+    ok=r.returncode==0
+    Path(sys.argv[1]).write_text(json.dumps({'tests':1,'failures':int(not ok),'criteria':{'C1':ok}}))
+    sys.exit(0 if ok else 1)
+'''
+    definitions={str(p.relative_to(project)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (project/'tests').glob('*') if p.is_file()}
+    browser={"id":"browser","kind":"e2e","criteria":["C1"],"format":"json","min_tests":1,"definitions":definitions,
+             "argv":[sys.executable,"-c",code,"{report}","actual"],"oracle":{"argv":[sys.executable,"-c",code,"{report}","defect"],"reason":"Rendered click must change state; source strings are insufficient"}}
+    policy_code = '''import json,sys,subprocess
+from pathlib import Path
+r=subprocess.run([sys.executable,sys.argv[3],'verify','--project-root','.','--source','explicit','--branch',('main' if sys.argv[2]=='defect' else 'feature/browser'),'--changed-file','web/Panel.tsx'],capture_output=True,text=True)
+print(r.stdout);print(r.stderr,file=sys.stderr)
+ok=r.returncode==0
+Path(sys.argv[1]).write_text(json.dumps({'tests':1,'failures':int(not ok),'criteria':{'C1':ok}}))
+sys.exit(0 if ok else 1)
+'''
+    # Runtime is an installed, inventory-validated external tool, carried in argv as data.
+    policy={"id":"policy","kind":"integration","criteria":["C1"],"format":"json","min_tests":1,
+            "argv":[sys.executable,"-c",policy_code,"{report}","actual",str(runtime)],
+            "oracle":{"argv":[sys.executable,"-c",policy_code,"{report}","defect",str(runtime)],"reason":"Default-branch implementation must fail"}}
+    policy['tools']={str(runtime):hashlib.sha256(runtime.read_bytes()).hexdigest()}
+    b['gates']=[browser,policy];b['integration_gates']=['browser','policy']
+    b['verification']={k:{'required':k in {'e2e','integration'},'reason':'Browser fixture with policy check'} for k in ('build','unit','integration','e2e')}
+    return b
+
+
+def _production_start(project: Path, runtime: Path):
+    b=_production_browser_bundle(project,runtime)
+    _write_json(project/'bundle.json',b)
+    ready=_json_run(runtime,project,'execute','prepare','--file','bundle.json')
+    _json_run(runtime,project,'execute','approve','--digest',ready['digest'],'--quote','Implement browser fixture','--source','test user')
+    return _json_run(runtime,project,'execute','advance')
+
+
+def _production_submit(project: Path, runtime: Path, assignment: dict):
+    submission={k:assignment[k] for k in ('node_id','attempt_id','bundle','action_key')}
+    submission.update(summary='Panel implementation ready for browser verification',criteria_review={'C1':'The click handler is implemented; script must verify the rendered state transition.'})
+    _write_json(project/'submission.json',submission)
+    return _json_run(runtime,project,'execute','submit','--file','submission.json')
+
+
+def _production_observe(project: Path, runtime: Path):
+    import time
+    deadline=time.monotonic()+90
+    while time.monotonic()<deadline:
+        result=_json_run(runtime,project,'execute','advance')
+        if result['code']=='ACTION' or result['code']=='COMPLETED': return result
+        time.sleep(.05)
+    raise AssertionError(result)
+
+
+def test_clean_environment_production_execution_and_browser_result(tmp_path: Path) -> None:
+    project=_project(tmp_path)
+    installation,runtime=_opaque_runtime(tmp_path)
+    before=_snapshot(installation)
+    a=_production_start(project,runtime)
+    _production_submit(project,runtime,a)
+    review=_production_observe(project,runtime)
+    assert review['kind']=='integration_review',review
+    _write_json(project/'review.json',{'kind':'integration_review','action_key':review['action_key'],'summary':'Actual browser and policy receipts reviewed','criteria_review':{'C1':'Rendered click changes both status and aria-pressed; deliberately broken handler fails.'}})
+    _json_run(runtime,project,'execute','submit','--file','review.json')
+    result=_json_run(runtime,project,'execute','advance')
+    assert result['code']=='COMPLETED'
+    assert (project/result['report']).is_file()
+    assert not (project/'.harness/state/pipeline.json').exists()
+    assert _snapshot(installation)==before
+
+
+@pytest.mark.parametrize('failure',('consumer-e2e','shared-verify'))
+def test_production_blocks_completion_when_required_gate_fails(tmp_path: Path, failure: str) -> None:
+    project=_project(tmp_path,failure)
+    _,runtime=_opaque_runtime(tmp_path/failure)
+    a=_production_start(project,runtime)
+    if failure=='consumer-e2e':
+        p=project/'web/Panel.tsx'
+        p.write_text(p.read_text().replace('status.textContent = "Complete";', 'status.textContent = "Ready";'))
+    else:
+        (project/'.harness/state/e2e-config.json').unlink()
+    _production_submit(project,runtime,a)
+    result=_production_observe(project,runtime)
+    assert result['kind']=='repair',result
+    assert not (project/'docs/execution/browser-execution/results').exists()

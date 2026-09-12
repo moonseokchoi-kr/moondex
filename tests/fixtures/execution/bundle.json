@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "feature": "example",
+  "revision": "r1",
+  "goal": "Produce the agreed answer",
+  "before": "answer missing",
+  "after": "answer is 42",
+  "sources": [
+    {
+      "source": "fixture user",
+      "text": "Return 42"
+    }
+  ],
+  "design": [
+    "Store the answer in src/value.txt"
+  ],
+  "exclusions": [
+    "No deployment"
+  ],
+  "criteria": [
+    {
+      "id": "C1",
+      "requirement": "R1",
+      "input": "fixture",
+      "action": "read value",
+      "expected": "42",
+      "failure": "43"
+    }
+  ],
+  "inputs": [
+    "src"
+  ],
+  "policy": {
+    "concurrency": 1,
+    "recovery_attempts": 2,
+    "time_limit": null,
+    "token_limit": null
+  },
+  "verification": {
+    "build": {
+      "required": false,
+      "reason": "small local data fixture"
+    },
+    "unit": {
+      "required": true,
+      "reason": "small local data fixture"
+    },
+    "integration": {
+      "required": false,
+      "reason": "small local data fixture"
+    },
+    "e2e": {
+      "required": false,
+      "reason": "small local data fixture"
+    }
+  },
+  "gates": [
+    {
+      "id": "answer",
+      "kind": "unit",
+      "argv": [
+        "python3",
+        "-c",
+        "import json,sys\nfrom pathlib import Path\nvalue = int(Path('src/value.txt').read_text())\nif sys.argv[2] == 'defect': value += 1\nok = value == 42\nPath(sys.argv[1]).write_text(json.dumps({'tests':1,'failures':int(not ok),'criteria':{'C1':ok}}))\nsys.exit(0 if ok else 1)\n",
+        "{report}",
+        "actual"
+      ],
+      "format": "json",
+      "min_tests": 1,
+      "criteria": [
+        "C1"
+      ],
+      "oracle": {
+        "argv": [
+          "python3",
+          "-c",
+          "import json,sys\nfrom pathlib import Path\nvalue = int(Path('src/value.txt').read_text())\nif sys.argv[2] == 'defect': value += 1\nok = value == 42\nPath(sys.argv[1]).write_text(json.dumps({'tests':1,'failures':int(not ok),'criteria':{'C1':ok}}))\nsys.exit(0 if ok else 1)\n",
+          "{report}",
+          "defect"
+        ],
+        "reason": "off-by-one must fail"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "N1",
+      "goal": "write 42",
+      "executor": "current",
+      "inputs": [
+        "src"
+      ],
+      "write_scope": [
+        "src"
+      ],
+      "outputs": [
+        "src/value.txt"
+      ],
+      "depends_on": [],
+      "criteria": [
+        "C1"
+      ],
+      "gates": [
+        "answer"
+      ],
+      "locks": [],
+      "split_rationale": "one small task"
+    }
+  ],
+  "integration_gates": [
+    "answer"
+  ],
+  "compound": {
+    "enabled": false
+  }
+}

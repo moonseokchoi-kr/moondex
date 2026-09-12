@@ -144,71 +144,19 @@ def test_user_facing_surface_has_no_host_or_private_runtime_assumptions() -> Non
     assert all("Claude Design" in line or "claude-design" in line for line in claude_lines)
 
 
-def test_readme_documents_installed_controller_first_observable_flow(tmp_path: Path) -> None:
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+def test_readme_documents_installed_delegated_flow(tmp_path: Path) -> None:
+    readme = (ROOT / "README.md").read_text()
     consumer_docs = readme.split("## 플러그인 개발자 전용", 1)[0]
-    assert "$moondex:sdd start <feature>" in consumer_docs
-    assert "<moondex-runtime>" in consumer_docs
-    assert "PYTHONPATH`를 직접 다루지" in consumer_docs
-    assert "PYTHONPATH=" not in consumer_docs
+    assert "$moondex:execute" in consumer_docs
+    assert "$moondex:sdd start" not in consumer_docs
     assert "python3 -m harness_core" not in consumer_docs
-    assert not re.search(r"python3 (?:scripts/|skills/)", consumer_docs)
-    assert "checkout 루트" in readme.split("## 플러그인 개발자 전용", 1)[1]
-    assert "WAITING_USER" in readme
-    assert "ADVISORY_UNAVAILABLE" in readme
-    assert "status`와 `resume`은 읽기 전용" in readme
-
     installation, consumer, runtime = _installed_plugin(tmp_path)
-    started = _state(runtime, consumer, "start", "portable-doc-flow")
-    state_path = consumer / ".harness/state/pipeline.json"
-    before = state_path.read_bytes()
-    status = _state(runtime, consumer, "status", "portable-doc-flow")
-    resumed = _state(runtime, consumer, "resume", "portable-doc-flow")
-    assert started["state"]["feature"] == "portable-doc-flow"
-    assert status == resumed
-    assert state_path.read_bytes() == before
-    assert not (installation / ".harness").exists()
+    before = list(consumer.iterdir())
+    result = subprocess.run([sys.executable, str(runtime), "execute", "status"], cwd=consumer, capture_output=True, text=True)
+    assert result.returncode == 0
+    assert json.loads(result.stdout)["code"] == "NOT_STARTED"
+    assert list(consumer.iterdir()) == before
 
-    spec = consumer / "docs/sdd/spec/2026-07-24-portable-doc-flow.md"
-    spec.parent.mkdir(parents=True)
-    spec.write_text("# Portable spec\n", encoding="utf-8")
-    waiting = _state(runtime, consumer, "resume", "portable-doc-flow")
-    assert waiting["code"] == "WAITING_USER"
-    waiting_bytes = state_path.read_bytes()
-    denied = _state(
-        runtime,
-        consumer,
-        "transition",
-        "--feature",
-        "portable-doc-flow",
-        "--expected",
-        "SPEC",
-        "--target",
-        "DESIGN",
-    )
-    assert denied["code"] == "BLOCKED_APPROVAL"
-    assert state_path.read_bytes() == waiting_bytes
-    approved = _state(
-        runtime,
-        consumer,
-        "transition",
-        "--feature",
-        "portable-doc-flow",
-        "--expected",
-        "SPEC",
-        "--target",
-        "DESIGN",
-        "--approve",
-        "spec",
-    )
-    assert approved["code"] == "ACTION"
-    assert approved["state"]["phase"] == "DESIGN"
-
-    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
-    agent_user_map = agents.split("## Plugin-development Validation", 1)[0]
-    assert "$moondex:sdd" in agent_user_map
-    assert not re.search(r"(?m)^python3 -m harness_core", agent_user_map)
-    assert "checkout cwd" in agent_user_map and "`PYTHONPATH`" in agent_user_map
 
 
 def test_documented_repo_marketplace_deeplink_uses_current_clone_absolute_path(
@@ -383,12 +331,12 @@ def test_docs_describe_real_profiles_data_boundaries_and_optional_extensions() -
         "SAFE_FIX",
         "REJECTED",
         "ESCALATED",
-        "SYNC_SKIPPED",
-        "SYNC_APPLIED",
-        "result-action.py",
+        "SKIPPED",
+        ".moondex/",
+        "docs/execution/",
         "scripts/install-hooks.sh",
         "moondex-verify",
     )
     assert not [term for term in required if term not in text]
-    assert "원격 CI나 게시 기능은 로컬 baseline의 전제조건이 아닙니다." in text
+    assert "개인 경로나 조직 destination의 기본값은 없습니다." in text
     assert "개인 경로나 조직 destination의 기본값은 없습니다." in text

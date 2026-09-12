@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 from harness_core.cli import main
 from harness_core.validation import classify_changed_files
@@ -16,6 +17,13 @@ def _copy_fixture(tmp_path: Path, name: str) -> Path:
             target = tmp_path / path.relative_to(source)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(path.read_bytes())
+    # Materialize runtime evidence explicitly; ignored state files are not fixture sources.
+    state = tmp_path / ".harness/state"
+    state.mkdir(parents=True, exist_ok=True)
+    if name in {"valid_change", "secret_references", "protected_path"}:
+        (state / "tdd-manifest.json").write_text(json.dumps({"red_evidence": "fixture regression", "green_command": "python3 -m pytest"}))
+    if name == "valid_change":
+        (state / "e2e-config.json").write_text(json.dumps({"command": "fixture browser check"}))
     return tmp_path
 
 

@@ -27,6 +27,7 @@ ACTIVE_REACHABLE_FILES = [
     ROOT / relative for relative in ACTIVE_SURFACE_CLASSIFICATION["included"]
 ]
 ACTIVE = [
+    ROOT / "skills/execute/SKILL.md",
     ROOT / "skills/sdd/SKILL.md",
     ROOT / "skills/sdd-orchestrator/SKILL.md",
 ]
@@ -229,19 +230,18 @@ def test_active_sdd_paths_are_host_neutral_and_explicit() -> None:
         "init_" + "pipeline",
     )
     combined = "\n".join(path.read_text(encoding="utf-8") for path in ACTIVE)
-    assert "python3 <moondex-runtime> state" in combined
+    assert "python3 <moondex-runtime> execute" in combined
     assert "../sdd/runtime/moondex-runtime.py" in combined
-    assert "state status" in combined
-    assert "state resume" in combined
-    assert "state transition" in combined
+    assert " status" in combined
+    assert " resume" in combined
+    assert " advance" in combined
     assert not [token for token in forbidden if token in combined]
 
 
 def test_active_python_commands_use_the_package_relative_runtime() -> None:
     """Consumer commands must not resolve code from the project working tree."""
     skill_files = (
-        ROOT / "skills/sdd/SKILL.md",
-        ROOT / "skills/sdd-orchestrator/SKILL.md",
+        ROOT / "skills/execute/SKILL.md",
         ROOT / "skills/code-mapper/SKILL.md",
         ROOT / "skills/pr-converge/SKILL.md",
         ROOT / "skills/self-improve/SKILL.md",
@@ -256,43 +256,12 @@ def test_active_python_commands_use_the_package_relative_runtime() -> None:
         assert "../sdd/runtime/moondex-runtime.py" in "\n".join(lines)
 
 
-def test_each_controller_transition_has_one_phase_scoped_authority_owner() -> None:
-    declarations = []
-    for path in ACTIVE_SDD_PACKAGE_FILES:
-        for match in AUTHORITY_TRANSITION.finditer(path.read_text(encoding="utf-8")):
-            declarations.append(
-                (match.group("expected"), match.group("target"), match.group("owner"), path)
-            )
-
-    expected = {
-        ("SPEC", "DESIGN"): "SDD coordinator",
-        ("DESIGN", "PLAN"): "SDD coordinator",
-        ("PLAN", "EXECUTE"): "SDD coordinator",
-        ("EXECUTE", "RESULT"): "execution orchestrator",
-    }
-    assert len(declarations) == len(expected), declarations
-    actual = {}
-    for source, target, owner, path in declarations:
-        assert (source, target) not in actual, f"conflicting owners for {source}->{target}: {path}"
-        actual[(source, target)] = owner
-    assert actual == expected
-
-    combined = "\n".join(path.read_text(encoding="utf-8") for path in ACTIVE)
-    assert "authority handoff: SDD coordinator -> execution orchestrator" in combined
-    assert "Workers never invoke `state transition`" in combined
-
-    execution = (ROOT / "skills/sdd-orchestrator/SKILL.md").read_text(encoding="utf-8")
-    assert execution.count(
-        '<!-- authority-resume phase="RESULT" owner="execution orchestrator" '
-        'transition="forbidden" action="generate-result-report" -->'
-    ) == 1
-    assert "must not invoke `state transition` while the controller phase is `RESULT`" in execution
-    assert "<moondex-runtime> result-action" in execution
-    result_action = ROOT / "skills/sdd-orchestrator/scripts/result-action.py"
-    source = result_action.read_text(encoding="utf-8")
-    assert "subprocess" not in source
-    assert "controller_transition" not in source
-    assert "worker_dispatches" in source and "transition_calls" in source
+def test_retired_entries_do_not_authorize_phase_transitions() -> None:
+    for name in ("sdd", "sdd-orchestrator", "sdd-taskrunner"):
+        text = (ROOT / "skills" / name / "SKILL.md").read_text()
+        assert not AUTHORITY_TRANSITION.search(text)
+        assert "$moondex:execute" in text
+    # Actual transition rejection and observed execution are tested via installed CLI E2E.
 
 
 def test_active_package_scan_ignores_runtime_bytecode_after_normal_invocation(
@@ -302,7 +271,7 @@ def test_active_package_scan_ignores_runtime_bytecode_after_normal_invocation(
     env.pop("PYTHONDONTWRITEBYTECODE", None)
     env["PYTHONPYCACHEPREFIX"] = str(tmp_path / "pycache")
     result = subprocess.run(
-        ["python3", str(ROOT / "skills/sdd/runtime/moondex-runtime.py"), "result-action", "--help"],
+        ["python3", str(ROOT / "skills/sdd/runtime/moondex-runtime.py"), "execute", "--help"],
         cwd=ROOT, env=env, check=False, text=True, capture_output=True,
     )
     assert result.returncode == 0, result.stderr
@@ -663,9 +632,9 @@ def test_user_research_and_taskrunner_have_portable_fallbacks_and_relative_asset
     taskrunner_path = ROOT / "skills/sdd-taskrunner/SKILL.md"
     taskrunner = taskrunner_path.read_text(encoding="utf-8")
     relative = Path("assets/templates/task-document.md")
-    assert relative.as_posix() in taskrunner
-    assert (taskrunner_path.parent / relative).is_file()
-    assert "개인 홈이나 전역 설치 경로를" in taskrunner
+    assert (taskrunner_path.parent / relative).is_file()  # Historical asset preserved.
+    assert "../execute/SKILL.md" in taskrunner
+    assert (taskrunner_path.parent / "../execute/SKILL.md").resolve().is_file()
 
 
 def test_active_surfaces_do_not_link_archived_profiles() -> None:

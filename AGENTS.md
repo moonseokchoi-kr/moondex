@@ -1,7 +1,7 @@
 # Moondex
 
 Moondex is a Codex plugin of project-local workflow skills for idea discovery,
-controller-first SDD, deterministic review convergence, enforcement, and harness audits.
+delegated execution, deterministic review convergence, enforcement, and harness audits.
 The plugin manifest exposes `skills/` only. Files under `agents/` are role profiles that an
 orchestrator may inject into collaborators; their presence does not register or authorize workers.
 
@@ -17,15 +17,15 @@ orchestrator may inject into collaborators; their presence does not register or 
   exact plugin root. A personal marketplace uses canonical `./plugins/moondex` instead.
 - Keep generated project harness state under `.harness/state/`.
 - Treat `docs/sdd/` as durable project artifacts and `.harness/` as local runtime evidence.
-- In consumer projects, invoke `$moondex:sdd start <feature>` to initialize SDD. The loaded skill
+- In consumer projects, invoke `$moondex:execute` to prepare or continue an execution bundle. The loaded skill
   resolves `<moondex-runtime>` package-relatively; do not require a checkout cwd, `PYTHONPATH`,
   or user knowledge of the installed plugin path.
-- At the start of a continuation turn, run `status <feature>` and `resume <feature>` and follow
-  the returned code through `$moondex:sdd`. These reads never imply approval or a background
-  transition.
-- Require explicit approval for the immediately requested spec, design, or plan transition.
-- Treat local hooks as optional fast feedback. Explicit controller and preflight commands remain
-  authoritative when no hook is installed.
+- Continue delegated runs with `$moondex:execute`: status is read-only; resume reconciles and may advance authorized work.
+- Require a real user decision bound to the execution bundle digest. No fixed document phase order.
+- Keep execution state under `.moondex/` and durable revisions/results under `docs/execution/`.
+- Script owns shared state, scheduling and verification. Current AI performs assigned implementation and judgment.
+- Required verification has no total-time/token cutoff. Two failed automatic repairs require a recorded decision.
+- Retired SDD instructions are routing notices only; do not invoke the historical controller as a product mode.
 - Keep raw reproduction evidence below `.harness/audit/`; render redacted CLI, report, result,
   sync, and export surfaces.
 - Knowledge sync is opt-in through project-local configuration. Never infer a destination.
@@ -34,7 +34,7 @@ orchestrator may inject into collaborators; their presence does not register or 
 ## User Invocation Map
 
 - `$moondex:idea-workshop` — idea discovery and validation.
-- `$moondex:sdd` — specification, design, plan, execution, and result workflow.
+- `$moondex:execute` — agreed intent, execution, verification, feedback and recording.
 - `$moondex:pr-converge` — deterministic local review disposition and convergence.
 - `$moondex:self-improve` — explicit project-local learning candidate processing.
 - `$moondex:code-mapper` — graph probe or explicit approximate fallback.

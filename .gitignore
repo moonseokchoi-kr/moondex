@@ -19,6 +19,8 @@ node_modules/
 **/.agents/settings.local.json
 .harness/state/
 **/.harness/state/
+.harness/audit/
+**/.harness/audit/
 
 # Python
 __pycache__/
@@ -27,3 +29,6 @@ __pycache__/
 # Stray analysis artifacts
 compatibility-report.md
 detect-claude-deps.csv
+
+# Delegated execution local state and receipts
+**/.moondex/
