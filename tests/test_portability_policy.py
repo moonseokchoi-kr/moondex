@@ -88,7 +88,8 @@ def test_manifest_is_moondex_skills_only_and_marketplace_is_aligned() -> None:
     assert set(manifest) <= allowed
     assert manifest["name"] == "moondex"
     assert manifest["skills"] == "./skills/"
-    assert re.fullmatch(r"\d+\.\d+\.\d+", manifest["version"])
+    # Local reinstall uses the documented Codex cachebuster as SemVer build metadata.
+    assert re.fullmatch(r"\d+\.\d+\.\d+(?:\+codex\.[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?", manifest["version"])
     assert not ({"hooks", "apps", "mcpServers"} & set(manifest))
     assert all(prompt.startswith("$moondex:") for prompt in manifest["interface"]["defaultPrompt"])
 

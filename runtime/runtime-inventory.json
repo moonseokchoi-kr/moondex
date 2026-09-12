@@ -3,15 +3,15 @@
   "runtime_protocol": 1,
   "plugin": {
     "name": "moondex",
-    "version": "0.5.0"
+    "version": "0.5.0+codex.20260912155004"
   },
   "mode_policy": "regular-not-group-or-world-writable",
   "files": [
     {
       "path": ".codex-plugin/plugin.json",
       "kind": "regular",
-      "size": 1245,
-      "sha256": "a5fd717f99c4251d16df8e580f75861da2e1e35bd11942c6aef0003e14689472"
+      "size": 1386,
+      "sha256": "67bb538e96a7dba885370e9af098f25878f1e73520d7ac51a8ef8bf80c00b009"
     },
     {
       "path": "harness_core/__init__.py",

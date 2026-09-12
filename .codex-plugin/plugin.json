@@ -1,6 +1,6 @@
 {
   "name": "moondex",
-  "version": "0.5.0",
+  "version": "0.5.0+codex.20260912155004",
   "description": "Agreed intent, script-owned delegated execution, observed verification and resumable evidence.",
   "author": {
     "name": "moonseokchoi-kr",
@@ -28,9 +28,9 @@
       "Workflow"
     ],
     "defaultPrompt": [
-      "$moondex:idea-workshop으로 아이디어를 검증해줘",
-      "$moondex:execute로 합의한 작업을 구현하고 검증해줘",
-      "$moondex:harness audit으로 프로젝트 하네스를 점검해줘"
+      "$moondex:idea-workshop\uc73c\ub85c \uc544\uc774\ub514\uc5b4\ub97c \uac80\uc99d\ud574\uc918",
+      "$moondex:execute\ub85c \ud569\uc758\ud55c \uc791\uc5c5\uc744 \uad6c\ud604\ud558\uace0 \uac80\uc99d\ud574\uc918",
+      "$moondex:harness audit\uc73c\ub85c \ud504\ub85c\uc81d\ud2b8 \ud558\ub124\uc2a4\ub97c \uc810\uac80\ud574\uc918"
     ],
     "brandColor": "#2563EB"
   }
