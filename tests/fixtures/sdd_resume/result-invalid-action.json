@@ -1,9 +1,0 @@
-{
-  "code": "ACTION",
-  "message": "wrong phase",
-  "next_step": "must be rejected",
-  "state": {
-    "feature": "result-resume",
-    "phase": "EXECUTE"
-  }
-}

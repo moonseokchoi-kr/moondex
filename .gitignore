@@ -1,34 +1,11 @@
-# Workspace directories (generated per-project, not part of plugin)
-*-workspace/
-
-# OS files
+# Local workspaces and editor files
+/worktrees/
 .DS_Store
 Thumbs.db
-
-# Editor
 .vscode/
 .idea/
 
-# Node (if scripts added later)
-node_modules/
-
-# Local state (runtime-only, not part of plugin)
-.agents/state/
-**/.agents/state/
-.agents/settings.local.json
-**/.agents/settings.local.json
-.harness/state/
-**/.harness/state/
-.harness/audit/
-**/.harness/audit/
-
-# Python
+# Python verification caches
 __pycache__/
 *.py[cod]
-
-# Stray analysis artifacts
-compatibility-report.md
-detect-claude-deps.csv
-
-# Delegated execution local state and receipts
-**/.moondex/
+.pytest_cache/

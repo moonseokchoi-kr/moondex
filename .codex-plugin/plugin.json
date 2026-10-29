@@ -1,7 +1,7 @@
 {
   "name": "moondex",
-  "version": "0.5.0+codex.20260912155004",
-  "description": "Agreed intent, script-owned delegated execution, observed verification and resumable evidence.",
+  "version": "0.8.0",
+  "description": "Project-local coding guidance, quality setup, opt-in TDD, and deeper task reframing.",
   "author": {
     "name": "moonseokchoi-kr",
     "url": "https://github.com/moonseokchoi-kr"
@@ -10,27 +10,30 @@
   "repository": "https://github.com/moonseokchoi-kr/moondex",
   "license": "MIT",
   "keywords": [
-    "delegated-execution",
-    "harness",
-    "agent-orchestration",
-    "verification"
+    "project-guidelines",
+    "code-quality",
+    "lint",
+    "verification",
+    "tdd",
+    "tidy-first",
+    "deeper-prompt"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Moondex",
-    "shortDescription": "Delegated execution with verifiable results",
-    "longDescription": "Flexible preparation, immutable approval, script-owned execution and recovery, actual verification, and optional knowledge recording.",
+    "shortDescription": "Coding guidance and deeper task reframing",
+    "longDescription": "Four independent skills for project-local coding guidance, quality checks, opt-in TDD, and user-directed deeper task reframing.",
     "developerName": "moonseokchoi-kr",
     "category": "Productivity",
     "capabilities": [
       "Write",
-      "Research",
       "Workflow"
     ],
     "defaultPrompt": [
-      "$moondex:idea-workshop\uc73c\ub85c \uc544\uc774\ub514\uc5b4\ub97c \uac80\uc99d\ud574\uc918",
-      "$moondex:execute\ub85c \ud569\uc758\ud55c \uc791\uc5c5\uc744 \uad6c\ud604\ud558\uace0 \uac80\uc99d\ud574\uc918",
-      "$moondex:harness audit\uc73c\ub85c \ud504\ub85c\uc81d\ud2b8 \ud558\ub124\uc2a4\ub97c \uc810\uac80\ud574\uc918"
+      "$moondex:project-guidelines 이 프로젝트에 코딩·검증 지침을 적용해줘",
+      "$moondex:code-quality-setup 이 프로젝트의 코드 품질 검사 설정을 보완해줘",
+      "$moondex:tdd-tidy-first 이 프로젝트의 언어와 검사 도구에 맞춰 AGENTS.md에 TDD와 Tidy First 지침을 적용해줘",
+      "$moondex:deeper-prompt 이 작업을 더 깊이 있게 수행할 프롬프트로 재작성해줘"
     ],
     "brandColor": "#2563EB"
   }

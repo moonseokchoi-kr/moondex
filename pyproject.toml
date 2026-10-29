@@ -1,5 +1,0 @@
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-norecursedirs = ["evals"]
-addopts = "-ra"
-

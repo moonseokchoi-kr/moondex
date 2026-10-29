@@ -1,208 +1,106 @@
 # Moondex
 
-Moondex는 아이디어 탐색, 합의 기반 위임 실행, 실제 검증, 리뷰 수렴을
-프로젝트 안에서 재현 가능하게 실행하는 Codex 플러그인입니다. manifest가
-공개하는 실행 표면은 `skills/`뿐이며, `agents/`는 오케스트레이터가 주입할
-수 있는 역할 프로필입니다. 역할 프로필 파일이 존재한다고 worker가 자동으로
-등록되거나 실행되지는 않습니다.
+프로젝트별 코딩 지침, 코드 품질 설정, 선택형 TDD와 깊이 있는 작업 재구성을 제공하는 네 개의 Codex 스킬입니다.
+글로벌에 코딩 절차를 강제하지 않고, 필요한 프로젝트에 로컬 지침과 검사 설정을 남깁니다.
 
-## 설치 및 Codex 등록
+| 스킬 | 역할 |
+|---|---|
+| `project-guidelines` | 기존 `AGENTS.md`를 보존하며 구현 범위·검증·종료 원칙 작성 |
+| `code-quality-setup` | 기존 lint·타입 검사 설정 보완과 미검출 항목의 리뷰 기준 작성 |
+| `tdd-tidy-first` | 프로젝트에 맞춘 엄격한 TDD·Tidy First 지침 설치 또는 `go` 한 번에 계획된 테스트 하나 실행 |
+| `deeper-prompt` | 원문 프롬프트로 작업을 깊이 있게 재구성하고 사용자에게 선택권 제공 |
 
-### 현재 clone을 repo-local marketplace로 사용
+네 스킬은 독립적으로 사용할 수 있습니다. 실행기, 자동 훅, 작업 상태 관리,
+고정 리뷰 라운드를 요구하지 않습니다. 일반 글쓰기·조사·브레인스토밍에는
+코딩 지침을 적용하지 않도록 범위를 명시합니다.
 
-이 저장소의 marketplace는 `.codex-plugin/marketplace.json`입니다. 일반적인
-개인 marketplace의 source는 `./plugins/moondex`이지만, 이 파일은 플러그인
-루트 내부의 `.codex-plugin/`에 있으므로 source `../`가 정확히 현재 플러그인
-루트를 가리키는 의도적 예외입니다.
+## 사용
 
-clone 루트에서 다음 검증을 실행하면 manifest와 marketplace가 유효하고 source가
-다른 디렉터리가 아닌 현재 clone을 가리키는지 확인할 수 있습니다.
+플러그인 설치·활성화 후 대상 프로젝트에서 호출합니다.
+
+```text
+$moondex:project-guidelines 이 프로젝트의 AGENTS.md에 코딩·검증 지침을 적용해줘
+$moondex:code-quality-setup 기존 검사 설정을 보존하며 이 프로젝트의 코드 품질 규칙을 설정해줘
+$moondex:tdd-tidy-first 이 프로젝트의 언어와 검사 도구에 맞춰 AGENTS.md에 TDD와 Tidy First 지침을 적용해줘
+$moondex:deeper-prompt 이 작업을 더 깊이 있게 수행할 프롬프트로 재작성해줘
+```
+
+`project-guidelines`는 요청한 로컬 지침 파일을 작성합니다. `code-quality-setup`은
+프로젝트의 언어와 기존 도구를 확인하고 필요한 설정을 수정합니다. TS·Python·Rust·C++의
+참고 파일 중 필요한 것만 읽습니다. 자동 검사와 리뷰 판단을 구분하며,
+기존 코드의 일괄 수정은 기본 작업에 포함하지 않습니다.
+
+설정 후에는 프로젝트에 남긴 지침과 검사 명령을 사용합니다. 매 코딩 작업마다
+두 설정 스킬을 다시 실행할 필요는 없습니다.
+
+`tdd-tidy-first`는 명시 호출 전용이며 다른 두 스킬의 기본 절차를 덮어쓰지 않습니다.
+JS·TS, Python, Rust, C++의 코드·테스트 관용구를 별도 참고 파일로 제공하고, 실제
+소스·매니페스트·테스트·CI를 확인하여 기존 도구에 맞춥니다. 다른 언어는 공통 절차를
+사용하되 전용 참고 자료가 없음을 밝히고 프로젝트 관례를 확인합니다.
+
+지침 적용은 로컬 `AGENTS.md`만 병합하며 제품 코드·테스트·`plan.md`를 생성하지 않습니다.
+적용된 프로젝트에서 `go`라고 하면 `plan.md`의 첫 미완료 테스트 하나만
+Red → Green → Refactor로 처리합니다. 계획이 없거나 다음 테스트가 없으면 구현하지 않습니다.
+각 Red·Green 확인과 리팩터링 단계마다 장시간 테스트를 제외한 전체 테스트를 실행하고
+제외 범위를 보고합니다. 린트·타입 검사는 동작 테스트를 대신하지 않습니다.
+구조 변경과 동작 변경은 분리하며, 커밋은 장시간 테스트를 포함한 모든 테스트 통과와
+컴파일러·린터 경고·오류 해소가 필요합니다. 이 규칙이 자동 커밋·push·공개·배포 권한을
+부여하지는 않습니다. 지침만 수정할 때는 문서의 충돌·중복을 확인합니다.
+
+`deeper-prompt`는 명시적으로 호출해 사용합니다. 원문에 담긴 네 질문에 답하고
+재작성한 프롬프트를 제시한 뒤, 사용자가 적용 여부를 결정합니다. 호출만으로
+재작성된 작업을 실행하거나 파일을 수정하지 않습니다. 코딩 외 작업에도 쓸 수 있습니다.
+
+## 설치
+
+repo-local marketplace는 `.codex-plugin/marketplace.json`입니다. 그 파일의
+`source.path`인 `../`는 현재 플러그인 루트를 가리킵니다.
+Codex의 플러그인 설치 화면에서 이 marketplace를 등록하고 `moondex`를 설치·활성화하세요.
+기존 설치본은 새 버전으로 갱신해야 네 스킬 구성이 반영됩니다.
+
+플러그인 없이 쓰려면 필요한 스킬 디렉터리를 에이전트의 스킬 설치 위치에 복사할 수
+있습니다. 각 스킬의 디렉터리 전체를 복사하세요. `references/`와 `tdd-tidy-first`의
+`agents/openai.yaml`(명시 호출 정책)도 포함해야 합니다.
+이는 스킬을 등록하는 것이며 프로젝트나 글로벌 `AGENTS.md`에 규칙을 자동 추가하지 않습니다.
+
+## 구성
+
+```text
+skills/
+├── deeper-prompt/
+│   ├── SKILL.md
+│   └── agents/openai.yaml
+├── project-guidelines/SKILL.md
+├── code-quality-setup/
+│   ├── SKILL.md
+│   └── references/
+│       ├── typescript.md
+│       ├── python.md
+│       ├── rust.md
+│       └── cpp.md
+└── tdd-tidy-first/
+    ├── SKILL.md
+    ├── agents/openai.yaml
+    └── references/
+        ├── typescript.md
+        ├── python.md
+        ├── rust.md
+        └── cpp.md
+```
+
+## 개발 검증
+
+외부 Python 패키지 없이 패키징 검사를 실행합니다.
 
 ```bash
 python3 -m json.tool .codex-plugin/plugin.json >/dev/null
 python3 -m json.tool .codex-plugin/marketplace.json >/dev/null
-python3 - <<'PY'
-import json
-from pathlib import Path
-
-root = Path.cwd().resolve(strict=True)
-marketplace = (root / ".codex-plugin/marketplace.json").resolve(strict=True)
-entry = json.loads(marketplace.read_text(encoding="utf-8"))["plugins"][0]
-source = (marketplace.parent / entry["source"]["path"]).resolve(strict=True)
-if entry["name"] != "moondex" or source != root:
-    raise SystemExit("marketplace source does not resolve to this Moondex clone")
-print(f"verified repo-local Moondex source: {source}")
-PY
+python3 -m unittest discover -s tests -v
+git diff --check
 ```
 
-현재 clone의 절대 marketplace 경로를 사용한 Codex View/Share deeplink는 다음처럼
-재현 가능하게 생성합니다. 출력된 링크를 열면 Codex가 marketplace와 `moondex`
-플러그인을 식별합니다. clone 경로를 문서에 하드코딩할 필요가 없습니다.
+검사는 플러그인 메타데이터, 네 스킬의 탐색 가능 여부, 설치 경로에서의 참고 파일
+접근과 선택형 스킬의 명시 호출 정책 파일을 확인합니다. 실제 호스트에서의 호출 정책
+집행, 프로젝트의 lint·테스트 통과나 미래 모델의 지침 준수까지 보증하지 않습니다.
 
-<!-- repo-marketplace-deeplink -->
-```python
-from pathlib import Path
-from urllib.parse import quote
-
-marketplace = (
-    Path.cwd() / ".codex-plugin/marketplace.json"
-).resolve(strict=True)
-query = quote(str(marketplace), safe="")
-view = f"codex://plugins/moondex?marketplacePath={query}"
-share = f"{view}&mode=share"
-print(f"View moondex: {view}")
-print(f"Share moondex: {share}")
-```
-
-clone 루트에서 위 Python 블록을 실행하세요. 예를 들어 파일로 저장하지 않고
-`python3 -c '<블록 내용>'`으로 실행해도 됩니다.
-
-### 표준 개인 marketplace로 등록
-
-repo-local 예외 대신 plugin-creator의 표준 개인 배치를 사용하려면 아래 블록을
-clone 루트에서 한 번 실행합니다. 현재 clone을 `~/plugins/moondex`에 안전하게
-symlink하고 `~/.agents/plugins/marketplace.json`의 다른 항목은 보존하면서
-`./plugins/moondex` 항목만 결정적으로 갱신합니다. 기존 destination이 다른
-플러그인을 가리키면 덮어쓰지 않고 중단합니다.
-
-<!-- personal-marketplace-setup -->
-```python
-import json
-from pathlib import Path
-from urllib.parse import quote
-
-source = Path.cwd().resolve(strict=True)
-home = Path.home()
-plugin = home / "plugins/moondex"
-plugin.parent.mkdir(parents=True, exist_ok=True)
-if plugin.exists() or plugin.is_symlink():
-    if plugin.resolve(strict=True) != source:
-        raise SystemExit(f"refusing to replace existing destination: {plugin}")
-else:
-    plugin.symlink_to(source, target_is_directory=True)
-
-marketplace = home / ".agents/plugins/marketplace.json"
-marketplace.parent.mkdir(parents=True, exist_ok=True)
-if marketplace.exists():
-    document = json.loads(marketplace.read_text(encoding="utf-8"))
-else:
-    document = {
-        "name": "personal",
-        "interface": {"displayName": "Personal"},
-        "plugins": [],
-    }
-plugins = [
-    entry for entry in document.get("plugins", [])
-    if entry.get("name") != "moondex"
-]
-plugins.append({
-    "name": "moondex",
-    "source": {"source": "local", "path": "./plugins/moondex"},
-    "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL",
-    },
-    "category": "Productivity",
-})
-document["plugins"] = plugins
-temporary = marketplace.with_suffix(".json.tmp")
-rendered = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
-if not marketplace.exists() or marketplace.read_text(encoding="utf-8") != rendered:
-    temporary.write_text(rendered, encoding="utf-8")
-    temporary.replace(marketplace)
-
-absolute_marketplace = marketplace.resolve(strict=True)
-query = quote(str(absolute_marketplace), safe="")
-view = f"codex://plugins/moondex?marketplacePath={query}"
-share = f"{view}&mode=share"
-print(f"View moondex: {view}")
-print(f"Share moondex: {share}")
-```
-
-이 블록은 Moondex를 `AVAILABLE` catalog 항목으로 등록할 뿐 자동 설치하거나
-활성화하지 않습니다. 출력된 **View moondex** 링크를 Codex 앱에서 열고
-Moondex의 **Install/Enable** 동작을 완료하세요. 설치·활성화가 확인된 뒤에만
-아래 `$moondex:*` 명령을 사용합니다. **Share moondex** 링크는 같은 개인
-marketplace를 공유 모드로 여는 별도 handoff입니다.
-
-## 사용자 실행
-
-소비자 프로젝트에서 checkout 스크립트나 `PYTHONPATH`를 직접 다루지 않고 호출합니다.
-
-```text
-$moondex:execute
-$moondex:pr-converge
-$moondex:self-improve
-$moondex:code-mapper
-$moondex:harness audit
-```
-
-스킬은 `<moondex-runtime>`을 package-relative 경로로 해석합니다. 준비 형식은 자유이며
-사용자와 합의한 목표·설계·통과 조건을 revision bundle로 고정한 뒤 실행합니다.
-현재 대화 AI가 구현하고 script가 작업 배정·검증·복구를 담당합니다.
-
-- `ACTION`: 배정된 구현·원인 분석·의도 검토·기록 작업을 수행합니다.
-- `WAITING_PROCESS`: 실제 실행 결과를 기다립니다. 긴 빌드·테스트는 실패가 아닙니다.
-- `WAITING_USER` / `RECOVERY_REQUIRED`: 저장된 질문·시도·증거·영향에 맞춰 결정합니다.
-- `COMPLETED`: 통합 검증과 필요한 기록을 마친 결과입니다.
-
-`status`는 읽기 전용입니다. `resume`은 승인된 실행을 복구하고 진행할 수 있습니다.
-AI는 결과를 제출하고 advance를 호출하며 공유 상태를 직접 수정하지 않습니다.
-총시간·토큰 제한은 없고, 확인된 실패의 자동 복구는 최대 2회입니다.
-구형 SDD 스킬은 공개 목록에서 제거했고, 역사 자료와 회귀 검증용 파일은 `legacy/`에 보존합니다.
-공용 런처는 `runtime/`에 있으며 설치 실행 경로는 legacy 파일을 필요로 하지 않습니다.
-
-## 로컬 데이터와 선택 기능
-
-- 실행 상태와 원본 증거는 `.moondex/`, 승인 revision과 결과는 `docs/execution/`에 기록합니다.
-- 다른 하네스 기능의 원문 evidence는 `.harness/audit/`, redacted 표현은 `.harness/reports/`에 둡니다.
-- Compound는 명시적 설정이 없으면 `SKIPPED`입니다. 필수 기록 미완료는 전체 완료가 아닙니다.
-- 개인 경로나 조직 destination의 기본값은 없습니다.
-- `moondex-verify` CI는 실제 지원되는 명시적 검증 명령을 사용합니다.
-- 자동 훅 등록은 없습니다. 명시적 실행기와 검증 명령이 동작을 담당합니다.
-- PR 처분은 `SAFE_FIX`, `REJECTED`, `ESCALATED`를 사용하며 자가개선은 별도 호출입니다.
-
-## 주요 스킬
-
-| 호출 | 역할 |
-|---|---|
-| `$moondex:idea-workshop` | 아이디어 발산, 검증, PRD |
-| `$moondex:execute` | 합의한 기준 → 위임 구현·검증 → 결과·재개 |
-| `$moondex:pr-converge` | 리뷰 코멘트 apply/reject/escalate 수렴 |
-| `$moondex:self-improve` | 검증된 로컬 학습 후보 처리 |
-| `$moondex:code-mapper` | 코드 영향 탐색과 명시적 fallback |
-| `$moondex:harness audit` | 프로젝트 하네스 점검 |
-| `$moondex:handoff` | 실행 상태를 조회해 재개 문맥 보존 |
-| `$moondex:git-worktree` | 요청한 기준 commit으로 작업공간 격리 |
-| `$moondex:adversarial-review` | 반복 실패 원인과 대안 분석 |
-
-## 플러그인 개발자 전용
-
-아래 명령은 설치된 플러그인의 일반 사용자 명령이 아닙니다. Moondex checkout
-자체를 개발할 때만 checkout 루트에서 실행합니다.
-
-```bash
-python3 -m harness_core preflight --help
-python3 scripts/verify.py --help
-python3 scripts/pr_converge_adapter.py --help
-python3 runtime/moondex-runtime.py execute --help
-python3 scripts/run-benchmarks.py --help
-# Optional and mutating: installs wrappers in this checkout's .git/hooks/
-bash scripts/install-hooks.sh
-python3 -m pytest tests -q
-```
-
-`runtime/runtime-inventory.json`은 설치 런타임의 manifest, 크기, SHA-256,
-파일 종류를 고정합니다. 런타임 의존 파일을 변경했다면 별도의 공개 재생성 명령을
-추정하지 말고, 같은 변경에서 인벤토리를 갱신한 뒤 전체 테스트와 plugin validator를
-실행하세요. `tests/test_agent_profiles.py`가 인벤토리와 재귀 로컬 의존성 폐쇄의
-정합성을 검사합니다.
-
-## Porting notes
-
-`Claude Design`과 `claude-design`은 외부 시각 도구의 고유 이름이므로 해당
-워크플로우를 교체하기 전에는 이름을 바꾸지 않습니다.
-
-## License
-
-MIT
+MIT 라이선스이며 각 스킬의 참고 원문은 해당 문서에 표시되어 있습니다.
